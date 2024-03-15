@@ -150,7 +150,7 @@ void createCommonWorldObjects(SceneGenerationContext& context) {
   APlayerStart* playerStart = context.world->SpawnActor<APlayerStart>();
 
   FSoftObjectPath objectPath(
-      TEXT("Class'/CesiumForUnreal/DynamicPawn.DynamicPawn_C'"));
+      TEXT("Class'/ITwinForUnreal/DynamicPawn.DynamicPawn_C'"));
   TSoftObjectPtr<UObject> DynamicPawn = TSoftObjectPtr<UObject>(objectPath);
 
   context.georeference =

@@ -207,7 +207,7 @@ IMPLEMENT_VERTEX_FACTORY_PARAMETER_TYPE(
 
 IMPLEMENT_VERTEX_FACTORY_TYPE(
     FCesiumPointAttenuationVertexFactory,
-    "/Plugin/CesiumForUnreal/Private/CesiumPointAttenuationVertexFactory.ush",
+    "/Plugin/ITwinForUnreal/Private/CesiumPointAttenuationVertexFactory.ush",
     EVertexFactoryFlags::UsedWithMaterials |
         EVertexFactoryFlags::SupportsDynamicLighting |
         EVertexFactoryFlags::SupportsPositionOnly);

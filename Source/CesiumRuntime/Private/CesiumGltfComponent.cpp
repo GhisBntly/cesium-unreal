@@ -3013,13 +3013,13 @@ UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
     ConstructorHelpers::FObjectFinder<UTexture2D> Transparent1x1;
     FConstructorStatics()
         : BaseMaterial(TEXT(
-              "/CesiumForUnreal/Materials/Instances/MI_CesiumThreeOverlaysAndClipping.MI_CesiumThreeOverlaysAndClipping")),
+              "/ITwinForUnreal/Materials/Instances/MI_CesiumThreeOverlaysAndClipping.MI_CesiumThreeOverlaysAndClipping")),
           BaseMaterialWithTranslucency(TEXT(
-              "/CesiumForUnreal/Materials/Instances/MI_CesiumThreeOverlaysAndClippingTranslucent.MI_CesiumThreeOverlaysAndClippingTranslucent")),
+              "/ITwinForUnreal/Materials/Instances/MI_CesiumThreeOverlaysAndClippingTranslucent.MI_CesiumThreeOverlaysAndClippingTranslucent")),
           BaseMaterialWithWater(TEXT(
-              "/CesiumForUnreal/Materials/Instances/MI_CesiumThreeOverlaysAndClippingAndWater.MI_CesiumThreeOverlaysAndClippingAndWater")),
+              "/ITwinForUnreal/Materials/Instances/MI_CesiumThreeOverlaysAndClippingAndWater.MI_CesiumThreeOverlaysAndClippingAndWater")),
           Transparent1x1(
-              TEXT("/CesiumForUnreal/Textures/transparent1x1.transparent1x1")) {
+              TEXT("/ITwinForUnreal/Textures/transparent1x1.transparent1x1")) {
     }
   };
   static FConstructorStatics ConstructorStatics;

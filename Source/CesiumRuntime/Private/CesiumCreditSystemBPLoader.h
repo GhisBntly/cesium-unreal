@@ -14,5 +14,5 @@ public:
   UPROPERTY()
   TSoftObjectPtr<UObject> CesiumCreditSystemBP = TSoftObjectPtr<
       UObject>(FSoftObjectPath(TEXT(
-      "Class'/CesiumForUnreal/CesiumCreditSystemBP.CesiumCreditSystemBP_C'")));
+      "Class'/ITwinForUnreal/CesiumCreditSystemBP.CesiumCreditSystemBP_C'")));
 };

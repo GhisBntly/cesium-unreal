@@ -45,10 +45,10 @@ void FCesiumRuntimeModule::StartupModule() {
       ".json");
 
   FString PluginShaderDir = FPaths::Combine(
-      IPluginManager::Get().FindPlugin(TEXT("CesiumForUnreal"))->GetBaseDir(),
+      IPluginManager::Get().FindPlugin(TEXT("ITwinForUnreal"))->GetBaseDir(),
       TEXT("Shaders"));
   AddShaderSourceDirectoryMapping(
-      TEXT("/Plugin/CesiumForUnreal"),
+      TEXT("/Plugin/ITwinForUnreal"),
       PluginShaderDir);
 }
 

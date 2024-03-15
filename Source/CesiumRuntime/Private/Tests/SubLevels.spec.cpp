@@ -45,7 +45,7 @@ void FSubLevelsSpec::Define() {
     pSubLevel1 = pWorld->SpawnActor<ALevelInstance>();
     trackForPlay(pSubLevel1);
     pSubLevel1->SetWorldAsset(TSoftObjectPtr<UWorld>(
-        FSoftObjectPath("/CesiumForUnreal/Tests/Maps/SingleCube.SingleCube")));
+        FSoftObjectPath("/ITwinForUnreal/Tests/Maps/SingleCube.SingleCube")));
     pSubLevel1->SetIsTemporarilyHiddenInEditor(true);
     pLevelComponent1 =
         Cast<UCesiumSubLevelComponent>(pSubLevel1->AddComponentByClass(
@@ -61,7 +61,7 @@ void FSubLevelsSpec::Define() {
     pSubLevel2 = pWorld->SpawnActor<ALevelInstance>();
     trackForPlay(pSubLevel2);
     pSubLevel2->SetWorldAsset(TSoftObjectPtr<UWorld>(FSoftObjectPath(
-        "/CesiumForUnreal/Tests/Maps/ConeAndCylinder.ConeAndCylinder")));
+        "/ITwinForUnreal/Tests/Maps/ConeAndCylinder.ConeAndCylinder")));
     pSubLevel2->SetIsTemporarilyHiddenInEditor(true);
     pLevelComponent2 =
         Cast<UCesiumSubLevelComponent>(pSubLevel2->AddComponentByClass(

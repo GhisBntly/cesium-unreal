@@ -72,7 +72,7 @@ ACesiumSunSky::ACesiumSunSky() : AActor() {
 
   if (!SkySphereClass) {
     static ConstructorHelpers::FClassFinder<AActor> skySphereFinder(
-        TEXT("Blueprint'/CesiumForUnreal/MobileSkySphere.MobileSkySphere_C'"));
+        TEXT("Blueprint'/ITwinForUnreal/MobileSkySphere.MobileSkySphere_C'"));
     if (skySphereFinder.Succeeded()) {
       SkySphereClass = skySphereFinder.Class;
     }

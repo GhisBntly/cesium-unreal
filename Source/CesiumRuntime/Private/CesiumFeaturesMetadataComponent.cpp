@@ -2340,11 +2340,11 @@ void UCesiumFeaturesMetadataComponent::GenerateMaterial() {
   FString PackageName = PackageBaseName + MaterialName;
 
   UMaterialFunction* SelectTexCoordsFunction = LoadMaterialFunction(
-      "/CesiumForUnreal/Materials/MaterialFunctions/CesiumSelectTexCoords.CesiumSelectTexCoords");
+      "/ITwinForUnreal/Materials/MaterialFunctions/CesiumSelectTexCoords.CesiumSelectTexCoords");
   UMaterialFunction* GetFeatureIdsFromAttributeFunction = LoadMaterialFunction(
-      "/CesiumForUnreal/Materials/MaterialFunctions/CesiumGetFeatureIdsFromAttribute.CesiumGetFeatureIdsFromAttribute");
+      "/ITwinForUnreal/Materials/MaterialFunctions/CesiumGetFeatureIdsFromAttribute.CesiumGetFeatureIdsFromAttribute");
   UMaterialFunction* GetFeatureIdsFromTextureFunction = LoadMaterialFunction(
-      "/CesiumForUnreal/Materials/MaterialFunctions/CesiumGetFeatureIdsFromTexture.CesiumGetFeatureIdsFromTexture");
+      "/ITwinForUnreal/Materials/MaterialFunctions/CesiumGetFeatureIdsFromTexture.CesiumGetFeatureIdsFromTexture");
 
   if (!SelectTexCoordsFunction || !GetFeatureIdsFromAttributeFunction ||
       !GetFeatureIdsFromTextureFunction) {

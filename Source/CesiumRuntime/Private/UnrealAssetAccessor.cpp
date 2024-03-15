@@ -110,7 +110,7 @@ UnrealAssetAccessor::UnrealAssetAccessor()
 
   IPluginManager& PluginManager = IPluginManager::Get();
   TSharedPtr<IPlugin> pCesiumPlugin =
-      PluginManager.FindPlugin("CesiumForUnreal");
+      PluginManager.FindPlugin("ITwinForUnreal");
 
   FString version = "unknown";
   if (pCesiumPlugin) {

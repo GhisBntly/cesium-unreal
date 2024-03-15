@@ -25,7 +25,7 @@ class CreditSystem;
 /**
  * Manages credits / atttribution for Cesium data sources. These credits
  * are displayed by the corresponding Blueprints class
- * /CesiumForUnreal/CesiumCreditSystemBP.CesiumCreditSystemBP_C.
+ * /ITwinForUnreal/CesiumCreditSystemBP.CesiumCreditSystemBP_C.
  */
 UCLASS(Abstract)
 class CESIUMRUNTIME_API ACesiumCreditSystem : public AActor {

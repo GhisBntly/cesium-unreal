@@ -18,11 +18,11 @@ UCesiumFlyToComponent::UCesiumFlyToComponent() {
     ConstructorHelpers::FObjectFinder<UCurveFloat> MaximumHeightByDistanceCurve;
     FConstructorStatics()
         : ProgressCurve(TEXT(
-              "/CesiumForUnreal/Curves/FlyTo/Curve_CesiumFlyToDefaultProgress_Float.Curve_CesiumFlyToDefaultProgress_Float")),
+              "/ITwinForUnreal/Curves/FlyTo/Curve_CesiumFlyToDefaultProgress_Float.Curve_CesiumFlyToDefaultProgress_Float")),
           HeightPercentageCurve(TEXT(
-              "/CesiumForUnreal/Curves/FlyTo/Curve_CesiumFlyToDefaultHeightPercentage_Float.Curve_CesiumFlyToDefaultHeightPercentage_Float")),
+              "/ITwinForUnreal/Curves/FlyTo/Curve_CesiumFlyToDefaultHeightPercentage_Float.Curve_CesiumFlyToDefaultHeightPercentage_Float")),
           MaximumHeightByDistanceCurve(TEXT(
-              "/CesiumForUnreal/Curves/FlyTo/Curve_CesiumFlyToDefaultMaximumHeightByDistance_Float.Curve_CesiumFlyToDefaultMaximumHeightByDistance_Float")) {
+              "/ITwinForUnreal/Curves/FlyTo/Curve_CesiumFlyToDefaultMaximumHeightByDistance_Float.Curve_CesiumFlyToDefaultMaximumHeightByDistance_Float")) {
     }
   };
   static FConstructorStatics ConstructorStatics;
