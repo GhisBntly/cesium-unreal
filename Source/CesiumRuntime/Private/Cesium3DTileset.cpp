@@ -24,6 +24,7 @@
 #include "CesiumGltfPrimitiveComponent.h"
 #include "CesiumIonClient/Connection.h"
 #include "CesiumLifetime.h"
+#include "CesiumMeshBuildCallbacks.h"
 #include "CesiumRasterOverlay.h"
 #include "CesiumRuntime.h"
 #include "CesiumRuntimeSettings.h"
@@ -707,6 +708,9 @@ public:
       options.pEncodedMetadataDescription_DEPRECATED =
           &(*this->_pActor->_metadataDescription_DEPRECATED);
     }
+
+    // propagate mesh construction callback, if any
+    options.MeshBuildCallbacks = this->_pActor->GetMeshBuildCallbacks();
 
     TUniquePtr<UCesiumGltfComponent::HalfConstructed> pHalf =
         UCesiumGltfComponent::CreateOffGameThread(transform, options);
@@ -2277,3 +2281,7 @@ void ACesium3DTileset::RuntimeSettingsChanged(
   }
 }
 #endif
+
+void ACesium3DTileset::SetMeshBuildCallbacks(const TWeakPtr<const ICesiumMeshBuildCallbacks>& Callbacks) {
+    this->_meshBuildCallbacks = Callbacks;
+}

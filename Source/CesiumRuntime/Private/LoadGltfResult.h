@@ -25,6 +25,8 @@
 #include <string>
 #include <unordered_map>
 
+class ICesiumMeshBuildCallbacks;
+
 namespace LoadGltfResult {
 /**
  * Represents the result of loading a glTF primitive on a game thread.
@@ -136,6 +138,12 @@ struct LoadPrimitiveResult {
    */
   CesiumGltf::IndexAccessorType IndexAccessor;
 
+  /**
+   * Optional mesh build callbacks. Called at the end of the mesh creation in
+   * Unreal, to let you update your own structures based on the cesium
+   * primitive just loaded.
+   */
+  TWeakPtr<const ICesiumMeshBuildCallbacks> MeshBuildCallbacks;
 #pragma endregion
 };
 

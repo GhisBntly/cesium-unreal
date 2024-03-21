@@ -32,6 +32,7 @@ class ACesiumCameraManager;
 class UCesiumBoundingVolumePoolComponent;
 class CesiumViewExtension;
 struct FCesiumCamera;
+class ICesiumMeshBuildCallbacks;
 
 namespace Cesium3DTilesSelection {
 class Tileset;
@@ -1126,6 +1127,20 @@ public:
    */
   void UpdateTransformFromCesium();
 
+  /**
+   * Get the attached mesh construction callback, if any.
+   */
+  const TWeakPtr<const ICesiumMeshBuildCallbacks>& GetMeshBuildCallbacks() const {
+      return this->_meshBuildCallbacks;
+  }
+
+  /**
+   * Set the mesh construction callback.
+   * Can be used to be notified when a mesh component is created from a Cesium
+   * primitive.
+   */
+  void SetMeshBuildCallbacks(const TWeakPtr<const ICesiumMeshBuildCallbacks>& Callbacks);
+
 private:
   /**
    * Writes the values of all properties of this actor into the
@@ -1226,6 +1241,10 @@ private:
   std::vector<Cesium3DTilesSelection::Tile*> _tilesToHideNextFrame;
 
   int32 _tilesetsBeingDestroyed;
+
+  // optional callback - when it is set, it will be called whenever a static
+  // mesh component is created from a cesium primitive.
+  TWeakPtr<const ICesiumMeshBuildCallbacks> _meshBuildCallbacks;
 
   friend class UnrealResourcePreparer;
   friend class UCesiumGltfPointsComponent;

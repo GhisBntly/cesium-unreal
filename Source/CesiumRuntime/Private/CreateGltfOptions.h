@@ -9,6 +9,8 @@
 #include "CesiumGltf/Node.h"
 #include "LoadGltfResult.h"
 
+class ICesiumMeshBuildCallbacks;
+
 // TODO: internal documentation
 namespace CreateGltfOptions {
 struct CreateModelOptions {
@@ -24,6 +26,7 @@ struct CreateModelOptions {
   bool alwaysIncludeTangents = false;
   bool createPhysicsMeshes = true;
   bool ignoreKhrMaterialsUnlit = false;
+  TWeakPtr<const ICesiumMeshBuildCallbacks> MeshBuildCallbacks = nullptr;
 };
 
 struct CreateNodeOptions {

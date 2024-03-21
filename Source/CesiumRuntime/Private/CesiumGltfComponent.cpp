@@ -9,6 +9,7 @@
 #include "CesiumGltfPointsComponent.h"
 #include "CesiumGltfPrimitiveComponent.h"
 #include "CesiumMaterialUserData.h"
+#include "CesiumMeshBuildCallbacks.h"
 #include "CesiumRasterOverlays.h"
 #include "CesiumRuntime.h"
 #include "CesiumTextureUtility.h"
@@ -1569,6 +1570,9 @@ static void loadPrimitive(
                     indices);
     }
   }
+
+  primitiveResult.MeshBuildCallbacks =
+      options.pMeshOptions->pNodeOptions->pModelOptions->MeshBuildCallbacks;
 }
 
 static void loadIndexedPrimitive(
@@ -2885,6 +2889,17 @@ static void loadPrimitiveGameThreadPart(
   pMaterial->TwoSided = true;
 
   pStaticMesh->AddMaterial(pMaterial);
+
+  if (loadResult.MeshBuildCallbacks.IsValid())
+  {
+      FStaticMeshLODResources const& LODResources = pStaticMesh->GetRenderData()->LODResources[0];
+      loadResult.MeshBuildCallbacks.Pin()->OnMeshComponentConstructed(
+          tile.getTileID(),
+          LODResources.GetNumVertices(),
+          pMaterial,
+          pGltf->Metadata,
+          pMesh->Features);
+  }
 
   pStaticMesh->SetLightingGuid();
   pStaticMesh->InitResources();
