@@ -11,6 +11,7 @@
 #include <Cesium3DTilesSelection/TileID.h>
 
 class UMaterialInstanceDynamic;
+class UStaticMeshComponent;
 struct FCesiumModelMetadata;
 struct FCesiumPrimitiveFeatures;
 
@@ -21,11 +22,11 @@ public:
   virtual ~ICesiumMeshBuildCallbacks();
 
   /**
-   * Called at the end of the static mesh component construction. 
+   * Called at the end of the static mesh component construction.
    */
-  virtual void OnMeshComponentConstructed(
+  virtual void OnMeshConstructed(
       const Cesium3DTilesSelection::TileID& tileId,
-      const int64 NumVertices,
+      const UStaticMeshComponent& MeshComponent,
       const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
       const FCesiumModelMetadata& Metadata,
       const FCesiumPrimitiveFeatures& Features) const = 0;

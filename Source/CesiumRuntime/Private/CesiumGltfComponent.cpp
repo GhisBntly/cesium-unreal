@@ -2889,18 +2889,6 @@ static void loadPrimitiveGameThreadPart(
   pMaterial->TwoSided = true;
 
   pStaticMesh->AddMaterial(pMaterial);
-
-  if (loadResult.MeshBuildCallbacks.IsValid())
-  {
-      FStaticMeshLODResources const& LODResources = pStaticMesh->GetRenderData()->LODResources[0];
-      loadResult.MeshBuildCallbacks.Pin()->OnMeshComponentConstructed(
-          tile.getTileID(),
-          LODResources.GetNumVertices(),
-          pMaterial,
-          pGltf->Metadata,
-          pMesh->Features);
-  }
-
   pStaticMesh->SetLightingGuid();
   pStaticMesh->InitResources();
 
@@ -2934,6 +2922,17 @@ static void loadPrimitiveGameThreadPart(
 
   pMesh->SetupAttachment(pGltf);
   pMesh->RegisterComponent();
+
+  // call the observer callback (if any) once all is done
+  if (loadResult.MeshBuildCallbacks.IsValid())
+  {
+      loadResult.MeshBuildCallbacks.Pin()->OnMeshConstructed(
+          tile.getTileID(),
+          *pMesh,
+          pMaterial,
+          pGltf->Metadata,
+          pMesh->Features);
+  }
 }
 
 /*static*/ TUniquePtr<UCesiumGltfComponent::HalfConstructed>
