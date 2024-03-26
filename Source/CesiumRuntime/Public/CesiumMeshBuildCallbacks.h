@@ -9,6 +9,7 @@
 #pragma once
 
 #include <Cesium3DTilesSelection/TileID.h>
+#include <UObject/WeakObjectPtr.h>
 #include <unordered_map>
 
 class UMaterialInstanceDynamic;
