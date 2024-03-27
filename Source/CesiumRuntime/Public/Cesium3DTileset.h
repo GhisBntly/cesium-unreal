@@ -1130,7 +1130,7 @@ public:
   /**
    * Get the attached mesh construction callback, if any.
    */
-  const TWeakPtr<const ICesiumMeshBuildCallbacks>& GetMeshBuildCallbacks() const {
+  const TWeakPtr<ICesiumMeshBuildCallbacks>& GetMeshBuildCallbacks() const {
       return this->_meshBuildCallbacks;
   }
 
@@ -1139,7 +1139,7 @@ public:
    * Can be used to be notified when a mesh component is created from a Cesium
    * primitive.
    */
-  void SetMeshBuildCallbacks(const TWeakPtr<const ICesiumMeshBuildCallbacks>& Callbacks);
+  void SetMeshBuildCallbacks(const TWeakPtr<ICesiumMeshBuildCallbacks>& Callbacks);
 
 private:
   /**
@@ -1244,7 +1244,7 @@ private:
 
   // optional callback - when it is set, it will be called whenever a static
   // mesh component is created from a cesium primitive.
-  TWeakPtr<const ICesiumMeshBuildCallbacks> _meshBuildCallbacks;
+  TWeakPtr<ICesiumMeshBuildCallbacks> _meshBuildCallbacks;
 
   friend class UnrealResourcePreparer;
   friend class UCesiumGltfPointsComponent;

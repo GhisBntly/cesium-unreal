@@ -2282,6 +2282,6 @@ void ACesium3DTileset::RuntimeSettingsChanged(
 }
 #endif
 
-void ACesium3DTileset::SetMeshBuildCallbacks(const TWeakPtr<const ICesiumMeshBuildCallbacks>& Callbacks) {
+void ACesium3DTileset::SetMeshBuildCallbacks(const TWeakPtr<ICesiumMeshBuildCallbacks>& Callbacks) {
     this->_meshBuildCallbacks = Callbacks;
 }

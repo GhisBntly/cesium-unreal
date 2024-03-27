@@ -26,10 +26,10 @@ public:
    */
   virtual void OnMeshConstructed(
       const Cesium3DTilesSelection::TileID& tileId,
-      const UStaticMeshComponent& MeshComponent,
+      const TWeakObjectPtr<UStaticMeshComponent>& MeshComponent,
       const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
       const FCesiumModelMetadata& Metadata,
-      const FCesiumPrimitiveFeatures& Features) const = 0;
+      const FCesiumPrimitiveFeatures& Features) = 0;
 
 private:
     static TSharedPtr<ICesiumMeshBuildCallbacks> Singleton;

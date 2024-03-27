@@ -2928,7 +2928,7 @@ static void loadPrimitiveGameThreadPart(
   {
       loadResult.MeshBuildCallbacks.Pin()->OnMeshConstructed(
           tile.getTileID(),
-          *pMesh,
+          pMesh,
           pMaterial,
           pGltf->Metadata,
           pMesh->Features);

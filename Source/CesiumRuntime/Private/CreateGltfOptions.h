@@ -26,7 +26,7 @@ struct CreateModelOptions {
   bool alwaysIncludeTangents = false;
   bool createPhysicsMeshes = true;
   bool ignoreKhrMaterialsUnlit = false;
-  TWeakPtr<const ICesiumMeshBuildCallbacks> MeshBuildCallbacks = nullptr;
+  TWeakPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks = nullptr;
 };
 
 struct CreateNodeOptions {

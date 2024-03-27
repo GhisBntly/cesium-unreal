@@ -143,7 +143,7 @@ struct LoadPrimitiveResult {
    * Unreal, to let you update your own structures based on the cesium
    * primitive just loaded.
    */
-  TWeakPtr<const ICesiumMeshBuildCallbacks> MeshBuildCallbacks;
+  TWeakPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks;
 #pragma endregion
 };
 
