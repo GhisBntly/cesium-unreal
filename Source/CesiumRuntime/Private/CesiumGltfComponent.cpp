@@ -601,7 +601,8 @@ static void updateTextureCoordinatesForFeaturesMetadata(
     const CesiumEncodedFeaturesMetadata::EncodedModelMetadata&
         encodedModelMetadata,
     TMap<FString, uint32_t>& featuresMetadataTexcoordParameters,
-    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap) {
+    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap,
+    bool& bHasBakedMetaDataInUVs) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(
       Cesium::UpdateTextureCoordinatesForFeaturesMetadata)
@@ -706,6 +707,7 @@ static void updateTextureCoordinatesForFeaturesMetadata(
           }
         }
       }
+      bHasBakedMetaDataInUVs = true;
     } else if (encodedFeatureIDSet.texture) {
       const CesiumEncodedFeaturesMetadata::EncodedFeatureIdTexture&
           encodedFeatureIDTexture = *encodedFeatureIDSet.texture;
@@ -761,7 +763,8 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
         encodedPrimitiveMetadata,
     const TArray<FCesiumFeatureIdAttribute>& featureIdAttributes,
     TMap<FString, uint32_t>& metadataTextureCoordinateParameters,
-    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap) {
+    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap,
+    bool& bHasBakedMetaDataInUVs) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::UpdateTextureCoordinatesForMetadata)
 
@@ -863,6 +866,7 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
           }
         }
       }
+      bHasBakedMetaDataInUVs = true;
     }
   }
 }
@@ -1004,6 +1008,9 @@ static void loadPrimitive(
       return;
     }
   }
+
+  primitiveResult.MeshBuildCallbacks =
+      options.pMeshOptions->pNodeOptions->pModelOptions->MeshBuildCallbacks;
 
   auto normalAccessorIt = primitive.attributes.find("NORMAL");
   AccessorView<TMeshVector3> normalAccessor;
@@ -1333,6 +1340,8 @@ static void loadPrimitive(
   const FCesiumFeaturesMetadataDescription* pFeaturesMetadataDescription =
       pModelOptions->pFeaturesMetadataDescription;
 
+  bool bHasBakedMetaDataInUVs = false;
+
   // Check for deprecated metadata description
   const FMetadataDescription* pMetadataDescription_DEPRECATED =
       pModelOptions->pEncodedMetadataDescription_DEPRECATED;
@@ -1360,7 +1369,8 @@ static void loadPrimitive(
         primitiveResult.EncodedMetadata,
         pModelResult->EncodedMetadata,
         primitiveResult.FeaturesMetadataTexCoordParameters,
-        gltfToUnrealTexCoordMap);
+        gltfToUnrealTexCoordMap,
+        bHasBakedMetaDataInUVs);
   } else if (pMetadataDescription_DEPRECATED) {
     primitiveResult.EncodedMetadata_DEPRECATED =
         CesiumEncodedMetadataUtility::encodeMetadataPrimitiveAnyThreadPart(
@@ -1378,7 +1388,8 @@ static void loadPrimitive(
         UCesiumMetadataPrimitiveBlueprintLibrary::GetFeatureIdAttributes(
             primitiveResult.Metadata_DEPRECATED),
         primitiveResult.FeaturesMetadataTexCoordParameters,
-        gltfToUnrealTexCoordMap);
+        gltfToUnrealTexCoordMap,
+        bHasBakedMetaDataInUVs);
   }
   PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -1486,10 +1497,22 @@ static void loadPrimitive(
       ColorVertexBuffer.Init(StaticMeshBuildVertices, false);
     }
 
+    uint32 NumTexCoords =
+        gltfToUnrealTexCoordMap.size() == 0 ? 1
+                                            : gltfToUnrealTexCoordMap.size();
+    if (primitiveResult.MeshBuildCallbacks.IsValid()
+        && primitiveResult.MeshBuildCallbacks.Pin()->ShouldAllocateUVForFeatures()
+        && !bHasBakedMetaDataInUVs
+        && NumTexCoords < MAX_STATIC_TEXCOORDS)
+    {
+        // add an additional UV layer in case we need to bake features in UVs on demand
+        // (for some reason, this seems to be ignored by Unreal: the mesh is always
+        // created with MAX_STATIC_TEXCOORDS...)
+        NumTexCoords++;
+    }
     LODResources.VertexBuffers.StaticMeshVertexBuffer.Init(
         StaticMeshBuildVertices,
-        gltfToUnrealTexCoordMap.size() == 0 ? 1
-                                            : gltfToUnrealTexCoordMap.size(),
+        NumTexCoords,
         false);
   }
 
@@ -1570,9 +1593,6 @@ static void loadPrimitive(
                     indices);
     }
   }
-
-  primitiveResult.MeshBuildCallbacks =
-      options.pMeshOptions->pNodeOptions->pModelOptions->MeshBuildCallbacks;
 }
 
 static void loadIndexedPrimitive(
@@ -2930,8 +2950,12 @@ static void loadPrimitiveGameThreadPart(
           tile.getTileID(),
           pMesh,
           pMaterial,
-          pGltf->Metadata,
-          pMesh->Features);
+          {
+              pMesh->pMeshPrimitive,
+              pGltf->Metadata,
+              pMesh->Features,
+              pMesh->GltfToUnrealTexCoordMap
+          });
   }
 }
 
