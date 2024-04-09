@@ -1141,6 +1141,9 @@ public:
    */
   void SetMeshBuildCallbacks(const TWeakPtr<ICesiumMeshBuildCallbacks>& Callbacks);
 
+  //! Sets the optional glTF model tuner.
+  void SetGltfTuner(const std::shared_ptr<Cesium3DTilesSelection::GltfTuner>& tuner);
+
 private:
   /**
    * Writes the values of all properties of this actor into the
@@ -1245,6 +1248,7 @@ private:
   // optional callback - when it is set, it will be called whenever a static
   // mesh component is created from a cesium primitive.
   TWeakPtr<ICesiumMeshBuildCallbacks> _meshBuildCallbacks;
+  std::shared_ptr<Cesium3DTilesSelection::GltfTuner> _gltfTuner;
 
   friend class UnrealResourcePreparer;
   friend class UCesiumGltfPointsComponent;
