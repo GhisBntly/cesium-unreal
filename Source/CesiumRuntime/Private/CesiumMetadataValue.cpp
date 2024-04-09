@@ -98,6 +98,22 @@ int64 UCesiumMetadataValueBlueprintLibrary::GetInteger64(
       Value._value);
 }
 
+uint64 UCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+    UPARAM(ref) const FCesiumMetadataValue& Value,
+    uint64 DefaultValue) {
+  return std::visit(
+      [DefaultValue](auto value) -> uint64 {
+        return CesiumGltf::MetadataConversions<uint64, decltype(value)>::convert(
+                   value)
+            .value_or(DefaultValue);
+      },
+      Value._value);
+}
+
+static uint64 GetUnsignedInteger64(
+    UPARAM(ref) const FCesiumMetadataValue& Value,
+    uint64 DefaultValue);
+
 float UCesiumMetadataValueBlueprintLibrary::GetFloat(
     UPARAM(ref) const FCesiumMetadataValue& Value,
     float DefaultValue) {
