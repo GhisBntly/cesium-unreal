@@ -10,6 +10,7 @@
 
 #include <Cesium3DTilesSelection/TileID.h>
 #include <UObject/WeakObjectPtr.h>
+#include <glm/mat4x4.hpp>
 #include <unordered_map>
 
 class UMaterialInstanceDynamic;
@@ -35,6 +36,7 @@ public:
       const FITwinCesiumModelMetadata& Metadata;
       const FITwinCesiumPrimitiveFeatures& Features;
       FITwinCesiumToUnrealTexCoordMap& GltfToUnrealTexCoordMap;
+      const glm::dmat4x4& Transform;
   };
 
   /**
