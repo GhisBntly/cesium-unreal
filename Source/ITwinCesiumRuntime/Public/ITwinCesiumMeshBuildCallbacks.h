@@ -36,7 +36,6 @@ public:
       const FITwinCesiumModelMetadata& Metadata;
       const FITwinCesiumPrimitiveFeatures& Features;
       FITwinCesiumToUnrealTexCoordMap& GltfToUnrealTexCoordMap;
-      const glm::dmat4x4& Transform;
   };
 
   /**

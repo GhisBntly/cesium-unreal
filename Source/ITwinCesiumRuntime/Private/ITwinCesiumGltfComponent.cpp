@@ -2954,8 +2954,7 @@ static void loadPrimitiveGameThreadPart(
               pMesh->pMeshPrimitive,
               pGltf->Metadata,
               pMesh->Features,
-              pMesh->GltfToUnrealTexCoordMap,
-              loadResult.transform
+              pMesh->GltfToUnrealTexCoordMap
           });
   }
 }
