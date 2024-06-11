@@ -2947,7 +2947,7 @@ static void loadPrimitiveGameThreadPart(
   if (loadResult.MeshBuildCallbacks.IsValid())
   {
       loadResult.MeshBuildCallbacks.Pin()->OnMeshConstructed(
-          tile.getTileID(),
+          tile,
           pMesh,
           pMaterial,
           {
