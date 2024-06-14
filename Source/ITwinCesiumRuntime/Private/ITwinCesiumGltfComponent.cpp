@@ -3136,7 +3136,7 @@ void UITwinCesiumGltfComponent::AttachRasterTile(
           UMaterialInstanceDynamic* pMaterial,
           UITwinCesiumMaterialUserData* pCesiumData) {
         // If this material uses material layers and has the Cesium user data,
-        // set the parameters on each material layer that maps to this overlay
+        // set the parameters on each material layer that maps to this overlay 
         // tile.
         if (pCesiumData) {
           FString name(
