@@ -19,7 +19,127 @@
 #include <CesiumAsync/IAssetAccessor.h>
 #include <Modules/ModuleManager.h>
 #include <spdlog/spdlog.h>
+#include "CesiumJsonReader/ExtensionsJsonHandler.h"
+#include "CesiumGltfReader/ExtensionCesiumRTCReader.h"
+#include "CesiumGltfReader/GltfReader.h"
 
+
+//#include "CesiumGltfReader/generated/src/registerExtensions.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/src/NamedObjectJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionCesiumRTCJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionBufferViewExtMeshoptCompressionJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionCesiumTileEdgesJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionExtInstanceFeaturesJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionExtMeshFeaturesJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionExtMeshGpuInstancingJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionKhrDracoMeshCompressionJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionKhrMaterialsUnlitJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionKhrTextureBasisuJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionKhrTextureTransformJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionMeshPrimitiveExtFeatureMetadataJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionMeshPrimitiveExtStructuralMetadataJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionMeshPrimitiveKhrMaterialsVariantsJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionModelExtStructuralMetadataJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionModelKhrMaterialsVariantsJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionModelMaxarMeshVariantsJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionNodeMaxarMeshVariantsJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionTextureWebpJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionModelExtFeatureMetadataJsonHandler.h"
+#include "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/generated/src/ExtensionBufferExtMeshoptCompressionJsonHandler.h"
+
+
+using namespace CesiumUtility;
+class ExtensionTester
+{
+public:
+    std::shared_ptr<CesiumJsonReader::ExtensionsJsonHandler> handler;
+    CesiumGltfReader::GltfReader reader;
+    ExtensionTester()
+    {
+        handler.reset(new CesiumJsonReader::ExtensionsJsonHandler(reader.getOptions()));
+    }
+    template <typename TExtended, typename TExtensionHandler>
+    void registerExtension() {
+        TExtended obj;
+        handler->reset(nullptr, &obj, TExtended::TypeName);
+        auto* extHandler = handler->readObjectKey(TExtensionHandler::ExtensionName);
+ /*       auto realext = dynamic_cast<TExtensionHandler*>(extHandler);
+        if (!realext)
+        {
+            throw std::runtime_error(std::string("wrong extension handler for ") + std::string(TExtensionHandler::ExtensionName));
+        }*/
+    }
+};
+void TestExtension()
+{
+    using namespace CesiumGltfReader;
+    ExtensionTester options;
+    options
+        .registerExtension<CesiumGltf::Model, ExtensionCesiumRTCJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Model,
+        ExtensionModelExtFeatureMetadataJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Model,
+        ExtensionModelExtStructuralMetadataJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Model,
+        ExtensionModelKhrMaterialsVariantsJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Model,
+        ExtensionModelMaxarMeshVariantsJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MeshPrimitive,
+        ExtensionCesiumTileEdgesJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MeshPrimitive,
+        ExtensionMeshPrimitiveExtFeatureMetadataJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MeshPrimitive,
+        ExtensionExtMeshFeaturesJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MeshPrimitive,
+        ExtensionMeshPrimitiveExtStructuralMetadataJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MeshPrimitive,
+        ExtensionKhrDracoMeshCompressionJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MeshPrimitive,
+        ExtensionMeshPrimitiveKhrMaterialsVariantsJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Node,
+        ExtensionExtInstanceFeaturesJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Node,
+        ExtensionExtMeshGpuInstancingJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Node,
+        ExtensionNodeMaxarMeshVariantsJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Buffer,
+        ExtensionBufferExtMeshoptCompressionJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::BufferView,
+        ExtensionBufferViewExtMeshoptCompressionJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Material,
+        ExtensionKhrMaterialsUnlitJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Texture,
+        ExtensionKhrTextureBasisuJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::Texture,
+        ExtensionTextureWebpJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::TextureInfo,
+        ExtensionKhrTextureTransformJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MaterialOcclusionTextureInfo,
+        ExtensionKhrTextureTransformJsonHandler>();
+    options.registerExtension<
+        CesiumGltf::MaterialNormalTextureInfo,
+        ExtensionKhrTextureTransformJsonHandler>();
+}
 #if CESIUM_TRACING_ENABLED
 #include <chrono>
 #endif
@@ -50,6 +170,7 @@ void FITwinCesiumRuntimeModule::StartupModule() {
   AddShaderSourceDirectoryMapping(
       TEXT("/Plugin/ITwinForUnreal"),
       PluginShaderDir);
+  TestExtension();
 }
 
 void FITwinCesiumRuntimeModule::ShutdownModule() { CESIUM_TRACE_SHUTDOWN(); }
