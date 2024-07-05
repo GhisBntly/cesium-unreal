@@ -143,7 +143,6 @@ public class ITwinCesiumRuntime : ModuleRules
                 }
             }
         }
-        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "../../../../../../Extern/cesium-unreal/extern/cesium-native/CesiumGltfReader/src"));
 
         PublicAdditionalLibraries.AddRange(libs.Select(lib => Path.Combine(libPath, libPrefix + lib + postfix + libPostfix)));
 
