@@ -103,7 +103,7 @@ uint64 UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
     uint64 DefaultValue) {
   return std::visit(
       [DefaultValue](auto value) -> uint64 {
-        return CesiumGltf::MetadataConversions<uint64, decltype(value)>::convert(
+        return CesiumGltf::MetadataConversions<uint64_t, decltype(value)>::convert(
                    value)
             .value_or(DefaultValue);
       },
