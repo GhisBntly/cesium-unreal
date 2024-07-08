@@ -2785,10 +2785,23 @@ static void loadPrimitiveGameThreadPart(
   }
 #endif
 
-  UMaterialInstanceDynamic* pMaterial = UMaterialInstanceDynamic::Create(
-      pBaseMaterial,
-      nullptr,
-      ImportedSlotName);
+  UMaterialInstanceDynamic* pMaterial(nullptr);
+  if (loadResult.MeshBuildCallbacks.IsValid())
+  {
+      // Possibility to override the material for this primitive
+      pMaterial = loadResult.MeshBuildCallbacks.Pin()->CreateMaterial_GameThread(
+          loadResult.pMeshPrimitive,
+          pBaseMaterial,
+          nullptr,
+          ImportedSlotName);
+  }
+  else
+  {
+      pMaterial = UMaterialInstanceDynamic::Create(
+          pBaseMaterial,
+          nullptr,
+          ImportedSlotName);
+  }
 
   pMaterial->SetFlags(
       RF_Transient | RF_DuplicateTransient | RF_TextExportTransient);
