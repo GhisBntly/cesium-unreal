@@ -1502,14 +1502,19 @@ static void loadPrimitive(
     LODResources.VertexBuffers.StaticMeshVertexBuffer.SetUseFullPrecisionUVs(
         true);
 
+    // For iTwin scene mapping mechanism (used both for Synchro 4D schedules and selection highlight), we
+    // need to access vertex data from the CPU (in packaged game, if we don't set this flag, the data can
+    // become inaccessible at any time...)
+    const bool bNeedsCPUAccess = true;
+
     LODResources.VertexBuffers.PositionVertexBuffer.Init(
         StaticMeshBuildVertices,
-        false);
+        bNeedsCPUAccess);
 
     FColorVertexBuffer& ColorVertexBuffer =
         LODResources.VertexBuffers.ColorVertexBuffer;
     if (hasVertexColors) {
-      ColorVertexBuffer.Init(StaticMeshBuildVertices, false);
+      ColorVertexBuffer.Init(StaticMeshBuildVertices, bNeedsCPUAccess);
     }
 
     uint32 NumTexCoords =
@@ -1525,10 +1530,13 @@ static void loadPrimitive(
         // created with MAX_STATIC_TEXCOORDS...)
         NumTexCoords++;
     }
+
+    FStaticMeshVertexBufferFlags VtxBufferFlags;
+    VtxBufferFlags.bNeedsCPUAccess = bNeedsCPUAccess;
     LODResources.VertexBuffers.StaticMeshVertexBuffer.Init(
         StaticMeshBuildVertices,
         NumTexCoords,
-        false);
+        VtxBufferFlags);
   }
 
   FStaticMeshSectionArray& Sections = LODResources.Sections;
