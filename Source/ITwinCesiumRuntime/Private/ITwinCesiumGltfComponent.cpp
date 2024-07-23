@@ -2980,8 +2980,11 @@ static void loadPrimitiveGameThreadPart(
   pMesh->SetupAttachment(pGltf);
   pMesh->RegisterComponent();
 
-  // call the observer callback (if any) once all is done
-  if (loadResult.MeshBuildCallbacks.IsValid())
+  // Call the observer callback (if any) once all is done
+  // If some tuning is about to be performed, postpone the mesh construction callback, as the present
+  // mesh will be replaced by the tuned model afterwards.
+  // TODO_AW could we avoid building the UE mesh in this case?
+  if (loadResult.MeshBuildCallbacks.IsValid() && !pTilesetActor->NeedGltfTuning(tile))
   {
       loadResult.MeshBuildCallbacks.Pin()->OnMeshConstructed(
           tile,
