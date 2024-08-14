@@ -10,7 +10,8 @@
 
 #include <Cesium3DTilesSelection/TileID.h>
 #include <UObject/WeakObjectPtr.h>
-#include <glm/mat4x4.hpp>
+
+#include <optional>
 #include <unordered_map>
 
 class UMaterialInstanceDynamic;
@@ -18,6 +19,7 @@ class UMaterialInterface;
 class UStaticMeshComponent;
 struct FITwinCesiumModelMetadata;
 struct FITwinCesiumPrimitiveFeatures;
+struct FStaticMeshLODResources;
 
 namespace CesiumGltf {
 	struct MeshPrimitive;
@@ -51,10 +53,8 @@ public:
 		const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
 		const FITwinCesiumMeshData& CesiumMeshData) = 0;
 
-	/**
-	* Whether an extra UV layer should be allocated for feature IDs.
-	*/
-	virtual bool ShouldAllocateUVForFeatures() const = 0;
+	virtual uint32 BakeFeatureIDsInVertexUVs(std::optional<uint32> featuresAccessorIndex,
+		FITwinCesiumMeshData const& CesiumMeshData, FStaticMeshLODResources& LODResources) const = 0;
 
 	/**
 	* Creates a material instance for the given primitive.

@@ -1520,9 +1520,7 @@ static void loadPrimitive(
     uint32 NumTexCoords =
         gltfToUnrealTexCoordMap.size() == 0 ? 1
                                             : gltfToUnrealTexCoordMap.size();
-    if (primitiveResult.MeshBuildCallbacks.IsValid()
-        && primitiveResult.MeshBuildCallbacks.Pin()->ShouldAllocateUVForFeatures()
-        && !bHasBakedMetaDataInUVs
+    if (!bHasBakedMetaDataInUVs
         && NumTexCoords < MAX_STATIC_TEXCOORDS)
     {
         // add an additional UV layer in case we need to bake features in UVs on demand
@@ -1537,6 +1535,13 @@ static void loadPrimitive(
         StaticMeshBuildVertices,
         NumTexCoords,
         VtxBufferFlags);
+
+    if (!bHasBakedMetaDataInUVs && primitiveResult.MeshBuildCallbacks.IsValid())
+    {
+        primitiveResult.MeshBuildCallbacks.Pin()->BakeFeatureIDsInVertexUVs(std::nullopt,
+            { &primitive, pModelResult->Metadata, primitiveResult.Features, gltfToUnrealTexCoordMap },
+            LODResources);
+    }
   }
 
   FStaticMeshSectionArray& Sections = LODResources.Sections;
