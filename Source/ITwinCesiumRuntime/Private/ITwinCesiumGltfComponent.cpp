@@ -1493,6 +1493,11 @@ static void loadPrimitive(
     computeTangentSpace(StaticMeshBuildVertices);
   }
 
+  // For iTwin scene mapping mechanism (used both for Synchro 4D schedules and selection highlight), we
+  // need to access vertex data from the CPU (in packaged game, if we don't set this flag, the data can
+  // become inaccessible at any time...)
+  const bool bNeedsCPUAccess = true;
+
   {
     TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::InitBuffers)
 
@@ -1501,11 +1506,6 @@ static void loadPrimitive(
     // precision when using 16-bit floats.
     LODResources.VertexBuffers.StaticMeshVertexBuffer.SetUseFullPrecisionUVs(
         true);
-
-    // For iTwin scene mapping mechanism (used both for Synchro 4D schedules and selection highlight), we
-    // need to access vertex data from the CPU (in packaged game, if we don't set this flag, the data can
-    // become inaccessible at any time...)
-    const bool bNeedsCPUAccess = true;
 
     LODResources.VertexBuffers.PositionVertexBuffer.Init(
         StaticMeshBuildVertices,
@@ -1564,6 +1564,9 @@ static void loadPrimitive(
 
   {
     TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::SetIndices)
+    if (bNeedsCPUAccess) {
+        LODResources.IndexBuffer.TrySetAllowCPUAccess(true);
+    }
     LODResources.IndexBuffer.SetIndices(
         indices,
         StaticMeshBuildVertices.Num() >= std::numeric_limits<uint16>::max()
