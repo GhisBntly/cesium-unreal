@@ -17,6 +17,7 @@
 class UMaterialInstanceDynamic;
 class UMaterialInterface;
 class UStaticMeshComponent;
+class USceneComponent;
 struct FITwinCesiumModelMetadata;
 struct FITwinCesiumPrimitiveFeatures;
 struct FStaticMeshLODResources;
@@ -52,6 +53,13 @@ public:
 		const TWeakObjectPtr<UStaticMeshComponent>& MeshComponent,
 		const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
 		const FITwinCesiumMeshData& CesiumMeshData) = 0;
+
+	/**
+	* Called before a tile is destroyed (when it is unloaded, typically).
+	*/
+	virtual void BeforeTileDestruction(
+		const Cesium3DTilesSelection::Tile& Tile,
+		USceneComponent* TileGltfComponent) = 0;
 
 	virtual uint32 BakeFeatureIDsInVertexUVs(std::optional<uint32> featuresAccessorIndex,
 		FITwinCesiumMeshData const& CesiumMeshData, FStaticMeshLODResources& LODResources) const = 0;
