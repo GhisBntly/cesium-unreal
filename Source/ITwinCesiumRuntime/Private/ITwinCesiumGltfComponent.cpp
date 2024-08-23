@@ -945,6 +945,36 @@ FName createSafeName(
   return FName(combined.c_str());
 }
 
+    // Log only once per unsupported primitive mode
+    struct PrimModeLogHelper
+    {
+        std::array<std::atomic_bool, (size_t)MeshPrimitive::Mode::TRIANGLE_FAN + 1> alreadyLogged_;
+
+        PrimModeLogHelper()
+            : alreadyLogged_{ {
+                {false},{false},{false},{false},{false},{false},{false}
+                } }
+        {
+        }
+
+        inline void OnUnsupportedMode(int32_t primMode) {
+            bool bLog = false;
+            if (primMode < 0 || primMode >= (int32_t)alreadyLogged_.size()) {
+                ensureMsgf(false, TEXT("Unknown primitive mode %d!"), primMode);
+                bLog = true;
+            }
+            else if (!alreadyLogged_[(size_t)primMode].exchange(true)) {
+                bLog = true;
+            }
+            if (bLog) {
+                UE_LOG(
+                    LogITwinCesium,
+                    Warning,
+                    TEXT("Primitive mode %d is not supported"),
+                    primMode);
+            }
+        }
+    };
 } // namespace
 
 template <class TIndexAccessor>
@@ -966,11 +996,8 @@ static void loadPrimitive(
       primitive.mode != MeshPrimitive::Mode::TRIANGLE_STRIP &&
       primitive.mode != MeshPrimitive::Mode::POINTS) {
     // TODO: add support for other primitive types.
-    UE_LOG(
-        LogITwinCesium,
-        Warning,
-        TEXT("Primitive mode %d is not supported"),
-        primitive.mode);
+    static PrimModeLogHelper primLogger;
+    primLogger.OnUnsupportedMode(primitive.mode);
     return;
   }
 
