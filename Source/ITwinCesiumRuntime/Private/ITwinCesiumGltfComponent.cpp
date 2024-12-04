@@ -3106,9 +3106,11 @@ UITwinCesiumGltfComponent::CreateOffGameThread(
     encodeMetadataGameThreadPart(*Gltf->EncodedMetadata_DEPRECATED);
   }
 
+  LoadGltfResult::LoadPrimitiveResult* pAnyPrimResult = nullptr;
   for (LoadNodeResult& node : pReal->loadModelResult.nodeResults) {
     if (node.meshResult) {
       for (LoadPrimitiveResult& primitive : node.meshResult->primitiveResults) {
+        pAnyPrimResult = &primitive;
         loadPrimitiveGameThreadPart(
             model,
             Gltf,
@@ -3120,6 +3122,8 @@ UITwinCesiumGltfComponent::CreateOffGameThread(
       }
     }
   }
+  if (pAnyPrimResult && pAnyPrimResult->MeshBuildCallbacks.IsValid() && !pTilesetActor->NeedGltfTuning(tile))
+    pAnyPrimResult->MeshBuildCallbacks.Pin()->OnTileConstructed(tile);
 
   Gltf->SetVisibility(false, true);
   Gltf->SetCollisionEnabled(ECollisionEnabled::NoCollision);

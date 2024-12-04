@@ -58,6 +58,11 @@ public:
 		const FITwinCesiumMeshData& CesiumMeshData) = 0;
 
 	/**
+	* Called at the end of all static mesh components' construction for a given tile.
+	*/
+	virtual void OnTileConstructed(const Cesium3DTilesSelection::Tile& Tile) = 0;
+
+	/**
 	* Called before a tile is destroyed (when it is unloaded, typically).
 	*/
 	virtual void BeforeTileDestruction(
