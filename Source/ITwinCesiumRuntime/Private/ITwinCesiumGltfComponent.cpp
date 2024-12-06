@@ -2020,7 +2020,8 @@ static void SetGltfParameterValues(
     const MaterialPBRMetallicRoughness& pbr,
     UMaterialInstanceDynamic* pMaterial,
     EMaterialParameterAssociation association,
-    int32 index) {
+    int32 index,
+    ICesiumMeshBuildCallbacks const* materialTuner) {
   for (auto& textureCoordinateSet : loadResult.textureCoordinateParameters) {
     pMaterial->SetScalarParameterValueByInfo(
         FMaterialParameterInfo(
@@ -2226,6 +2227,11 @@ static void SetGltfParameterValues(
     pMaterial->SetVectorParameterValueByInfo(
         FMaterialParameterInfo("emissiveFactor", association, index),
         FVector(1.0f, 1.0f, 1.0f));
+  }
+
+  // Extra material customizations
+  if (materialTuner) {
+      materialTuner->TuneMaterial(material, pbr, pMaterial, association, index);
   }
 }
 
@@ -2829,10 +2835,12 @@ static void loadPrimitiveGameThreadPart(
 #endif
 
   UMaterialInstanceDynamic* pMaterial(nullptr);
-  if (loadResult.MeshBuildCallbacks.IsValid())
+  TSharedPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks =
+      loadResult.MeshBuildCallbacks.Pin();
+  if (MeshBuildCallbacks)
   {
       // Possibility to override the material for this primitive
-      pMaterial = loadResult.MeshBuildCallbacks.Pin()->CreateMaterial_GameThread(
+      pMaterial = MeshBuildCallbacks->CreateMaterial_GameThread(
           loadResult.pMeshPrimitive,
           pBaseMaterial,
           nullptr,
@@ -2855,7 +2863,8 @@ static void loadPrimitiveGameThreadPart(
       pbr,
       pMaterial,
       EMaterialParameterAssociation::GlobalParameter,
-      INDEX_NONE);
+      INDEX_NONE,
+      MeshBuildCallbacks.Get());
   ITwinCesium::SetWaterParameterValues(
       model,
       loadResult,
@@ -2901,7 +2910,8 @@ static void loadPrimitiveGameThreadPart(
         pbr,
         pMaterial,
         EMaterialParameterAssociation::LayerParameter,
-        0);
+        0,
+        MeshBuildCallbacks.Get());
 
     // Initialize fade uniform to fully visible, in case LOD transitions
     // are off.
@@ -3019,9 +3029,9 @@ static void loadPrimitiveGameThreadPart(
   // If some tuning is about to be performed, postpone the mesh construction callback, as the present
   // mesh will be replaced by the tuned model afterwards.
   // TODO_AW could we avoid building the UE mesh in this case?
-  if (loadResult.MeshBuildCallbacks.IsValid() && !pTilesetActor->NeedGltfTuning(tile))
+  if (MeshBuildCallbacks && !pTilesetActor->NeedGltfTuning(tile))
   {
-      loadResult.MeshBuildCallbacks.Pin()->OnMeshConstructed(
+      MeshBuildCallbacks->OnMeshConstructed(
           tile,
           pMesh,
           pMaterial,

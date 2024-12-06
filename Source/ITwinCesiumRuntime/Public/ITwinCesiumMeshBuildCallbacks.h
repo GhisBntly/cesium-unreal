@@ -16,6 +16,7 @@
 
 class UMaterialInstanceDynamic;
 class UMaterialInterface;
+enum EMaterialParameterAssociation : int;
 class UStaticMeshComponent;
 class USceneComponent;
 struct FITwinCesiumModelMetadata;
@@ -24,6 +25,8 @@ struct FStaticMeshLODResources;
 
 namespace CesiumGltf {
 	struct MeshPrimitive;
+	struct Material;
+	struct MaterialPBRMetallicRoughness;
 } // namespace CesiumGltf
 namespace Cesium3DTilesSelection {
 	class Tile;
@@ -72,6 +75,16 @@ public:
 		UMaterialInterface*& pBaseMaterial,
 		UObject* InOuter,
 		FName const& Name);
+
+	/**
+	* Tune the Unreal material instance, depending on the glTF material definition.
+	*/
+	virtual void TuneMaterial(
+		const CesiumGltf::Material& glTFmaterial,
+		const CesiumGltf::MaterialPBRMetallicRoughness& pbr,
+		UMaterialInstanceDynamic* pMaterial,
+		EMaterialParameterAssociation association,
+		int32 index) const;
 
 private:
 	static TSharedPtr<ICesiumMeshBuildCallbacks> Singleton;
