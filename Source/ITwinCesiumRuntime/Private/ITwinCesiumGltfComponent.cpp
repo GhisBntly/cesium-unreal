@@ -3122,12 +3122,27 @@ UITwinCesiumGltfComponent::CreateOffGameThread(
       }
     }
   }
+
   if (pAnyPrimResult && pAnyPrimResult->MeshBuildCallbacks.IsValid() && !pTilesetActor->NeedGltfTuning(tile))
+  {
     pAnyPrimResult->MeshBuildCallbacks.Pin()->OnTileConstructed(tile);
+    Gltf->ITwinVisibilityChanged =
+      [MeshBuildCallbacks = pAnyPrimResult->MeshBuildCallbacks, TileId = tile.getTileID()] (bool visible)
+        {
+          if (MeshBuildCallbacks.IsValid())
+            MeshBuildCallbacks.Pin()->OnVisibilityChanged(TileId, visible);
+        };
+  }
 
   Gltf->SetVisibility(false, true);
   Gltf->SetCollisionEnabled(ECollisionEnabled::NoCollision);
   return Gltf;
+}
+
+void UITwinCesiumGltfComponent::OnVisibilityChanged()
+{
+  USceneComponent::OnVisibilityChanged();
+  if (ITwinVisibilityChanged) ITwinVisibilityChanged(GetVisibleFlag());
 }
 
 UITwinCesiumGltfComponent::UITwinCesiumGltfComponent() : USceneComponent() {

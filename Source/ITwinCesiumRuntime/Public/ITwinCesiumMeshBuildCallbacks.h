@@ -63,6 +63,12 @@ public:
 	virtual void OnTileConstructed(const Cesium3DTilesSelection::Tile& Tile) = 0;
 
 	/**
+	* Called when changing the visibility of any UITwinCesiumGltfComponent, ie usually several times per
+	* tile (when the tileset selection leads to showing or hiding a whole tile).
+	*/
+	virtual void OnVisibilityChanged(const Cesium3DTilesSelection::TileID& TileID, bool visible) = 0;
+
+	/**
 	* Called before a tile is destroyed (when it is unloaded, typically).
 	*/
 	virtual void BeforeTileDestruction(

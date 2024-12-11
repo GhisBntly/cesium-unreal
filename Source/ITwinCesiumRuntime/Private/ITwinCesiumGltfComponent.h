@@ -122,10 +122,13 @@ public:
   virtual void SetCollisionEnabled(ECollisionEnabled::Type NewType);
 
   virtual void BeginDestroy() override;
+  virtual void OnVisibilityChanged() override;
 
   void UpdateFade(float fadePercentage, bool fadingIn);
 
 private:
   UPROPERTY()
   UTexture2D* Transparent1x1 = nullptr;
+
+  std::function<void(bool/*visible*/)> ITwinVisibilityChanged;
 };
