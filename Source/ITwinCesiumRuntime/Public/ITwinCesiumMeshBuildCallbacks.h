@@ -52,7 +52,7 @@ public:
 	* Called at the end of the static mesh component construction.
 	*/
 	virtual void OnMeshConstructed(
-		const Cesium3DTilesSelection::Tile& Tile,
+		Cesium3DTilesSelection::Tile& Tile,
 		const TWeakObjectPtr<UStaticMeshComponent>& MeshComponent,
 		const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
 		const FITwinCesiumMeshData& CesiumMeshData) = 0;

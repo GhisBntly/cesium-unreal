@@ -2743,7 +2743,7 @@ static void loadPrimitiveGameThreadPart(
     UITwinCesiumGltfComponent* pGltf,
     LoadPrimitiveResult& loadResult,
     const glm::dmat4x4& cesiumToUnrealTransform,
-    const Cesium3DTilesSelection::Tile& tile,
+    Cesium3DTilesSelection::Tile& tile,
     bool createNavCollision,
     AITwinCesium3DTileset* pTilesetActor) {
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::LoadPrimitive)
@@ -3063,7 +3063,7 @@ UITwinCesiumGltfComponent::CreateOffGameThread(
     UMaterialInterface* pBaseTranslucentMaterial,
     UMaterialInterface* pBaseWaterMaterial,
     FITwinCustomDepthParameters CustomDepthParameters,
-    const Cesium3DTilesSelection::Tile& tile,
+    Cesium3DTilesSelection::Tile& tile,
     bool createNavCollision) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::LoadModel)
