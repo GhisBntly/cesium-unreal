@@ -9,6 +9,7 @@
 #pragma once
 
 #include <Cesium3DTilesSelection/TileID.h>
+#include <Components.h>
 #include <UObject/WeakObjectPtr.h>
 
 #include <optional>
@@ -21,7 +22,6 @@ class UStaticMeshComponent;
 class USceneComponent;
 struct FITwinCesiumModelMetadata;
 struct FITwinCesiumPrimitiveFeatures;
-struct FStaticMeshLODResources;
 
 namespace CesiumGltf {
 	struct MeshPrimitive;
@@ -75,8 +75,17 @@ public:
 		const Cesium3DTilesSelection::Tile& Tile,
 		USceneComponent* TileGltfComponent) = 0;
 
-	virtual uint32 BakeFeatureIDsInVertexUVs(std::optional<uint32> featuresAccessorIndex,
-		FITwinCesiumMeshData const& CesiumMeshData, FStaticMeshLODResources& LODResources) const = 0;
+	/**
+	* Bakes feature IDs in next free slot of vertex UVs, if the primitive actually contains the attribute
+	* '_FEATURE_ID_0' dedicated to such features. Feature IDs will be filled in the first component of those
+	* UVs (ie. the 'u' component).
+	* Returns the UV slot actually filled, if any.
+	*/
+	virtual std::optional<uint32> BakeFeatureIDsInVertexUVs(std::optional<uint32> featuresAccessorIndex,
+		FITwinCesiumMeshData const& CesiumMeshData,
+		bool duplicateVertices,
+		TArray<FStaticMeshBuildVertex>& vertices,
+		TArray<uint32> const& indices) const = 0;
 
 	/**
 	* Creates a material instance for the given primitive.

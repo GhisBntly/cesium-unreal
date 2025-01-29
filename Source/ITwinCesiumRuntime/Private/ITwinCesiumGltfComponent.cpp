@@ -1433,6 +1433,18 @@ static void loadPrimitive(
         gltfToUnrealTexCoordMap,
         bHasBakedMetaDataInUVs);
   }
+
+  if (!bHasBakedMetaDataInUVs && primitiveResult.MeshBuildCallbacks.IsValid())
+  {
+      auto const uvIndexOpt = primitiveResult.MeshBuildCallbacks.Pin()->BakeFeatureIDsInVertexUVs(
+          std::nullopt,
+          { &primitive, pModelResult->Metadata, primitiveResult.Features, gltfToUnrealTexCoordMap },
+          duplicateVertices,
+          StaticMeshBuildVertices,
+          indices);
+      bHasBakedMetaDataInUVs = uvIndexOpt.has_value();
+  }
+
   PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
   // TangentX: Tangent
@@ -1547,14 +1559,6 @@ static void loadPrimitive(
     uint32 NumTexCoords =
         gltfToUnrealTexCoordMap.size() == 0 ? 1
                                             : gltfToUnrealTexCoordMap.size();
-    if (!bHasBakedMetaDataInUVs
-        && NumTexCoords < MAX_STATIC_TEXCOORDS)
-    {
-        // add an additional UV layer in case we need to bake features in UVs on demand
-        // (for some reason, this seems to be ignored by Unreal: the mesh is always
-        // created with MAX_STATIC_TEXCOORDS...)
-        NumTexCoords++;
-    }
 
     FStaticMeshVertexBufferFlags VtxBufferFlags;
     VtxBufferFlags.bNeedsCPUAccess = bNeedsCPUAccess;
@@ -1562,13 +1566,6 @@ static void loadPrimitive(
         StaticMeshBuildVertices,
         NumTexCoords,
         VtxBufferFlags);
-
-    if (!bHasBakedMetaDataInUVs && primitiveResult.MeshBuildCallbacks.IsValid())
-    {
-        primitiveResult.MeshBuildCallbacks.Pin()->BakeFeatureIDsInVertexUVs(std::nullopt,
-            { &primitive, pModelResult->Metadata, primitiveResult.Features, gltfToUnrealTexCoordMap },
-            LODResources);
-    }
   }
 
   FStaticMeshSectionArray& Sections = LODResources.Sections;
