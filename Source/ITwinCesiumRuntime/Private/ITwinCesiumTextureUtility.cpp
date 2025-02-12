@@ -26,6 +26,7 @@
 #include <CesiumUtility/Tracing.h>
 #include <memory>
 #include <variant>
+#include <unordered_set>
 
 using namespace CesiumGltf;
 
@@ -996,8 +997,23 @@ void destroyHalfLoadedTexture(LoadedTextureResult& halfLoaded) {
   }
 }
 
+
+namespace
+{
+    /// Quick hack introduced for ITwin AdvViz: some textures are created statically to nullify some effects
+    /// dynamically (NoNormalTexture, NoColorTexture etc.). They are instantiated through FConstructorStatics
+    /// approach, and should not be destroyed here.
+    static std::unordered_set<UTexture*> staticTextures_;
+}
+
+ITWINCESIUMRUNTIME_API void RegisterStaticallyConstructedTextures(std::vector<UTexture*> const& textures) {
+    staticTextures_.insert(textures.begin(), textures.end());
+}
+
 void destroyTexture(UTexture* pTexture) {
   check(pTexture != nullptr);
-  FITwinCesiumLifetime::destroy(pTexture);
+  if (staticTextures_.find(pTexture) == staticTextures_.end()) {
+    FITwinCesiumLifetime::destroy(pTexture);
+  }
 }
 } // namespace ITwinCesiumTextureUtility
