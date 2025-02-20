@@ -1146,6 +1146,10 @@ void AITwinCesium3DTileset::LoadTileset() {
 
   options.contentOptions.applyTextureTransform = false;
 
+  if (!this->UserCredit.IsEmpty()) {
+      options.credit = TCHAR_TO_UTF8(*this->UserCredit);
+  }
+
   switch (this->TilesetSource) {
   case EITwinTilesetSource::FromUrl:
     UE_LOG(LogITwinCesium, Log, TEXT("Loading tileset from URL %s"), *this->Url);
