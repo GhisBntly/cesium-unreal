@@ -284,6 +284,12 @@ public:
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cesium")
   FString UserCredit;
 
+  /**
+   * If true, the user credit text will always have the highest priority (thus will be on the left).
+   */
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cesium")
+  bool bHighPriorityUserCredit = false;
+
   /** @copydoc AITwinCesium3DTileset::CameraManager */
   UFUNCTION(BlueprintGetter, Category = "Cesium")
   TSoftObjectPtr<AITwinCesiumCameraManager> GetCameraManager() const;

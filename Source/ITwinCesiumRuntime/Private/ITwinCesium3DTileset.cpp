@@ -1146,8 +1146,11 @@ void AITwinCesium3DTileset::LoadTileset() {
 
   options.contentOptions.applyTextureTransform = false;
 
+  // [Addition for iTwin Advanced Viz]
   if (!this->UserCredit.IsEmpty()) {
       options.credit = TCHAR_TO_UTF8(*this->UserCredit);
+      if (this->bHighPriorityUserCredit)
+          options.creditPriority = 10; // any value greater than -1 would work...
   }
 
   switch (this->TilesetSource) {
