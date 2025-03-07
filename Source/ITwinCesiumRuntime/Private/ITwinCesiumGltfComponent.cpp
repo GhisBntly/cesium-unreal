@@ -3049,7 +3049,7 @@ static void loadPrimitiveGameThreadPart(
   // Call the observer callback (if any) once all is done
   // If some tuning is about to be performed, postpone the mesh construction callback, as the present
   // mesh will be replaced by the tuned model afterwards.
-  // TODO_AW could we avoid building the UE mesh in this case?
+  // (see also cesium-native changes to avoid building the UE mesh in this case)
   if (MeshBuildCallbacks && !pTilesetActor->NeedGltfTuning(tile))
   {
       MeshBuildCallbacks->OnMeshConstructed(
