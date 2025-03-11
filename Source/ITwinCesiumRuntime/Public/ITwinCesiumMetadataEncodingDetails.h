@@ -14,13 +14,13 @@
  * Unreal textures.
  */
 UENUM()
-enum class EITwinCesiumEncodedMetadataComponentType : uint8 { None, Uint8, Float };
+enum class ECesiumEncodedMetadataComponentType : uint8 { None, Uint8, Float };
 
 /**
  * @brief The type that a metadata property's values will be encoded as.
  */
 UENUM()
-enum class EITwinCesiumEncodedMetadataType : uint8 {
+enum class ECesiumEncodedMetadataType : uint8 {
   None,
   Scalar,
   Vec2,
@@ -33,7 +33,7 @@ enum class EITwinCesiumEncodedMetadataType : uint8 {
  * converted to a GPU-accessible type, if possible.
  */
 UENUM()
-enum class EITwinCesiumEncodedMetadataConversion : uint8 {
+enum class ECesiumEncodedMetadataConversion : uint8 {
   /**
    * Do nothing. This is typically used for property types that are
    * completely unable to be coerced.
@@ -63,14 +63,14 @@ struct FITwinCesiumMetadataEncodingDetails {
   GENERATED_USTRUCT_BODY()
 
   FITwinCesiumMetadataEncodingDetails()
-      : Type(EITwinCesiumEncodedMetadataType::None),
-        ComponentType(EITwinCesiumEncodedMetadataComponentType::None),
-        Conversion(EITwinCesiumEncodedMetadataConversion::None) {}
+      : Type(ECesiumEncodedMetadataType::None),
+        ComponentType(ECesiumEncodedMetadataComponentType::None),
+        Conversion(ECesiumEncodedMetadataConversion::None) {}
 
   FITwinCesiumMetadataEncodingDetails(
-      EITwinCesiumEncodedMetadataType InType,
-      EITwinCesiumEncodedMetadataComponentType InComponentType,
-      EITwinCesiumEncodedMetadataConversion InConversion)
+      ECesiumEncodedMetadataType InType,
+      ECesiumEncodedMetadataComponentType InComponentType,
+      ECesiumEncodedMetadataConversion InConversion)
       : Type(InType),
         ComponentType(InComponentType),
         Conversion(InConversion) {}
@@ -79,7 +79,7 @@ struct FITwinCesiumMetadataEncodingDetails {
    * The GPU-compatible type that this property's values will be encoded as.
    */
   UPROPERTY(EditAnywhere, Category = "Cesium")
-  EITwinCesiumEncodedMetadataType Type;
+  ECesiumEncodedMetadataType Type;
 
   /**
    * The GPU-compatible component type that this property's values will be
@@ -87,7 +87,7 @@ struct FITwinCesiumMetadataEncodingDetails {
    * supported in Unreal textures.
    */
   UPROPERTY(EditAnywhere, Category = "Cesium")
-  EITwinCesiumEncodedMetadataComponentType ComponentType;
+  ECesiumEncodedMetadataComponentType ComponentType;
 
   /**
    * The method of conversion used for this property. This describes how the
@@ -95,7 +95,7 @@ struct FITwinCesiumMetadataEncodingDetails {
    * property types are compatible with the methods of conversion.
    */
   UPROPERTY(EditAnywhere, Category = "Cesium")
-  EITwinCesiumEncodedMetadataConversion Conversion;
+  ECesiumEncodedMetadataConversion Conversion;
 
   inline bool operator==(const FITwinCesiumMetadataEncodingDetails& Info) const {
     return Type == Info.Type && ComponentType == Info.ComponentType &&
@@ -108,7 +108,7 @@ struct FITwinCesiumMetadataEncodingDetails {
   }
 
   bool HasValidType() const {
-    return Type != EITwinCesiumEncodedMetadataType::None &&
-           ComponentType != EITwinCesiumEncodedMetadataComponentType::None;
+    return Type != ECesiumEncodedMetadataType::None &&
+           ComponentType != ECesiumEncodedMetadataComponentType::None;
   }
 };

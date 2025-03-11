@@ -15,7 +15,7 @@ class IAssetAccessor;
 class ICacheDatabase;
 } // namespace CesiumAsync
 
-DECLARE_LOG_CATEGORY_EXTERN(LogITwinCesium, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogCesium, Log, All);
 
 class FITwinCesiumRuntimeModule : public IModuleInterface {
 public:
@@ -46,10 +46,9 @@ DECLARE_MULTICAST_DELEGATE_OneParam(
 ITWINCESIUMRUNTIME_API extern FITwinCesiumRasterOverlayIonTroubleshooting
     OnCesiumRasterOverlayIonTroubleshooting;
 
-namespace ITwinCesium
-{
-    ITWINCESIUMRUNTIME_API CesiumAsync::AsyncSystem& getAsyncSystem() noexcept;
-    ITWINCESIUMRUNTIME_API const std::shared_ptr<CesiumAsync::IAssetAccessor>& getAssetAccessor();
+ITWINCESIUMRUNTIME_API CesiumAsync::AsyncSystem& getAsyncSystem() noexcept;
+ITWINCESIUMRUNTIME_API const std::shared_ptr<CesiumAsync::IAssetAccessor>&
+getAssetAccessor();
 
-    ITWINCESIUMRUNTIME_API std::shared_ptr<CesiumAsync::ICacheDatabase>& getCacheDatabase();
-}
+ITWINCESIUMRUNTIME_API std::shared_ptr<CesiumAsync::ICacheDatabase>&
+getCacheDatabase();

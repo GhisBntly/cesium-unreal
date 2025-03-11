@@ -16,13 +16,13 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
   GENERATED_USTRUCT_BODY()
 
   FITwinCesiumMetadataPropertyDetails()
-      : Type(EITwinCesiumMetadataType::Invalid),
-        ComponentType(EITwinCesiumMetadataComponentType::None),
+      : Type(ECesiumMetadataType::Invalid),
+        ComponentType(ECesiumMetadataComponentType::None),
         bIsArray(false) {}
 
   FITwinCesiumMetadataPropertyDetails(
-      EITwinCesiumMetadataType InType,
-      EITwinCesiumMetadataComponentType InComponentType,
+      ECesiumMetadataType InType,
+      ECesiumMetadataComponentType InComponentType,
       bool IsArray)
       : Type(InType), ComponentType(InComponentType), bIsArray(IsArray) {}
 
@@ -30,7 +30,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
    * The type of the metadata property.
    */
   UPROPERTY(EditAnywhere, Category = "Cesium")
-  EITwinCesiumMetadataType Type = EITwinCesiumMetadataType::Invalid;
+  ECesiumMetadataType Type = ECesiumMetadataType::Invalid;
 
   /**
    * The component of the metadata property. Only applies when the type is a
@@ -41,9 +41,9 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
       Category = "Cesium",
       Meta =
           (EditCondition =
-               "Type != EITwinCesiumMetadataType::Invalid && Type != EITwinCesiumMetadataType::Boolean && Type != EITwinCesiumMetadataType::Enum && Type != EITwinCesiumMetadataType::String"))
-  EITwinCesiumMetadataComponentType ComponentType =
-      EITwinCesiumMetadataComponentType::None;
+               "Type != ECesiumMetadataType::Invalid && Type != ECesiumMetadataType::Boolean && Type != ECesiumMetadataType::Enum && Type != ECesiumMetadataType::String"))
+  ECesiumMetadataComponentType ComponentType =
+      ECesiumMetadataComponentType::None;
 
   /**
    * Whether or not this represents an array containing elements of the
@@ -76,7 +76,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
       Category = "Cesium",
       Meta =
           (EditCondition =
-               "Type != EITwinCesiumMetadataType::Invalid && Type != EITwinCesiumMetadataType::Boolean && Type != EITwinCesiumMetadataType::Enum && Type != EITwinCesiumMetadataType::String && ComponentType != EITwinCesiumMetadataComponentType::None && ComponentType != EITwinCesiumMetadataComponentType::Float32 && ComponentType != EITwinCesiumMetadataComponentType::Float64"))
+               "Type != ECesiumMetadataType::Invalid && Type != ECesiumMetadataType::Boolean && Type != ECesiumMetadataType::Enum && Type != ECesiumMetadataType::String && ComponentType != ECesiumMetadataComponentType::None && ComponentType != ECesiumMetadataComponentType::Float32 && ComponentType != ECesiumMetadataComponentType::Float64"))
   bool bIsNormalized = false;
 
   /**
@@ -89,7 +89,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
       Category = "Cesium",
       Meta =
           (EditCondition =
-               "Type != EITwinCesiumMetadataType::Invalid && Type != EITwinCesiumMetadataType::Boolean && Type != EITwinCesiumMetadataType::Enum && Type != EITwinCesiumMetadataType::String"))
+               "Type != ECesiumMetadataType::Invalid && Type != ECesiumMetadataType::Boolean && Type != ECesiumMetadataType::Enum && Type != ECesiumMetadataType::String"))
   bool bHasOffset = false;
 
   /**
@@ -102,7 +102,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
       Category = "Cesium",
       Meta =
           (EditCondition =
-               "Type != EITwinCesiumMetadataType::Invalid && Type != EITwinCesiumMetadataType::Boolean && Type != EITwinCesiumMetadataType::Enum && Type != EITwinCesiumMetadataType::String"))
+               "Type != ECesiumMetadataType::Invalid && Type != ECesiumMetadataType::Boolean && Type != ECesiumMetadataType::Enum && Type != ECesiumMetadataType::String"))
   bool bHasScale = false;
 
   /**
@@ -114,7 +114,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
       Category = "Cesium",
       Meta =
           (EditCondition =
-               "Type != EITwinCesiumMetadataType::Invalid && Type != EITwinCesiumMetadataType::Boolean && Type != EITwinCesiumMetadataType::Enum"))
+               "Type != ECesiumMetadataType::Invalid && Type != ECesiumMetadataType::Boolean && Type != ECesiumMetadataType::Enum"))
   bool bHasNoDataValue = false;
 
   /**
@@ -127,7 +127,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumMetadataPropertyDetails {
       Category = "Cesium",
       Meta =
           (EditCondition =
-               "Type != EITwinCesiumMetadataType::Invalid && Type != EITwinCesiumMetadataType::Enum"))
+               "Type != ECesiumMetadataType::Invalid && Type != ECesiumMetadataType::Enum"))
   bool bHasDefaultValue = false;
 
   inline bool

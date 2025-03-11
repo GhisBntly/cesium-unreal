@@ -97,12 +97,12 @@ void legacy_populateMips(
 
 struct GetImageFromSource {
   CesiumGltf::ImageCesium*
-  operator()(ITwinCesiumTextureUtility::GltfImagePtr& imagePtr) {
+  operator()(CesiumTextureUtility::GltfImagePtr& imagePtr) {
     return imagePtr.pImage;
   }
 
   CesiumGltf::ImageCesium*
-  operator()(ITwinCesiumTextureUtility::EmbeddedImageSource& embeddedImage) {
+  operator()(CesiumTextureUtility::EmbeddedImageSource& embeddedImage) {
     return &embeddedImage.image;
   }
 
@@ -236,7 +236,7 @@ class FITwinCesiumTextureResource : public FTextureResource {
 public:
   FITwinCesiumTextureResource(
       UTexture* pTexture,
-      ITwinCesiumTextureUtility::CesiumTextureSource&& textureSource,
+      CesiumTextureUtility::CesiumTextureSource&& textureSource,
       uint32 width,
       uint32 height,
       EPixelFormat format,
@@ -257,8 +257,8 @@ public:
     this->bGreyScaleFormat = (_format == PF_G8) || (_format == PF_BC4);
     this->bSRGB = sRGB;
 
-    ITwinCesiumTextureUtility::AsyncCreatedTexture* pAsyncTexture =
-        std::get_if<ITwinCesiumTextureUtility::AsyncCreatedTexture>(
+    CesiumTextureUtility::AsyncCreatedTexture* pAsyncTexture =
+        std::get_if<CesiumTextureUtility::AsyncCreatedTexture>(
             &this->_textureSource);
     if (pAsyncTexture) {
       this->TextureRHI = pAsyncTexture->rhiTextureRef;
@@ -353,7 +353,7 @@ public:
       // Wrap mip0 as a bulk data source.
       FITwinCesiumTextureData bulkData(*pImage);
 
-      FRHIResourceCreateInfo createInfo{TEXT("ITwinCesiumTextureUtility")};
+      FRHIResourceCreateInfo createInfo{TEXT("CesiumTextureUtility")};
       createInfo.BulkData = &bulkData;
       createInfo.ExtData = _platformExtData;
 
@@ -427,7 +427,7 @@ public:
 
 private:
   UTexture* _pTexture;
-  ITwinCesiumTextureUtility::CesiumTextureSource _textureSource;
+  CesiumTextureUtility::CesiumTextureSource _textureSource;
 
   uint32 _width;
   uint32 _height;
@@ -569,7 +569,7 @@ FTexture2DRHIRef CreateRHITexture2D_Async(
 }
 } // namespace
 
-namespace ITwinCesiumTextureUtility {
+namespace CesiumTextureUtility {
 
 GltfImagePtr
 GltfImageIndex::resolveImage(const CesiumGltf::Model& model) const {
@@ -655,7 +655,7 @@ TUniquePtr<LoadedTextureResult> loadTextureAnyThreadPart(
         CesiumGltfReader::GltfReader::generateMipMaps(image);
     if (errorMessage) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT("%s"),
           UTF8_TO_TCHAR(errorMessage->c_str()));
@@ -774,7 +774,7 @@ TUniquePtr<LoadedTextureResult> loadTextureAnyThreadPart(
     if (pKtxExtension->source < 0 ||
         pKtxExtension->source >= model.images.size()) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT(
               "KTX texture source index must be non-negative and less than %d, but is %d"),
@@ -787,7 +787,7 @@ TUniquePtr<LoadedTextureResult> loadTextureAnyThreadPart(
     if (pWebpExtension->source < 0 ||
         pWebpExtension->source >= model.images.size()) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT(
               "WebP texture source index must be non-negative and less than %d, but is %d"),
@@ -799,7 +799,7 @@ TUniquePtr<LoadedTextureResult> loadTextureAnyThreadPart(
   } else {
     if (texture.source < 0 || texture.source >= model.images.size()) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT(
               "Texture source index must be non-negative and less than %d, but is %d"),
@@ -1013,7 +1013,7 @@ ITWINCESIUMRUNTIME_API void RegisterStaticallyConstructedTextures(std::vector<UT
 void destroyTexture(UTexture* pTexture) {
   check(pTexture != nullptr);
   if (staticTextures_.find(pTexture) == staticTextures_.end()) {
-    FITwinCesiumLifetime::destroy(pTexture);
+    CesiumLifetime::destroy(pTexture);
   }
 }
-} // namespace ITwinCesiumTextureUtility
+} // namespace CesiumTextureUtility

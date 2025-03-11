@@ -66,7 +66,7 @@
 #endif
 
 using namespace CesiumGltf;
-using namespace ITwinCesiumTextureUtility;
+using namespace CesiumTextureUtility;
 using namespace CreateGltfOptions;
 using namespace LoadGltfResult;
 
@@ -80,9 +80,9 @@ static uint32_t nextMaterialId = 0;
 
 namespace {
 void destroyHalfLoadedTexture(
-    TUniquePtr<ITwinCesiumTextureUtility::LoadedTextureResult>& pHalfLoadedTexture) {
+    TUniquePtr<CesiumTextureUtility::LoadedTextureResult>& pHalfLoadedTexture) {
   if (pHalfLoadedTexture) {
-    ITwinCesiumTextureUtility::destroyHalfLoadedTexture(*pHalfLoadedTexture.Get());
+    CesiumTextureUtility::destroyHalfLoadedTexture(*pHalfLoadedTexture.Get());
   }
 }
 class HalfConstructedReal : public UITwinCesiumGltfComponent::HalfConstructed {
@@ -109,17 +109,6 @@ public:
 };
 } // namespace
 
-namespace ITwinCesium {
-    uint32_t updateTextureCoordinates(
-        const Model& model,
-        const MeshPrimitive& primitive,
-        bool duplicateVertices,
-        TArray<FStaticMeshBuildVertex>& vertices,
-        const TArray<uint32>& indices,
-        const std::string& attributeName,
-        std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap);
-}
-
 template <class... T> struct IsAccessorView;
 
 template <class T> struct IsAccessorView<T> : std::false_type {};
@@ -139,7 +128,7 @@ static uint32_t updateTextureCoordinates(
     return 0;
   }
 
-  return ITwinCesium::updateTextureCoordinates(
+  return updateTextureCoordinates(
       model,
       primitive,
       duplicateVertices,
@@ -148,8 +137,6 @@ static uint32_t updateTextureCoordinates(
       "TEXCOORD_" + std::to_string(texture.value().texCoord),
       gltfToUnrealTexCoordMap);
 }
-
-namespace ITwinCesium {
 
 uint32_t updateTextureCoordinates(
     const Model& model,
@@ -203,8 +190,6 @@ uint32_t updateTextureCoordinates(
 
   return textureCoordinateIndex;
 }
-
-} // ITwinCesium
 
 static int mikkGetNumFaces(const SMikkTSpaceContext* Context) {
   TArray<FStaticMeshBuildVertex>& vertices =
@@ -424,7 +409,7 @@ struct ColorVisitor {
 };
 
 template <class T>
-static TUniquePtr<ITwinCesiumTextureUtility::LoadedTextureResult> loadTexture(
+static TUniquePtr<CesiumTextureUtility::LoadedTextureResult> loadTexture(
     CesiumGltf::Model& model,
     const std::optional<T>& gltfTexture,
     bool sRGB) {
@@ -432,7 +417,7 @@ static TUniquePtr<ITwinCesiumTextureUtility::LoadedTextureResult> loadTexture(
       gltfTexture.value().index >= model.textures.size()) {
     if (gltfTexture && gltfTexture.value().index >= 0) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT("Texture index must be less than %d, but is %d"),
           model.textures.size(),
@@ -541,7 +526,7 @@ static void createTexCoordAccessorsForFeaturesMetadata(
   auto featureIdTextures =
       UITwinCesiumPrimitiveFeaturesBlueprintLibrary::GetFeatureIDSetsOfType(
           primitiveFeatures,
-          EITwinCesiumFeatureIdSetType::Texture);
+          ECesiumFeatureIdSetType::Texture);
 
   for (const FITwinCesiumFeatureIdSet& featureIdSet : featureIdTextures) {
     FITwinCesiumFeatureIdTexture featureIdTexture =
@@ -609,11 +594,11 @@ static void updateTextureCoordinatesForFeaturesMetadata(
     TArray<FStaticMeshBuildVertex>& vertices,
     const TArray<uint32>& indices,
     const FITwinCesiumPrimitiveFeatures& primitiveFeatures,
-    const ITwinCesiumEncodedFeaturesMetadata::EncodedPrimitiveFeatures&
+    const CesiumEncodedFeaturesMetadata::EncodedPrimitiveFeatures&
         encodedPrimitiveFeatures,
-    const ITwinCesiumEncodedFeaturesMetadata::EncodedPrimitiveMetadata&
+    const CesiumEncodedFeaturesMetadata::EncodedPrimitiveMetadata&
         encodedPrimitiveMetadata,
-    const ITwinCesiumEncodedFeaturesMetadata::EncodedModelMetadata&
+    const CesiumEncodedFeaturesMetadata::EncodedModelMetadata&
         encodedModelMetadata,
     TMap<FString, uint32_t>& featuresMetadataTexcoordParameters,
     std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap,
@@ -627,22 +612,22 @@ static void updateTextureCoordinatesForFeaturesMetadata(
     // Property textures can be made accessible in Unreal materials without
     // requiring a texture coordinate set on the primitive. If it is not present
     // in primitive metadata, then do not set the parameter.
-    const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTexture&
+    const CesiumEncodedFeaturesMetadata::EncodedPropertyTexture&
         encodedPropertyTexture =
             encodedModelMetadata.propertyTextures[propertyTextureIndex];
 
-    for (const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTextureProperty&
+    for (const CesiumEncodedFeaturesMetadata::EncodedPropertyTextureProperty&
              encodedProperty : encodedPropertyTexture.properties) {
 
-      FString fullPropertyName = ITwinCesiumEncodedFeaturesMetadata::
+      FString fullPropertyName = CesiumEncodedFeaturesMetadata::
           getMaterialNameForPropertyTextureProperty(
               encodedPropertyTexture.name,
               encodedProperty.name);
 
       featuresMetadataTexcoordParameters.Emplace(
           fullPropertyName +
-              ITwinCesiumEncodedFeaturesMetadata::MaterialTexCoordIndexSuffix,
-          ITwinCesium::updateTextureCoordinates(
+              CesiumEncodedFeaturesMetadata::MaterialTexCoordIndexSuffix,
+          updateTextureCoordinates(
               model,
               primitive,
               duplicateVertices,
@@ -663,9 +648,9 @@ static void updateTextureCoordinatesForFeaturesMetadata(
       UITwinCesiumPrimitiveFeaturesBlueprintLibrary::GetFeatureIDSets(
           primitiveFeatures);
 
-  for (const ITwinCesiumEncodedFeaturesMetadata::EncodedFeatureIdSet&
+  for (const CesiumEncodedFeaturesMetadata::EncodedFeatureIdSet&
            encodedFeatureIDSet : encodedPrimitiveFeatures.featureIdSets) {
-    FString SafeName = ITwinCesiumEncodedFeaturesMetadata::createHlslSafeName(
+    FString SafeName = CesiumEncodedFeaturesMetadata::createHlslSafeName(
         encodedFeatureIDSet.name);
     if (encodedFeatureIDSet.attribute) {
       int32_t attribute = *encodedFeatureIDSet.attribute;
@@ -724,11 +709,11 @@ static void updateTextureCoordinatesForFeaturesMetadata(
       }
       bHasBakedMetaDataInUVs = true;
     } else if (encodedFeatureIDSet.texture) {
-      const ITwinCesiumEncodedFeaturesMetadata::EncodedFeatureIdTexture&
+      const CesiumEncodedFeaturesMetadata::EncodedFeatureIdTexture&
           encodedFeatureIDTexture = *encodedFeatureIDSet.texture;
       featuresMetadataTexcoordParameters.Emplace(
-          SafeName + ITwinCesiumEncodedFeaturesMetadata::MaterialTexCoordIndexSuffix,
-          ITwinCesium::updateTextureCoordinates(
+          SafeName + CesiumEncodedFeaturesMetadata::MaterialTexCoordIndexSuffix,
+          updateTextureCoordinates(
               model,
               primitive,
               duplicateVertices,
@@ -773,8 +758,8 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
     bool duplicateVertices,
     TArray<FStaticMeshBuildVertex>& vertices,
     const TArray<uint32>& indices,
-    const ITwinCesiumEncodedMetadataUtility::EncodedMetadata& encodedMetadata,
-    const ITwinCesiumEncodedMetadataUtility::EncodedMetadataPrimitive&
+    const CesiumEncodedMetadataUtility::EncodedMetadata& encodedMetadata,
+    const CesiumEncodedMetadataUtility::EncodedMetadataPrimitive&
         encodedPrimitiveMetadata,
     const TArray<FITwinCesiumFeatureIdAttribute>& featureIdAttributes,
     TMap<FString, uint32_t>& metadataTextureCoordinateParameters,
@@ -783,12 +768,12 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
 
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::UpdateTextureCoordinatesForMetadata)
 
-  for (const ITwinCesiumEncodedMetadataUtility::EncodedFeatureIdTexture&
+  for (const CesiumEncodedMetadataUtility::EncodedFeatureIdTexture&
            encodedFeatureIdTexture :
        encodedPrimitiveMetadata.encodedFeatureIdTextures) {
     metadataTextureCoordinateParameters.Emplace(
         encodedFeatureIdTexture.baseName + "UV",
-        ITwinCesium::updateTextureCoordinates(
+        updateTextureCoordinates(
             model,
             primitive,
             duplicateVertices,
@@ -802,15 +787,15 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
 
   for (const FString& featureTextureName :
        encodedPrimitiveMetadata.featureTextureNames) {
-    const ITwinCesiumEncodedMetadataUtility::EncodedFeatureTexture*
+    const CesiumEncodedMetadataUtility::EncodedFeatureTexture*
         pEncodedFeatureTexture =
             encodedMetadata.encodedFeatureTextures.Find(featureTextureName);
     if (pEncodedFeatureTexture) {
-      for (const ITwinCesiumEncodedMetadataUtility::EncodedFeatureTextureProperty&
+      for (const CesiumEncodedMetadataUtility::EncodedFeatureTextureProperty&
                encodedProperty : pEncodedFeatureTexture->properties) {
         metadataTextureCoordinateParameters.Emplace(
             encodedProperty.baseName + "UV",
-            ITwinCesium::updateTextureCoordinates(
+            updateTextureCoordinates(
                 model,
                 primitive,
                 duplicateVertices,
@@ -827,7 +812,7 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
       primitive.getExtension<ExtensionExtMeshFeatures>();
 
   if (pFeatures) {
-    for (const ITwinCesiumEncodedMetadataUtility::EncodedFeatureIdAttribute&
+    for (const CesiumEncodedMetadataUtility::EncodedFeatureIdAttribute&
              encodedFeatureIdAttribute :
          encodedPrimitiveMetadata.encodedFeatureIdAttributes) {
       const FITwinCesiumFeatureIdAttribute& featureIdAttribute =
@@ -1033,7 +1018,7 @@ static void loadPrimitive(
 
   if (positionView.status() != AccessorViewStatus::Valid) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT("%s: Invalid position buffer"),
         UTF8_TO_TCHAR(name.c_str()));
@@ -1043,7 +1028,7 @@ static void loadPrimitive(
   if constexpr (IsAccessorView<TIndexAccessor>::value) {
     if (indicesView.status() != AccessorViewStatus::Valid) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT("%s: Invalid indices buffer"),
           UTF8_TO_TCHAR(name.c_str()));
@@ -1063,7 +1048,7 @@ static void loadPrimitive(
     hasNormals = normalAccessor.status() == AccessorViewStatus::Valid;
     if (!hasNormals) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT(
               "%s: Invalid normal buffer. Flat normals will be auto-generated instead."),
@@ -1118,7 +1103,7 @@ static void loadPrimitive(
     hasTangents = tangentAccessor.status() == AccessorViewStatus::Valid;
     if (!hasTangents) {
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT("%s: Invalid tangent buffer."),
           UTF8_TO_TCHAR(name.c_str()));
@@ -1344,7 +1329,7 @@ static void loadPrimitive(
       auto overlayIt = primitive.attributes.find(attributeName);
       if (overlayIt != primitive.attributes.end()) {
         primitiveResult.overlayTextureCoordinateIDToUVIndex[i] =
-            ITwinCesium::updateTextureCoordinates(
+            updateTextureCoordinates(
                 model,
                 primitive,
                 duplicateVertices,
@@ -1385,17 +1370,17 @@ static void loadPrimitive(
   bool bHasBakedMetaDataInUVs = false;
 
   // Check for deprecated metadata description
-  const FITwinMetadataDescription* pMetadataDescription_DEPRECATED =
+  const FMetadataDescription* pMetadataDescription_DEPRECATED =
       pModelOptions->pEncodedMetadataDescription_DEPRECATED;
 
   if (pFeaturesMetadataDescription) {
     primitiveResult.EncodedFeatures =
-        ITwinCesiumEncodedFeaturesMetadata::encodePrimitiveFeaturesAnyThreadPart(
+        CesiumEncodedFeaturesMetadata::encodePrimitiveFeaturesAnyThreadPart(
             pFeaturesMetadataDescription->Features,
             primitiveResult.Features);
 
     primitiveResult.EncodedMetadata =
-        ITwinCesiumEncodedFeaturesMetadata::encodePrimitiveMetadataAnyThreadPart(
+        CesiumEncodedFeaturesMetadata::encodePrimitiveMetadataAnyThreadPart(
             pFeaturesMetadataDescription->PrimitiveMetadata,
             primitiveResult.Metadata,
             pModelResult->Metadata);
@@ -1415,7 +1400,7 @@ static void loadPrimitive(
         bHasBakedMetaDataInUVs);
   } else if (pMetadataDescription_DEPRECATED) {
     primitiveResult.EncodedMetadata_DEPRECATED =
-        ITwinCesiumEncodedMetadataUtility::encodeMetadataPrimitiveAnyThreadPart(
+        CesiumEncodedMetadataUtility::encodeMetadataPrimitiveAnyThreadPart(
             *pMetadataDescription_DEPRECATED,
             primitiveResult.Metadata_DEPRECATED);
 
@@ -1480,8 +1465,8 @@ static void loadPrimitive(
     if (primitiveResult.isUnlit) {
       glm::dvec3 ecefCenter = glm::dvec3(
           transform *
-          glm::dvec4(FITwinVecMath::createVector3D(RenderData->Bounds.Origin), 1.0));
-      TMeshVector3 upDir = TMeshVector3(FITwinVecMath::createVector(
+          glm::dvec4(VecMath::createVector3D(RenderData->Bounds.Origin), 1.0));
+      TMeshVector3 upDir = TMeshVector3(VecMath::createVector(
           glm::affineInverse(transform) *
           glm::dvec4(
               CesiumGeospatial::Ellipsoid::WGS84.geodeticSurfaceNormal(
@@ -1723,7 +1708,7 @@ static void loadIndexedPrimitive(
     primitiveResult.IndexAccessor = indexAccessor;
   } else {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         VeryVerbose,
         TEXT(
             "Skip loading primitive due to invalid component type in its index accessor."));
@@ -1935,7 +1920,7 @@ void applyGltfUpAxisTransform(const Model& model, glm::dmat4x4& rootTransform) {
     // No transform required
   } else {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         VeryVerbose,
         TEXT("Unknown gltfUpAxis value: {}"),
         gltfUpAxisValue);
@@ -1961,16 +1946,16 @@ static void loadModelAnyThreadPart(
       options.pFeaturesMetadataDescription;
 
   PRAGMA_DISABLE_DEPRECATION_WARNINGS
-  const FITwinMetadataDescription* pMetadataDescription_DEPRECATED =
+  const FMetadataDescription* pMetadataDescription_DEPRECATED =
       options.pEncodedMetadataDescription_DEPRECATED;
   if (pFeaturesMetadataDescription) {
     result.EncodedMetadata =
-        ITwinCesiumEncodedFeaturesMetadata::encodeModelMetadataAnyThreadPart(
+        CesiumEncodedFeaturesMetadata::encodeModelMetadataAnyThreadPart(
             pFeaturesMetadataDescription->ModelMetadata,
             result.Metadata);
   } else if (pMetadataDescription_DEPRECATED) {
     result.EncodedMetadata_DEPRECATED =
-        ITwinCesiumEncodedMetadataUtility::encodeMetadataAnyThreadPart(
+        CesiumEncodedMetadataUtility::encodeMetadataAnyThreadPart(
             *pMetadataDescription_DEPRECATED,
             result.Metadata);
   }
@@ -2020,9 +2005,9 @@ bool applyTexture(
     const CesiumGltf::Model& model,
     UMaterialInstanceDynamic* pMaterial,
     const FMaterialParameterInfo& info,
-    ITwinCesiumTextureUtility::LoadedTextureResult* pLoadedTexture) {
+    CesiumTextureUtility::LoadedTextureResult* pLoadedTexture) {
   UTexture2D* pTexture =
-      ITwinCesiumTextureUtility::loadTextureGameThreadPart(model, pLoadedTexture);
+      CesiumTextureUtility::loadTextureGameThreadPart(model, pLoadedTexture);
   if (!pTexture) {
     return false;
   }
@@ -2256,7 +2241,6 @@ static void SetGltfParameterValues(
   }
 }
 
-namespace ITwinCesium {
 void SetWaterParameterValues(
     const CesiumGltf::Model& model,
     LoadPrimitiveResult& loadResult,
@@ -2285,24 +2269,22 @@ void SetWaterParameterValues(
           loadResult.waterMaskTranslationY,
           loadResult.waterMaskScale));
 }
-} // ITwinCesium
-
 static void SetPropertyParameterValue(
     const FString& name,
-    EITwinCesiumEncodedMetadataType type,
+    ECesiumEncodedMetadataType type,
     const FITwinCesiumMetadataValue& value,
     const float defaultValue,
     UMaterialInstanceDynamic* pMaterial,
     EMaterialParameterAssociation association,
     int32 index) {
-  if (type == EITwinCesiumEncodedMetadataType::Scalar) {
+  if (type == ECesiumEncodedMetadataType::Scalar) {
     pMaterial->SetScalarParameterValueByInfo(
         FMaterialParameterInfo(FName(name), association, index),
         UITwinCesiumMetadataValueBlueprintLibrary::GetFloat(value, defaultValue));
   } else if (
-      type == EITwinCesiumEncodedMetadataType::Vec2 ||
-      type == EITwinCesiumEncodedMetadataType::Vec3 ||
-      type == EITwinCesiumEncodedMetadataType::Vec4) {
+      type == ECesiumEncodedMetadataType::Vec2 ||
+      type == ECesiumEncodedMetadataType::Vec3 ||
+      type == ECesiumEncodedMetadataType::Vec4) {
     FVector4 vector4Value = UITwinCesiumMetadataValueBlueprintLibrary::GetVector4(
         value,
         FVector4(defaultValue, defaultValue, defaultValue, defaultValue));
@@ -2318,15 +2300,15 @@ static void SetPropertyParameterValue(
 }
 
 static void SetPropertyTableParameterValues(
-    const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTable&
+    const CesiumEncodedFeaturesMetadata::EncodedPropertyTable&
         encodedPropertyTable,
     UMaterialInstanceDynamic* pMaterial,
     EMaterialParameterAssociation association,
     int32 index) {
-  for (const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTableProperty&
+  for (const CesiumEncodedFeaturesMetadata::EncodedPropertyTableProperty&
            encodedProperty : encodedPropertyTable.properties) {
     FString fullPropertyName =
-        ITwinCesiumEncodedFeaturesMetadata::getMaterialNameForPropertyTableProperty(
+        CesiumEncodedFeaturesMetadata::getMaterialNameForPropertyTableProperty(
             encodedPropertyTable.name,
             encodedProperty.name);
 
@@ -2340,7 +2322,7 @@ static void SetPropertyTableParameterValues(
             encodedProperty.offset)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyOffsetSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyOffsetSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2354,7 +2336,7 @@ static void SetPropertyTableParameterValues(
     if (!UITwinCesiumMetadataValueBlueprintLibrary::IsEmpty(encodedProperty.scale)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyScaleSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyScaleSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2369,7 +2351,7 @@ static void SetPropertyTableParameterValues(
             encodedProperty.noData)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyNoDataSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyNoDataSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2384,7 +2366,7 @@ static void SetPropertyTableParameterValues(
             encodedProperty.defaultValue)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyDefaultValueSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyDefaultValueSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2395,7 +2377,7 @@ static void SetPropertyTableParameterValues(
           index);
 
       FString hasValueName = fullPropertyName =
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyHasValueSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyHasValueSuffix;
       pMaterial->SetScalarParameterValueByInfo(
           FMaterialParameterInfo(FName(hasValueName), association, index),
           encodedProperty.pTexture ? 1.0 : 0.0);
@@ -2404,14 +2386,14 @@ static void SetPropertyTableParameterValues(
 }
 
 static void SetPropertyTextureParameterValues(
-    const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTexture&
+    const CesiumEncodedFeaturesMetadata::EncodedPropertyTexture&
         encodedPropertyTexture,
     UMaterialInstanceDynamic* pMaterial,
     EMaterialParameterAssociation association,
     int32 index) {
-  for (const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTextureProperty&
+  for (const CesiumEncodedFeaturesMetadata::EncodedPropertyTextureProperty&
            encodedProperty : encodedPropertyTexture.properties) {
-    FString fullPropertyName = ITwinCesiumEncodedFeaturesMetadata::
+    FString fullPropertyName = CesiumEncodedFeaturesMetadata::
         getMaterialNameForPropertyTextureProperty(
             encodedPropertyTexture.name,
             encodedProperty.name);
@@ -2426,7 +2408,7 @@ static void SetPropertyTextureParameterValues(
         FMaterialParameterInfo(
             FName(
                 fullPropertyName +
-                ITwinCesiumEncodedFeaturesMetadata::MaterialChannelsSuffix),
+                CesiumEncodedFeaturesMetadata::MaterialChannelsSuffix),
             association,
             index),
         FLinearColor(
@@ -2439,7 +2421,7 @@ static void SetPropertyTextureParameterValues(
             encodedProperty.offset)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyOffsetSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyOffsetSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2453,7 +2435,7 @@ static void SetPropertyTextureParameterValues(
     if (!UITwinCesiumMetadataValueBlueprintLibrary::IsEmpty(encodedProperty.scale)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyScaleSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyScaleSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2468,7 +2450,7 @@ static void SetPropertyTextureParameterValues(
             encodedProperty.noData)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyNoDataSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyNoDataSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2483,7 +2465,7 @@ static void SetPropertyTextureParameterValues(
             encodedProperty.defaultValue)) {
       FString parameterName =
           fullPropertyName +
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyDefaultValueSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyDefaultValueSuffix;
       SetPropertyParameterValue(
           parameterName,
           encodedProperty.type,
@@ -2494,7 +2476,7 @@ static void SetPropertyTextureParameterValues(
           index);
 
       FString hasValueName = fullPropertyName =
-          ITwinCesiumEncodedFeaturesMetadata::MaterialPropertyHasValueSuffix;
+          CesiumEncodedFeaturesMetadata::MaterialPropertyHasValueSuffix;
       pMaterial->SetScalarParameterValueByInfo(
           FMaterialParameterInfo(FName(hasValueName), association, index),
           encodedProperty.pTexture ? 1.0 : 0.0);
@@ -2522,16 +2504,16 @@ static void SetFeaturesMetadataParameterValues(
   }
 
   if (encodePrimitiveFeaturesGameThreadPart(loadResult.EncodedFeatures)) {
-    for (ITwinCesiumEncodedFeaturesMetadata::EncodedFeatureIdSet&
+    for (CesiumEncodedFeaturesMetadata::EncodedFeatureIdSet&
              encodedFeatureIdSet : loadResult.EncodedFeatures.featureIdSets) {
-      FString SafeName = ITwinCesiumEncodedFeaturesMetadata::createHlslSafeName(
+      FString SafeName = CesiumEncodedFeaturesMetadata::createHlslSafeName(
           encodedFeatureIdSet.name);
       if (encodedFeatureIdSet.nullFeatureId) {
         pMaterial->SetScalarParameterValueByInfo(
             FMaterialParameterInfo(
                 FName(
                     SafeName +
-                    ITwinCesiumEncodedFeaturesMetadata::MaterialNullFeatureIdSuffix),
+                    CesiumEncodedFeaturesMetadata::MaterialNullFeatureIdSuffix),
                 association,
                 index),
             static_cast<float>(*encodedFeatureIdSet.nullFeatureId));
@@ -2541,14 +2523,14 @@ static void SetFeaturesMetadataParameterValues(
         continue;
       }
 
-      ITwinCesiumEncodedFeaturesMetadata::EncodedFeatureIdTexture& texture =
+      CesiumEncodedFeaturesMetadata::EncodedFeatureIdTexture& texture =
           *encodedFeatureIdSet.texture;
 
       pMaterial->SetTextureParameterValueByInfo(
           FMaterialParameterInfo(
               FName(
                   SafeName +
-                  ITwinCesiumEncodedFeaturesMetadata::MaterialTextureSuffix),
+                  CesiumEncodedFeaturesMetadata::MaterialTextureSuffix),
               association,
               index),
           texture.pTexture->pTexture.Get());
@@ -2558,7 +2540,7 @@ static void SetFeaturesMetadataParameterValues(
           FMaterialParameterInfo(
               FName(
                   SafeName +
-                  ITwinCesiumEncodedFeaturesMetadata::MaterialNumChannelsSuffix),
+                  CesiumEncodedFeaturesMetadata::MaterialNumChannelsSuffix),
               association,
               index),
           static_cast<float>(numChannels));
@@ -2573,14 +2555,14 @@ static void SetFeaturesMetadataParameterValues(
           FMaterialParameterInfo(
               FName(
                   SafeName +
-                  ITwinCesiumEncodedFeaturesMetadata::MaterialChannelsSuffix),
+                  CesiumEncodedFeaturesMetadata::MaterialChannelsSuffix),
               association,
               index),
           channels);
     }
   }
 
-  for (const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTexture&
+  for (const CesiumEncodedFeaturesMetadata::EncodedPropertyTexture&
            propertyTexture : gltfComponent.EncodedMetadata.propertyTextures) {
     SetPropertyTextureParameterValues(
         propertyTexture,
@@ -2589,7 +2571,7 @@ static void SetFeaturesMetadataParameterValues(
         index);
   }
 
-  for (const ITwinCesiumEncodedFeaturesMetadata::EncodedPropertyTable&
+  for (const CesiumEncodedFeaturesMetadata::EncodedPropertyTable&
            propertyTable : gltfComponent.EncodedMetadata.propertyTables) {
     SetPropertyTableParameterValues(
         propertyTable,
@@ -2600,12 +2582,12 @@ static void SetFeaturesMetadataParameterValues(
 }
 
 static void SetMetadataFeatureTableParameterValues_DEPRECATED(
-    const ITwinCesiumEncodedMetadataUtility::EncodedMetadataFeatureTable&
+    const CesiumEncodedMetadataUtility::EncodedMetadataFeatureTable&
         encodedFeatureTable,
     UMaterialInstanceDynamic* pMaterial,
     EMaterialParameterAssociation association,
     int32 index) {
-  for (const ITwinCesiumEncodedMetadataUtility::EncodedMetadataProperty&
+  for (const CesiumEncodedMetadataUtility::EncodedMetadataProperty&
            encodedProperty : encodedFeatureTable.encodedProperties) {
 
     pMaterial->SetTextureParameterValueByInfo(
@@ -2665,13 +2647,13 @@ static void SetMetadataParameterValues_DEPRECATED(
 
   for (const FString& featureTextureName :
        loadResult.EncodedMetadata_DEPRECATED->featureTextureNames) {
-    ITwinCesiumEncodedMetadataUtility::EncodedFeatureTexture*
+    CesiumEncodedMetadataUtility::EncodedFeatureTexture*
         pEncodedFeatureTexture =
             gltfComponent.EncodedMetadata_DEPRECATED->encodedFeatureTextures
                 .Find(featureTextureName);
 
     if (pEncodedFeatureTexture) {
-      for (ITwinCesiumEncodedMetadataUtility::EncodedFeatureTextureProperty&
+      for (CesiumEncodedMetadataUtility::EncodedFeatureTextureProperty&
                encodedProperty : pEncodedFeatureTexture->properties) {
 
         pMaterial->SetTextureParameterValueByInfo(
@@ -2695,7 +2677,7 @@ static void SetMetadataParameterValues_DEPRECATED(
     }
   }
 
-  for (ITwinCesiumEncodedMetadataUtility::EncodedFeatureIdTexture&
+  for (CesiumEncodedMetadataUtility::EncodedFeatureIdTexture&
            encodedFeatureIdTexture :
        loadResult.EncodedMetadata_DEPRECATED->encodedFeatureIdTextures) {
 
@@ -2725,7 +2707,7 @@ static void SetMetadataParameterValues_DEPRECATED(
             index),
         channelMask);
 
-    const ITwinCesiumEncodedMetadataUtility::EncodedMetadataFeatureTable*
+    const CesiumEncodedMetadataUtility::EncodedMetadataFeatureTable*
         pEncodedFeatureTable =
             gltfComponent.EncodedMetadata_DEPRECATED->encodedFeatureTables.Find(
                 encodedFeatureIdTexture.featureTableName);
@@ -2739,10 +2721,10 @@ static void SetMetadataParameterValues_DEPRECATED(
     }
   }
 
-  for (const ITwinCesiumEncodedMetadataUtility::EncodedFeatureIdAttribute&
+  for (const CesiumEncodedMetadataUtility::EncodedFeatureIdAttribute&
            encodedFeatureIdAttribute :
        loadResult.EncodedMetadata_DEPRECATED->encodedFeatureIdAttributes) {
-    const ITwinCesiumEncodedMetadataUtility::EncodedMetadataFeatureTable*
+    const CesiumEncodedMetadataUtility::EncodedMetadataFeatureTable*
         pEncodedFeatureTable =
             gltfComponent.EncodedMetadata_DEPRECATED->encodedFeatureTables.Find(
                 encodedFeatureIdAttribute.featureTableName);
@@ -2886,7 +2868,7 @@ static void loadPrimitiveGameThreadPart(
       EMaterialParameterAssociation::GlobalParameter,
       INDEX_NONE,
       MeshBuildCallbacks.Get());
-  ITwinCesium::SetWaterParameterValues(
+  SetWaterParameterValues(
       model,
       loadResult,
       pMaterial,
@@ -2955,7 +2937,7 @@ static void loadPrimitiveGameThreadPart(
     // If there's a "Water" layer, set its parameters
     int32 waterIndex = pCesiumData->LayerNames.Find("Water");
     if (waterIndex >= 0) {
-      ITwinCesium::SetWaterParameterValues(
+      SetWaterParameterValues(
           model,
           loadResult,
           pMaterial,
@@ -3197,7 +3179,7 @@ UITwinCesiumGltfComponent::UITwinCesiumGltfComponent() : USceneComponent() {
 }
 
 UITwinCesiumGltfComponent::~UITwinCesiumGltfComponent() {
-  UE_LOG(LogITwinCesium, VeryVerbose, TEXT("~UITwinCesiumGltfComponent"));
+  UE_LOG(LogCesium, VeryVerbose, TEXT("~UITwinCesiumGltfComponent"));
 }
 
 void UITwinCesiumGltfComponent::UpdateTransformFromCesium(
@@ -3363,12 +3345,12 @@ void UITwinCesiumGltfComponent::SetCollisionEnabled(
 }
 
 void UITwinCesiumGltfComponent::BeginDestroy() {
-  ITwinCesiumEncodedFeaturesMetadata::destroyEncodedModelMetadata(
+  CesiumEncodedFeaturesMetadata::destroyEncodedModelMetadata(
       this->EncodedMetadata);
 
   PRAGMA_DISABLE_DEPRECATION_WARNINGS
   if (this->EncodedMetadata_DEPRECATED) {
-    ITwinCesiumEncodedMetadataUtility::destroyEncodedMetadata(
+    CesiumEncodedMetadataUtility::destroyEncodedMetadata(
         *this->EncodedMetadata_DEPRECATED);
     this->EncodedMetadata_DEPRECATED = std::nullopt;
   }

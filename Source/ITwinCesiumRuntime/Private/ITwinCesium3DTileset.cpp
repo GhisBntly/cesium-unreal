@@ -251,7 +251,7 @@ void AITwinCesium3DTileset::AddFocusViewportDelegate() {
 
 void AITwinCesium3DTileset::PostInitProperties() {
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       Verbose,
       TEXT("Called PostInitProperties on actor %s"),
       *this->GetName());
@@ -280,7 +280,7 @@ void AITwinCesium3DTileset::SetUseLodTransitions(bool InUseLodTransitions) {
   }
 }
 
-void AITwinCesium3DTileset::SetTilesetSource(EITwinTilesetSource InSource) {
+void AITwinCesium3DTileset::SetTilesetSource(ETilesetSource InSource) {
   if (InSource != this->TilesetSource) {
     this->DestroyTileset();
     this->TilesetSource = InSource;
@@ -289,7 +289,7 @@ void AITwinCesium3DTileset::SetTilesetSource(EITwinTilesetSource InSource) {
 
 void AITwinCesium3DTileset::SetUrl(const FString& InUrl) {
   if (InUrl != this->Url) {
-    if (this->TilesetSource == EITwinTilesetSource::FromUrl) {
+    if (this->TilesetSource == ETilesetSource::FromUrl) {
       this->DestroyTileset();
     }
     this->Url = InUrl;
@@ -298,7 +298,7 @@ void AITwinCesium3DTileset::SetUrl(const FString& InUrl) {
 
 void AITwinCesium3DTileset::SetIonAssetID(int64 InAssetID) {
   if (InAssetID >= 0 && InAssetID != this->IonAssetID) {
-    if (this->TilesetSource == EITwinTilesetSource::FromCesiumIon) {
+    if (this->TilesetSource == ETilesetSource::FromCesiumIon) {
       this->DestroyTileset();
     }
     this->IonAssetID = InAssetID;
@@ -307,7 +307,7 @@ void AITwinCesium3DTileset::SetIonAssetID(int64 InAssetID) {
 
 void AITwinCesium3DTileset::SetIonAccessToken(const FString& InAccessToken) {
   if (this->IonAccessToken != InAccessToken) {
-    if (this->TilesetSource == EITwinTilesetSource::FromCesiumIon) {
+    if (this->TilesetSource == ETilesetSource::FromCesiumIon) {
       this->DestroyTileset();
     }
     this->IonAccessToken = InAccessToken;
@@ -316,7 +316,7 @@ void AITwinCesium3DTileset::SetIonAccessToken(const FString& InAccessToken) {
 
 void AITwinCesium3DTileset::SetCesiumIonServer(UITwinCesiumIonServer* Server) {
   if (this->CesiumIonServer != Server) {
-    if (this->TilesetSource == EITwinTilesetSource::FromCesiumIon) {
+    if (this->TilesetSource == ETilesetSource::FromCesiumIon) {
       this->DestroyTileset();
     }
     this->CesiumIonServer = Server;
@@ -466,7 +466,7 @@ void AITwinCesium3DTileset::PauseMovieSequencer() { this->StopMovieSequencer(); 
 void AITwinCesium3DTileset::OnFocusEditorViewportOnThis() {
 
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       Verbose,
       TEXT("Called OnFocusEditorViewportOnThis on actor %s"),
       *this->GetName());
@@ -531,14 +531,14 @@ void AITwinCesium3DTileset::OnFocusEditorViewportOnThis() {
       std::visit(CalculateECEFCameraPosition{}, boundingVolume);
   FVector unrealCameraPosition =
       pGeoreference->TransformEarthCenteredEarthFixedPositionToUnreal(
-          FITwinVecMath::createVector(ecefCameraPosition));
+          VecMath::createVector(ecefCameraPosition));
 
   // calculate unreal camera orientation
   glm::dvec3 ecefCenter =
       Cesium3DTilesSelection::getBoundingVolumeCenter(boundingVolume);
   FVector unrealCenter =
       pGeoreference->TransformEarthCenteredEarthFixedPositionToUnreal(
-          FITwinVecMath::createVector(ecefCenter));
+          VecMath::createVector(ecefCenter));
   FVector unrealCameraFront =
       (unrealCenter - unrealCameraPosition).GetSafeNormal();
   FVector unrealCameraRight =
@@ -742,7 +742,7 @@ public:
           tile,
           this->_pActor->GetCreateNavCollision());
     }
-    // UE_LOG(LogITwinCesium, VeryVerbose, TEXT("No content for tile"));
+    // UE_LOG(LogCesium, VeryVerbose, TEXT("No content for tile"));
     return nullptr;
   }
 
@@ -763,7 +763,7 @@ public:
           this->_pActor->GetMeshBuildCallbacks().Pin()->BeforeTileDestruction(
               tile, pGltf);
       }
-      FITwinCesiumLifetime::destroyComponentRecursively(pGltf);
+      CesiumLifetime::destroyComponentRecursively(pGltf);
     }
   }
 
@@ -771,7 +771,7 @@ public:
       CesiumGltf::ImageCesium& image,
       const std::any& rendererOptions) override {
     auto ppOptions =
-        std::any_cast<FITwinRasterOverlayRendererOptions*>(&rendererOptions);
+        std::any_cast<FRasterOverlayRendererOptions*>(&rendererOptions);
     check(ppOptions != nullptr && *ppOptions != nullptr);
     if (ppOptions == nullptr || *ppOptions == nullptr) {
       return nullptr;
@@ -779,8 +779,8 @@ public:
 
     auto pOptions = *ppOptions;
 
-    auto texture = ITwinCesiumTextureUtility::loadTextureAnyThreadPart(
-        ITwinCesiumTextureUtility::GltfImagePtr{&image},
+    auto texture = CesiumTextureUtility::loadTextureAnyThreadPart(
+        CesiumTextureUtility::GltfImagePtr{&image},
         TextureAddress::TA_Clamp,
         TextureAddress::TA_Clamp,
         pOptions->filter,
@@ -795,8 +795,8 @@ public:
       CesiumRasterOverlays::RasterOverlayTile& rasterTile,
       void* pLoadThreadResult) override {
 
-    TUniquePtr<ITwinCesiumTextureUtility::LoadedTextureResult> pLoadedTexture{
-        static_cast<ITwinCesiumTextureUtility::LoadedTextureResult*>(
+    TUniquePtr<CesiumTextureUtility::LoadedTextureResult> pLoadedTexture{
+        static_cast<CesiumTextureUtility::LoadedTextureResult*>(
             pLoadThreadResult)};
 
     if (!pLoadedTexture) {
@@ -805,15 +805,15 @@ public:
 
     // The image source pointer during loading may have been invalidated,
     // so replace it.
-    ITwinCesiumTextureUtility::GltfImagePtr* pImageSource =
-        std::get_if<ITwinCesiumTextureUtility::GltfImagePtr>(
+    CesiumTextureUtility::GltfImagePtr* pImageSource =
+        std::get_if<CesiumTextureUtility::GltfImagePtr>(
             &pLoadedTexture->textureSource);
     if (pImageSource) {
       pImageSource->pImage = &rasterTile.getImage();
     }
 
     UTexture2D* pTexture =
-        ITwinCesiumTextureUtility::loadTextureGameThreadPart(pLoadedTexture.Get());
+        CesiumTextureUtility::loadTextureGameThreadPart(pLoadedTexture.Get());
     if (!pTexture) {
       return nullptr;
     }
@@ -827,17 +827,17 @@ public:
       void* pLoadThreadResult,
       void* pMainThreadResult) noexcept override {
     if (pLoadThreadResult) {
-      ITwinCesiumTextureUtility::LoadedTextureResult* pLoadedTexture =
-          static_cast<ITwinCesiumTextureUtility::LoadedTextureResult*>(
+      CesiumTextureUtility::LoadedTextureResult* pLoadedTexture =
+          static_cast<CesiumTextureUtility::LoadedTextureResult*>(
               pLoadThreadResult);
-      ITwinCesiumTextureUtility::destroyHalfLoadedTexture(*pLoadedTexture);
+      CesiumTextureUtility::destroyHalfLoadedTexture(*pLoadedTexture);
       delete pLoadedTexture;
     }
 
     if (pMainThreadResult) {
       UTexture* pTexture = static_cast<UTexture*>(pMainThreadResult);
       pTexture->RemoveFromRoot();
-      ITwinCesiumTextureUtility::destroyTexture(pTexture);
+      CesiumTextureUtility::destroyTexture(pTexture);
     }
   }
 
@@ -928,18 +928,18 @@ void AITwinCesium3DTileset::UpdateLoadStatus() {
     TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::BroadcastOnTilesetLoaded)
 
     // Tileset just finished loading, we broadcast the update
-    UE_LOG(LogITwinCesium, Verbose, TEXT("Broadcasting OnTileLoaded"));
+    UE_LOG(LogCesium, Verbose, TEXT("Broadcasting OnTileLoaded"));
     OnTilesetLoaded.Broadcast();
   }
 }
 
 namespace {
 
-const TSharedRef<FITwinCesiumViewExtension, ESPMode::ThreadSafe>&
-getFITwinCesiumViewExtension() {
-  static TSharedRef<FITwinCesiumViewExtension, ESPMode::ThreadSafe>
+const TSharedRef<CesiumViewExtension, ESPMode::ThreadSafe>&
+getCesiumViewExtension() {
+  static TSharedRef<CesiumViewExtension, ESPMode::ThreadSafe>
       cesiumViewExtension =
-          GEngine->ViewExtensions->NewExtension<FITwinCesiumViewExtension>();
+          GEngine->ViewExtensions->NewExtension<CesiumViewExtension>();
   return cesiumViewExtension;
 }
 
@@ -961,7 +961,7 @@ void AITwinCesium3DTileset::LoadTileset() {
   AWorldSettings* pWorldSettings = pWorld->GetWorldSettings();
   if (pWorldSettings && pWorldSettings->bEnableWorldBoundsChecks) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT(
             "\"Enable World Bounds Checks\" in the world settings is currently enabled. Please consider disabling it to avoid potential issues."),
@@ -969,19 +969,19 @@ void AITwinCesium3DTileset::LoadTileset() {
   }
 
   // Make sure we have a valid Cesium ion server if we need one.
-  if (this->TilesetSource == EITwinTilesetSource::FromCesiumIon &&
+  if (this->TilesetSource == ETilesetSource::FromCesiumIon &&
       !IsValid(this->CesiumIonServer)) {
     this->Modify();
     this->CesiumIonServer = UITwinCesiumIonServer::GetServerForNewObjects();
   }
 
-  const TSharedRef<FITwinCesiumViewExtension, ESPMode::ThreadSafe>&
-      cesiumViewExtension = getFITwinCesiumViewExtension();
+  const TSharedRef<CesiumViewExtension, ESPMode::ThreadSafe>&
+      cesiumViewExtension = getCesiumViewExtension();
   const std::shared_ptr<CesiumAsync::IAssetAccessor>& pAssetAccessor =
-      ITwinCesium::getAssetAccessor();
-  const CesiumAsync::AsyncSystem& asyncSystem = ITwinCesium::getAsyncSystem();
+      getAssetAccessor();
+  const CesiumAsync::AsyncSystem& asyncSystem = getAsyncSystem();
 
-  // Both the feature flag and the FITwinCesiumViewExtension are global, not owned by
+  // Both the feature flag and the CesiumViewExtension are global, not owned by
   // the Tileset. We're just applying one to the other here out of convenience.
   cesiumViewExtension->SetEnabled(
       GetDefault<UITwinCesiumRuntimeSettings>()
@@ -999,8 +999,8 @@ void AITwinCesium3DTileset::LoadTileset() {
   // Check if this component exists for backwards compatibility.
   PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
-  const UDEPRECATED_ITwinCesiumEncodedMetadataComponent* pEncodedMetadataComponent =
-      this->FindComponentByClass<UDEPRECATED_ITwinCesiumEncodedMetadataComponent>();
+  const UDEPRECATED_CesiumEncodedMetadataComponent* pEncodedMetadataComponent =
+      this->FindComponentByClass<UDEPRECATED_CesiumEncodedMetadataComponent>();
 
   this->_featuresMetadataDescription = std::nullopt;
   this->_metadataDescription_DEPRECATED = std::nullopt;
@@ -1016,7 +1016,7 @@ void AITwinCesium3DTileset::LoadTileset() {
         pFeaturesMetadataComponent->PropertyTextures};
   } else if (pEncodedMetadataComponent) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT(
             "CesiumEncodedMetadataComponent is deprecated. Use CesiumFeaturesMetadataComponent instead."));
@@ -1079,13 +1079,13 @@ void AITwinCesium3DTileset::LoadTileset() {
   options.loadErrorCallback =
       [this](const Cesium3DTilesSelection::TilesetLoadFailureDetails& details) {
         static_assert(
-            uint8_t(EITwinCesium3DTilesetLoadType::CesiumIon) ==
+            uint8_t(ECesium3DTilesetLoadType::CesiumIon) ==
             uint8_t(Cesium3DTilesSelection::TilesetLoadType::CesiumIon));
         static_assert(
-            uint8_t(EITwinCesium3DTilesetLoadType::TilesetJson) ==
+            uint8_t(ECesium3DTilesetLoadType::TilesetJson) ==
             uint8_t(Cesium3DTilesSelection::TilesetLoadType::TilesetJson));
         static_assert(
-            uint8_t(EITwinCesium3DTilesetLoadType::Unknown) ==
+            uint8_t(ECesium3DTilesetLoadType::Unknown) ==
             uint8_t(Cesium3DTilesSelection::TilesetLoadType::Unknown));
 
         uint8_t typeValue = uint8_t(details.type);
@@ -1096,7 +1096,7 @@ void AITwinCesium3DTileset::LoadTileset() {
 
         FITwinCesium3DTilesetLoadFailureDetails ueDetails{};
         ueDetails.Tileset = this;
-        ueDetails.Type = EITwinCesium3DTilesetLoadType(typeValue);
+        ueDetails.Type = ECesium3DTilesetLoadType(typeValue);
         ueDetails.HttpStatusCode = details.statusCode;
         ueDetails.Message = UTF8_TO_TCHAR(details.message.c_str());
 
@@ -1154,16 +1154,16 @@ void AITwinCesium3DTileset::LoadTileset() {
   }
 
   switch (this->TilesetSource) {
-  case EITwinTilesetSource::FromUrl:
-    UE_LOG(LogITwinCesium, Log, TEXT("Loading tileset from URL %s"), *this->Url);
+  case ETilesetSource::FromUrl:
+    UE_LOG(LogCesium, Log, TEXT("Loading tileset from URL %s"), *this->Url);
     this->_pTileset = MakeUnique<Cesium3DTilesSelection::Tileset>(
         externals,
         TCHAR_TO_UTF8(*this->Url),
         options);
     break;
-  case EITwinTilesetSource::FromCesiumIon:
+  case ETilesetSource::FromCesiumIon:
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Log,
         TEXT("Loading tileset for asset ID %d"),
         this->IonAssetID);
@@ -1206,16 +1206,16 @@ void AITwinCesium3DTileset::LoadTileset() {
   }
 
   switch (this->TilesetSource) {
-  case EITwinTilesetSource::FromUrl:
+  case ETilesetSource::FromUrl:
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Log,
         TEXT("Loading tileset from URL %s done"),
         *this->Url);
     break;
-  case EITwinTilesetSource::FromCesiumIon:
+  case ETilesetSource::FromCesiumIon:
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Log,
         TEXT("Loading tileset for asset ID %d done"),
         this->IonAssetID);
@@ -1223,14 +1223,14 @@ void AITwinCesium3DTileset::LoadTileset() {
   }
 
   switch (ApplyDpiScaling) {
-  case (EITwinApplyDpiScaling::UseProjectDefault):
+  case (EApplyDpiScaling::UseProjectDefault):
     _scaleUsingDPI =
         GetDefault<UITwinCesiumRuntimeSettings>()->ScaleLevelOfDetailByDPI;
     break;
-  case (EITwinApplyDpiScaling::Yes):
+  case (EApplyDpiScaling::Yes):
     _scaleUsingDPI = true;
     break;
-  case (EITwinApplyDpiScaling::No):
+  case (EApplyDpiScaling::No):
     _scaleUsingDPI = false;
     break;
   default:
@@ -1244,16 +1244,16 @@ void AITwinCesium3DTileset::DestroyTileset() {
   }
 
   switch (this->TilesetSource) {
-  case EITwinTilesetSource::FromUrl:
+  case ETilesetSource::FromUrl:
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Verbose,
         TEXT("Destroying tileset from URL %s"),
         *this->Url);
     break;
-  case EITwinTilesetSource::FromCesiumIon:
+  case ETilesetSource::FromCesiumIon:
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Verbose,
         TEXT("Destroying tileset for asset ID %d"),
         this->IonAssetID);
@@ -1299,16 +1299,16 @@ void AITwinCesium3DTileset::DestroyTileset() {
   this->_pTileset.Reset();
 
   switch (this->TilesetSource) {
-  case EITwinTilesetSource::FromUrl:
+  case ETilesetSource::FromUrl:
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Verbose,
         TEXT("Destroying tileset from URL %s done"),
         *this->Url);
     break;
-  case EITwinTilesetSource::FromCesiumIon:
+  case ETilesetSource::FromCesiumIon:
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Verbose,
         TEXT("Destroying tileset for asset ID %d done"),
         this->IonAssetID);
@@ -1733,7 +1733,7 @@ void hideTiles(const std::vector<Cesium3DTilesSelection::Tile*>& tiles) {
     } else {
       // TODO: why is this happening?
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Verbose,
           TEXT("Tile to no longer render does not have a visible Gltf"));
     }
@@ -1868,7 +1868,7 @@ void AITwinCesium3DTileset::updateLastViewUpdateResultState(
     this->_lastMaxDepthVisited = result.maxDepthVisited;
 
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Display,
         TEXT(
             "%s: %d ms, Visited %d, Culled Visited %d, Rendered %d, Culled %d, Occluded %d, Waiting For Occlusion Results %d, Max Depth Visited: %d, Loading-Worker %d, Loading-Main %d, Loaded tiles %g%%"),
@@ -1937,7 +1937,7 @@ void AITwinCesium3DTileset::showTilesToRender(
                 pTile->getTileID())
                 .c_str());
         UE_LOG(
-            LogITwinCesium,
+            LogCesium,
             Warning,
             TEXT("Tile %s could not be attached to root"),
             *tileIdString);
@@ -2038,7 +2038,7 @@ void AITwinCesium3DTileset::Tick(float DeltaTime) {
   }
 
   glm::dmat4 ueTilesetToUeWorld =
-      FITwinVecMath::createMatrix4D(this->GetActorTransform().ToMatrixWithScale());
+      VecMath::createMatrix4D(this->GetActorTransform().ToMatrixWithScale());
 
   const glm::dmat4& cesiumTilesetToUeTileset =
       this->GetCesiumTilesetToUnrealRelativeWorldTransform();
@@ -2115,8 +2115,8 @@ void AITwinCesium3DTileset::PostLoad() {
 
   Super::PostLoad();
 
-  if (ITwinCesiumActors::shouldValidateFlags(this))
-    ITwinCesiumActors::validateActorFlags(this);
+  if (CesiumActors::shouldValidateFlags(this))
+    CesiumActors::validateActorFlags(this);
 
 #if WITH_EDITOR
   const int32 CesiumVersion =
@@ -2142,9 +2142,9 @@ void AITwinCesium3DTileset::Serialize(FArchive& Ar) {
     // In previous versions, the tileset source was inferred from the presence
     // of a non-empty URL property, rather than being explicitly specified.
     if (this->Url.Len() > 0) {
-      this->TilesetSource = EITwinTilesetSource::FromUrl;
+      this->TilesetSource = ETilesetSource::FromUrl;
     } else {
-      this->TilesetSource = EITwinTilesetSource::FromCesiumIon;
+      this->TilesetSource = ETilesetSource::FromCesiumIon;
     }
   }
 
@@ -2273,8 +2273,8 @@ bool AITwinCesium3DTileset::IsReadyForFinishDestroy() {
   ready &= this->_tilesetsBeingDestroyed == 0;
 
   if (!ready) {
-    ITwinCesium::getAssetAccessor()->tick();
-    ITwinCesium::getAsyncSystem().dispatchMainThreadTasks();
+    getAssetAccessor()->tick();
+    getAsyncSystem().dispatchMainThreadTasks();
   }
 
   return ready;

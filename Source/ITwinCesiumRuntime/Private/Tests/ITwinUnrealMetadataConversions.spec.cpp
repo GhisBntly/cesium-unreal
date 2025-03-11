@@ -7,19 +7,19 @@
 using namespace CesiumGltf;
 
 BEGIN_DEFINE_SPEC(
-    FITwinUnrealMetadataConversionsSpec,
+    FUnrealMetadataConversionsSpec,
     "Cesium.Unit.MetadataConversions",
     EAutomationTestFlags::ApplicationContextMask |
         EAutomationTestFlags::ProductFilter)
-END_DEFINE_SPEC(FITwinUnrealMetadataConversionsSpec)
+END_DEFINE_SPEC(FUnrealMetadataConversionsSpec)
 
-void FITwinUnrealMetadataConversionsSpec::Define() {
+void FUnrealMetadataConversionsSpec::Define() {
 
   Describe("FIntPoint", [this]() {
     It("converts from glm::ivec2", [this]() {
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toIntPoint(glm::ivec2(-1, 2)),
+          UnrealMetadataConversions::toIntPoint(glm::ivec2(-1, 2)),
           FIntPoint(-1, 2));
     });
 
@@ -27,7 +27,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1 Y=2");
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toIntPoint(str, FIntPoint(0)),
+          UnrealMetadataConversions::toIntPoint(str, FIntPoint(0)),
           FIntPoint(1, 2));
     });
 
@@ -35,13 +35,13 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1");
       TestEqual(
           "partial input",
-          FITwinUnrealMetadataConversions::toIntPoint(str, FIntPoint(0)),
+          UnrealMetadataConversions::toIntPoint(str, FIntPoint(0)),
           FIntPoint(0));
 
       str = std::string_view("R=0.5 G=0.5");
       TestEqual(
           "bad format",
-          FITwinUnrealMetadataConversions::toIntPoint(str, FIntPoint(0)),
+          UnrealMetadataConversions::toIntPoint(str, FIntPoint(0)),
           FIntPoint(0));
     });
   });
@@ -50,7 +50,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
     It("converts from glm::dvec2", [this]() {
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toVector2D(glm::dvec2(-1.0, 2.0)),
+          UnrealMetadataConversions::toVector2D(glm::dvec2(-1.0, 2.0)),
           FVector2D(-1.0, 2.0));
     });
 
@@ -58,7 +58,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1.5 Y=2.5");
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toVector2D(str, FVector2D::Zero()),
+          UnrealMetadataConversions::toVector2D(str, FVector2D::Zero()),
           FVector2D(1.5, 2.5));
     });
 
@@ -66,13 +66,13 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1");
       TestEqual(
           "partial input",
-          FITwinUnrealMetadataConversions::toVector2D(str, FVector2D::Zero()),
+          UnrealMetadataConversions::toVector2D(str, FVector2D::Zero()),
           FVector2D::Zero());
 
       str = std::string_view("R=0.5 G=0.5");
       TestEqual(
           "bad format",
-          FITwinUnrealMetadataConversions::toVector2D(str, FVector2D::Zero()),
+          UnrealMetadataConversions::toVector2D(str, FVector2D::Zero()),
           FVector2D::Zero());
     });
   });
@@ -81,7 +81,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
     It("converts from glm::ivec3", [this]() {
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toIntVector(glm::ivec3(-1, 2, 4)),
+          UnrealMetadataConversions::toIntVector(glm::ivec3(-1, 2, 4)),
           FIntVector(-1, 2, 4));
     });
 
@@ -89,7 +89,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1 Y=2 Z=4");
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toIntVector(str, FIntVector(0)),
+          UnrealMetadataConversions::toIntVector(str, FIntVector(0)),
           FIntVector(1, 2, 4));
     });
 
@@ -97,13 +97,13 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1 Y=2");
       TestEqual(
           "partial input",
-          FITwinUnrealMetadataConversions::toIntVector(str, FIntVector(0)),
+          UnrealMetadataConversions::toIntVector(str, FIntVector(0)),
           FIntVector(0));
 
       str = std::string_view("R=0.5 G=0.5 B=1");
       TestEqual(
           "bad format",
-          FITwinUnrealMetadataConversions::toIntVector(str, FIntVector(0)),
+          UnrealMetadataConversions::toIntVector(str, FIntVector(0)),
           FIntVector(0));
     });
   });
@@ -112,7 +112,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
     It("converts from glm::vec3", [this]() {
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toVector3f(glm::vec3(1.0f, 2.3f, 4.56f)),
+          UnrealMetadataConversions::toVector3f(glm::vec3(1.0f, 2.3f, 4.56f)),
           FVector3f(1.0f, 2.3f, 4.56f));
     });
 
@@ -120,7 +120,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1 Y=2 Z=3");
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions ::toVector3f(str, FVector3f::Zero()),
+          UnrealMetadataConversions ::toVector3f(str, FVector3f::Zero()),
           FVector3f(1.0f, 2.0f, 3.0f));
     });
 
@@ -128,13 +128,13 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1 Y=2");
       TestEqual(
           "partial input",
-          FITwinUnrealMetadataConversions ::toVector3f(str, FVector3f::Zero()),
+          UnrealMetadataConversions ::toVector3f(str, FVector3f::Zero()),
           FVector3f(0.0f));
 
       str = std::string_view("R=0.5 G=0.5 B=0.5");
       TestEqual(
           "bad format",
-          FITwinUnrealMetadataConversions ::toVector3f(str, FVector3f::Zero()),
+          UnrealMetadataConversions ::toVector3f(str, FVector3f::Zero()),
           FVector3f(0.0f));
     });
   });
@@ -143,7 +143,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
     It("converts from glm::dvec3", [this]() {
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toVector(glm::dvec3(1.0, 2.3, 4.56)),
+          UnrealMetadataConversions::toVector(glm::dvec3(1.0, 2.3, 4.56)),
           FVector(1.0, 2.3, 4.56));
     });
 
@@ -151,7 +151,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1.5 Y=2.5 Z=3.5");
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toVector(str, FVector::Zero()),
+          UnrealMetadataConversions::toVector(str, FVector::Zero()),
           FVector(1.5f, 2.5f, 3.5f));
     });
 
@@ -159,13 +159,13 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1 Y=2");
       TestEqual(
           "partial input",
-          FITwinUnrealMetadataConversions::toVector(str, FVector::Zero()),
+          UnrealMetadataConversions::toVector(str, FVector::Zero()),
           FVector::Zero());
 
       str = std::string_view("R=0.5 G=0.5 B=0.5");
       TestEqual(
           "bad format",
-          FITwinUnrealMetadataConversions::toVector(str, FVector::Zero()),
+          UnrealMetadataConversions::toVector(str, FVector::Zero()),
           FVector::Zero());
     });
   });
@@ -174,7 +174,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
     It("converts from glm::dvec4", [this]() {
       TestEqual(
           "value",
-          FITwinUnrealMetadataConversions::toVector4(
+          UnrealMetadataConversions::toVector4(
               glm::dvec4(1.0, 2.3, 4.56, 7.89)),
           FVector4(1.0, 2.3, 4.56, 7.89));
     });
@@ -183,13 +183,13 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1.5 Y=2.5 Z=3.5 W=4.5");
       TestEqual(
           "with W component",
-          FITwinUnrealMetadataConversions::toVector4(str, FVector4::Zero()),
+          UnrealMetadataConversions::toVector4(str, FVector4::Zero()),
           FVector4(1.5, 2.5, 3.5, 4.5));
 
       str = std::string_view("X=1.5 Y=2.5 Z=3.5");
       TestEqual(
           "without W component",
-          FITwinUnrealMetadataConversions::toVector4(str, FVector4::Zero()),
+          UnrealMetadataConversions::toVector4(str, FVector4::Zero()),
           FVector4(1.5, 2.5, 3.5, 1.0));
     });
 
@@ -197,13 +197,13 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string_view str("X=1 Y=2");
       TestEqual(
           "partial input",
-          FITwinUnrealMetadataConversions::toVector4(str, FVector4::Zero()),
+          UnrealMetadataConversions::toVector4(str, FVector4::Zero()),
           FVector4::Zero());
 
       str = std::string_view("R=0.5 G=0.5 B=0.5 A=1.0");
       TestEqual(
           "bad format",
-          FITwinUnrealMetadataConversions::toVector4(str, FVector4::Zero()),
+          UnrealMetadataConversions::toVector4(str, FVector4::Zero()),
           FVector4::Zero());
     });
   });
@@ -224,7 +224,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
           FPlane4d(5.0, 6.0, 7.0, 8.0),
           FPlane4d(0.0, 1.0, 0.0, 1.0),
           FPlane4d(1.0, 0.0, 0.0, 1.0));
-      TestEqual("value", FITwinUnrealMetadataConversions::toMatrix(input), expected);
+      TestEqual("value", UnrealMetadataConversions::toMatrix(input), expected);
     });
   });
 
@@ -232,7 +232,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
     It("converts from std::string_view", [this]() {
       TestEqual(
           "std::string_view",
-          FITwinUnrealMetadataConversions::toString(std::string_view("Hello")),
+          UnrealMetadataConversions::toString(std::string_view("Hello")),
           FString("Hello"));
     });
 
@@ -240,21 +240,21 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       std::string expected("X=1 Y=2");
       TestEqual(
           "vec2",
-          FITwinUnrealMetadataConversions::toString(glm::u8vec2(1, 2)),
+          UnrealMetadataConversions::toString(glm::u8vec2(1, 2)),
           FString(expected.c_str()));
 
       expected = "X=" + std::to_string(4.5f) + " Y=" + std::to_string(3.21f) +
                  " Z=" + std::to_string(123.0f);
       TestEqual(
           "vec3",
-          FITwinUnrealMetadataConversions::toString(glm::vec3(4.5f, 3.21f, 123.0f)),
+          UnrealMetadataConversions::toString(glm::vec3(4.5f, 3.21f, 123.0f)),
           FString(expected.c_str()));
 
       expected = "X=" + std::to_string(1.0f) + " Y=" + std::to_string(2.0f) +
                  " Z=" + std::to_string(3.0f) + " W=" + std::to_string(4.0f);
       TestEqual(
           "vec4",
-          FITwinUnrealMetadataConversions::toString(
+          UnrealMetadataConversions::toString(
               glm::vec4(1.0f, 2.0f, 3.0f, 4.0f)),
           FString(expected.c_str()));
     });
@@ -272,7 +272,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       // clang-format on
       TestEqual(
           "mat2",
-          FITwinUnrealMetadataConversions::toString(mat2),
+          UnrealMetadataConversions::toString(mat2),
           FString(expected.c_str()));
 
       // This is written as transposed because glm::transpose only compiles for
@@ -287,7 +287,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       expected = "[-1 2 3] [4 -5 6] [7 8 -9]";
       TestEqual(
           "mat3",
-          FITwinUnrealMetadataConversions::toString(mat3),
+          UnrealMetadataConversions::toString(mat3),
           FString(expected.c_str()));
 
       // This is written as transposed because glm::transpose only compiles for
@@ -303,7 +303,7 @@ void FITwinUnrealMetadataConversionsSpec::Define() {
       expected = "[0 1 2 3] [4 5 6 7] [8 9 10 11] [12 13 14 15]";
       TestEqual(
           "mat4",
-          FITwinUnrealMetadataConversions::toString(mat4),
+          UnrealMetadataConversions::toString(mat4),
           FString(expected.c_str()));
     });
   });

@@ -8,7 +8,7 @@
 #include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
 
-struct FITwinCalcBoundsOperation {
+struct CalcBoundsOperation {
     const FTransform& localToWorld;
     const glm::dmat4& highPrecisionTransform;
 

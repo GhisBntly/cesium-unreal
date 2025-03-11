@@ -15,17 +15,17 @@ FITwinCesiumFeatureIdTexture::FITwinCesiumFeatureIdTexture(
     const MeshPrimitive& Primitive,
     const FeatureIdTexture& FeatureIdTexture,
     const FString& PropertyTableName)
-    : _status(EITwinCesiumFeatureIdTextureStatus::ErrorInvalidTexture),
+    : _status(ECesiumFeatureIdTextureStatus::ErrorInvalidTexture),
       _featureIdTextureView(Model, FeatureIdTexture),
       _texCoordAccessor(),
       _textureCoordinateSetIndex(FeatureIdTexture.texCoord),
       _propertyTableName(PropertyTableName) {
   switch (_featureIdTextureView.status()) {
   case FeatureIdTextureViewStatus::Valid:
-    _status = EITwinCesiumFeatureIdTextureStatus::Valid;
+    _status = ECesiumFeatureIdTextureStatus::Valid;
     break;
   case FeatureIdTextureViewStatus::ErrorInvalidChannels:
-    _status = EITwinCesiumFeatureIdTextureStatus::ErrorInvalidTextureAccess;
+    _status = ECesiumFeatureIdTextureStatus::ErrorInvalidTextureAccess;
     return;
   default:
     // Error with the texture or image. The status is already set by the
@@ -51,7 +51,7 @@ const FString& UITwinCesiumFeatureIdTextureBlueprintLibrary::GetFeatureTableName
   return FeatureIDTexture._propertyTableName;
 }
 
-EITwinCesiumFeatureIdTextureStatus
+ECesiumFeatureIdTextureStatus
 UITwinCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDTextureStatus(
     UPARAM(ref) const FITwinCesiumFeatureIdTexture& FeatureIDTexture) {
   return FeatureIDTexture._status;
@@ -68,7 +68,7 @@ int64 UITwinCesiumFeatureIdTextureBlueprintLibrary::GetUnrealUVChannel(
   const UITwinCesiumGltfPrimitiveComponent* pPrimitive =
       Cast<UITwinCesiumGltfPrimitiveComponent>(PrimitiveComponent);
   if (!pPrimitive ||
-      FeatureIDTexture._status != EITwinCesiumFeatureIdTextureStatus::Valid) {
+      FeatureIDTexture._status != ECesiumFeatureIdTextureStatus::Valid) {
     return -1;
   }
 

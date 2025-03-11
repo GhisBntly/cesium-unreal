@@ -35,7 +35,7 @@ FDelegateHandle subscriptionPostPIEStarted;
 
 END_DEFINE_SPEC(FSubLevelsSpec)
 
-using namespace ITwinCesiumTestHelpers;
+using namespace CesiumTestHelpers;
 
 void FSubLevelsSpec::Define() {
   BeforeEach([this]() {

@@ -11,7 +11,7 @@ FITwinCesiumFeatureIdAttribute::FITwinCesiumFeatureIdAttribute(
     const MeshPrimitive& Primitive,
     const int64 FeatureIDAttribute,
     const FString& PropertyTableName)
-    : _status(EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAttribute),
+    : _status(ECesiumFeatureIdAttributeStatus::ErrorInvalidAttribute),
       _featureIdAccessor(),
       _attributeIndex(FeatureIDAttribute),
       _propertyTableName(PropertyTableName) {
@@ -26,7 +26,7 @@ FITwinCesiumFeatureIdAttribute::FITwinCesiumFeatureIdAttribute(
   const Accessor* accessor =
       Model.getSafe<Accessor>(&Model.accessors, featureID->second);
   if (!accessor || accessor->type != Accessor::Type::SCALAR) {
-    this->_status = EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAccessor;
+    this->_status = ECesiumFeatureIdAttributeStatus::ErrorInvalidAccessor;
     return;
   }
 
@@ -38,10 +38,10 @@ FITwinCesiumFeatureIdAttribute::FITwinCesiumFeatureIdAttribute(
   this->_status = std::visit(
       [](auto view) {
         if (view.status() != AccessorViewStatus::Valid) {
-          return EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAccessor;
+          return ECesiumFeatureIdAttributeStatus::ErrorInvalidAccessor;
         }
 
-        return EITwinCesiumFeatureIdAttributeStatus::Valid;
+        return ECesiumFeatureIdAttributeStatus::Valid;
       },
       this->_featureIdAccessor);
 }
@@ -51,7 +51,7 @@ const FString& UITwinCesiumFeatureIdAttributeBlueprintLibrary::GetFeatureTableNa
   return FeatureIDAttribute._propertyTableName;
 }
 
-EITwinCesiumFeatureIdAttributeStatus
+ECesiumFeatureIdAttributeStatus
 UITwinCesiumFeatureIdAttributeBlueprintLibrary::GetFeatureIDAttributeStatus(
     UPARAM(ref) const FITwinCesiumFeatureIdAttribute& FeatureIDAttribute) {
   return FeatureIDAttribute._status;

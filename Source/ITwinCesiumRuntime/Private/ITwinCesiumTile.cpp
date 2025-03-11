@@ -26,7 +26,7 @@ bool UITwinCesiumTile::PrimitiveBoxFullyContainsTileBounds(
 
 FBoxSphereBounds UITwinCesiumTile::CalcBounds(const FTransform& LocalToWorld) const {
   FBoxSphereBounds bounds = std::visit(
-      FITwinCalcBoundsOperation{LocalToWorld, this->_tileTransform},
+      CalcBoundsOperation{LocalToWorld, this->_tileTransform},
       _tileBounds);
   return bounds;
 }

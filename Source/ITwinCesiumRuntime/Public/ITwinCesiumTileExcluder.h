@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "ITwinCesiumTileExcluder.generated.h"
 
-class FITwinCesiumTileExcluderAdapter;
+class CesiumTileExcluderAdapter;
 
 /**
  * An actor component for excluding Cesium Tiles.
@@ -21,7 +21,7 @@ UCLASS(
 class ITWINCESIUMRUNTIME_API UITwinCesiumTileExcluder : public UActorComponent {
   GENERATED_BODY()
 private:
-  FITwinCesiumTileExcluderAdapter* pExcluderAdapter;
+  CesiumTileExcluderAdapter* pExcluderAdapter;
 
   UPROPERTY()
   UITwinCesiumTile* CesiumTile;

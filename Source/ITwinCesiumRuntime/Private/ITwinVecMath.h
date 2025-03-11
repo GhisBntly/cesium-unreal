@@ -16,7 +16,7 @@
  * computations with `double` precision.
  *
  */
-class FITwinVecMath {
+class VecMath {
 public:
   /**
    * @brief Create a `glm` 4x4 matrix from the given `FMatrix`.

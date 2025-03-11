@@ -11,7 +11,7 @@ using namespace CesiumUtility;
 
 FVector UITwinCesiumWgs84Ellipsoid::GetRadii() {
   const glm::dvec3& radii = Ellipsoid::WGS84.getRadii();
-  return FITwinVecMath::createVector(radii);
+  return VecMath::createVector(radii);
 }
 
 double UITwinCesiumWgs84Ellipsoid::GetMaximumRadius() {
@@ -25,9 +25,9 @@ double UITwinCesiumWgs84Ellipsoid::GetMinimumRadius() {
 FVector UITwinCesiumWgs84Ellipsoid::ScaleToGeodeticSurface(
     const FVector& EarthCenteredEarthFixedPosition) {
   std::optional<glm::dvec3> result = Ellipsoid::WGS84.scaleToGeodeticSurface(
-      FITwinVecMath::createVector3D(EarthCenteredEarthFixedPosition));
+      VecMath::createVector3D(EarthCenteredEarthFixedPosition));
   if (result) {
-    return FITwinVecMath::createVector(*result);
+    return VecMath::createVector(*result);
   } else {
     return FVector(0.0, 0.0, 0.0);
   }
@@ -35,8 +35,8 @@ FVector UITwinCesiumWgs84Ellipsoid::ScaleToGeodeticSurface(
 
 FVector UITwinCesiumWgs84Ellipsoid::GeodeticSurfaceNormal(
     const FVector& EarthCenteredEarthFixedPosition) {
-  return FITwinVecMath::createVector(Ellipsoid::WGS84.geodeticSurfaceNormal(
-      FITwinVecMath::createVector3D(EarthCenteredEarthFixedPosition)));
+  return VecMath::createVector(Ellipsoid::WGS84.geodeticSurfaceNormal(
+      VecMath::createVector3D(EarthCenteredEarthFixedPosition)));
 }
 
 FVector UITwinCesiumWgs84Ellipsoid::LongitudeLatitudeHeightToEarthCenteredEarthFixed(
@@ -46,13 +46,13 @@ FVector UITwinCesiumWgs84Ellipsoid::LongitudeLatitudeHeightToEarthCenteredEarthF
           LongitudeLatitudeHeight.X,
           LongitudeLatitudeHeight.Y,
           LongitudeLatitudeHeight.Z));
-  return FITwinVecMath::createVector(cartesian);
+  return VecMath::createVector(cartesian);
 }
 
 FVector UITwinCesiumWgs84Ellipsoid::EarthCenteredEarthFixedToLongitudeLatitudeHeight(
     const FVector& EarthCenteredEarthFixedPosition) {
   std::optional<Cartographic> result = Ellipsoid::WGS84.cartesianToCartographic(
-      FITwinVecMath::createVector3D(EarthCenteredEarthFixedPosition));
+      VecMath::createVector3D(EarthCenteredEarthFixedPosition));
   if (result) {
     return FVector(
         Math::radiansToDegrees(result->longitude),
@@ -65,8 +65,8 @@ FVector UITwinCesiumWgs84Ellipsoid::EarthCenteredEarthFixedToLongitudeLatitudeHe
 
 FMatrix UITwinCesiumWgs84Ellipsoid::EastNorthUpToEarthCenteredEarthFixed(
     const FVector& EarthCenteredEarthFixedPosition) {
-  return FITwinVecMath::createMatrix(
+  return VecMath::createMatrix(
       CesiumGeospatial::GlobeTransforms::eastNorthUpToFixedFrame(
-          FITwinVecMath::createVector3D(EarthCenteredEarthFixedPosition),
+          VecMath::createVector3D(EarthCenteredEarthFixedPosition),
           CesiumGeospatial::Ellipsoid::WGS84));
 }

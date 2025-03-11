@@ -51,7 +51,7 @@ namespace {
 LocalHorizontalCoordinateSystem
 createCoordinateSystem(const FVector& center, double scale) {
   return LocalHorizontalCoordinateSystem(
-      FITwinVecMath::createVector3D(center),
+      VecMath::createVector3D(center),
       LocalDirection::East,
       LocalDirection::South,
       LocalDirection::Up,
@@ -204,11 +204,11 @@ void AITwinCesiumGeoreference::SetOriginEarthCenteredEarthFixed(
           TargetEarthCenteredEarthFixed));
 }
 
-EITwinOriginPlacement AITwinCesiumGeoreference::GetOriginPlacement() const {
+EOriginPlacement AITwinCesiumGeoreference::GetOriginPlacement() const {
   return this->OriginPlacement;
 }
 
-void AITwinCesiumGeoreference::SetOriginPlacement(EITwinOriginPlacement NewValue) {
+void AITwinCesiumGeoreference::SetOriginPlacement(EOriginPlacement NewValue) {
   this->OriginPlacement = NewValue;
   this->UpdateGeoreference();
 }
@@ -286,26 +286,26 @@ FVector AITwinCesiumGeoreference::TransformUnrealPositionToLongitudeLatitudeHeig
 
 FVector AITwinCesiumGeoreference::TransformEarthCenteredEarthFixedPositionToUnreal(
     const FVector& EarthCenteredEarthFixedPosition) const {
-  return FITwinVecMath::createVector(this->_coordinateSystem.ecefPositionToLocal(
-      FITwinVecMath::createVector3D(EarthCenteredEarthFixedPosition)));
+  return VecMath::createVector(this->_coordinateSystem.ecefPositionToLocal(
+      VecMath::createVector3D(EarthCenteredEarthFixedPosition)));
 }
 
 FVector AITwinCesiumGeoreference::TransformUnrealPositionToEarthCenteredEarthFixed(
     const FVector& UnrealPosition) const {
-  return FITwinVecMath::createVector(this->_coordinateSystem.localPositionToEcef(
-      FITwinVecMath::createVector3D(UnrealPosition)));
+  return VecMath::createVector(this->_coordinateSystem.localPositionToEcef(
+      VecMath::createVector3D(UnrealPosition)));
 }
 
 FVector AITwinCesiumGeoreference::TransformEarthCenteredEarthFixedDirectionToUnreal(
     const FVector& EarthCenteredEarthFixedDirection) const {
-  return FITwinVecMath::createVector(this->_coordinateSystem.ecefDirectionToLocal(
-      FITwinVecMath::createVector3D(EarthCenteredEarthFixedDirection)));
+  return VecMath::createVector(this->_coordinateSystem.ecefDirectionToLocal(
+      VecMath::createVector3D(EarthCenteredEarthFixedDirection)));
 }
 
 FVector AITwinCesiumGeoreference::TransformUnrealDirectionToEarthCenteredEarthFixed(
     const FVector& UnrealDirection) const {
-  return FITwinVecMath::createVector(this->_coordinateSystem.localDirectionToEcef(
-      FITwinVecMath::createVector3D(UnrealDirection)));
+  return VecMath::createVector(this->_coordinateSystem.localDirectionToEcef(
+      VecMath::createVector3D(UnrealDirection)));
 }
 
 FRotator AITwinCesiumGeoreference::TransformUnrealRotatorToEastSouthUp(
@@ -327,14 +327,14 @@ FRotator AITwinCesiumGeoreference::TransformEastSouthUpRotatorToUnreal(
 FMatrix
 AITwinCesiumGeoreference::ComputeUnrealToEarthCenteredEarthFixedTransformation()
     const {
-  return FITwinVecMath::createMatrix(
+  return VecMath::createMatrix(
       this->_coordinateSystem.getLocalToEcefTransformation());
 }
 
 FMatrix
 AITwinCesiumGeoreference::ComputeEarthCenteredEarthFixedToUnrealTransformation()
     const {
-  return FITwinVecMath::createMatrix(
+  return VecMath::createMatrix(
       this->_coordinateSystem.getEcefToLocalTransformation());
 }
 
@@ -352,7 +352,7 @@ FMatrix AITwinCesiumGeoreference::
         const FVector& EarthCenteredEarthFixedPosition) const {
   LocalHorizontalCoordinateSystem newLocal =
       createCoordinateSystem(EarthCenteredEarthFixedPosition, this->GetScale());
-  return FITwinVecMath::createMatrix(
+  return VecMath::createMatrix(
       newLocal.computeTransformationToAnotherLocal(this->_coordinateSystem));
 }
 
@@ -546,7 +546,7 @@ void AITwinCesiumGeoreference::BeginPlay() {
   UWorld* pWorld = this->GetWorld();
   if (!pWorld) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT("CesiumGeoreference does not have a World in BeginPlay."));
     return;
@@ -561,7 +561,7 @@ void AITwinCesiumGeoreference::OnConstruction(const FTransform& Transform) {
   Super::OnConstruction(Transform);
 
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       Verbose,
       TEXT("Called OnConstruction on actor %s"),
       *this->GetName());
@@ -601,7 +601,7 @@ void AITwinCesiumGeoreference::PostLoad() {
 
       if (!SubLevelActor) {
         UE_LOG(
-            LogITwinCesium,
+            LogCesium,
             Warning,
             TEXT("An explicit SubLevelCamera was specified on this "
                  "CesiumGeoreference, but its ViewTarget is not a valid "
@@ -627,7 +627,7 @@ void AITwinCesiumGeoreference::PostLoad() {
 
       if (!SubLevelActor) {
         UE_LOG(
-            LogITwinCesium,
+            LogCesium,
             Warning,
             TEXT(
                 "Could not find a Pawn in the level set to auto-possess player "
@@ -658,7 +658,7 @@ void AITwinCesiumGeoreference::PostLoad() {
         SubLevelActor->AddInstanceComponent(OriginShift);
 
         UE_LOG(
-            LogITwinCesium,
+            LogCesium,
             Warning,
             TEXT("Added CesiumOriginShiftComponent to %s in order to preserve "
                  "backward compatibility for sub-level switching."),
@@ -704,7 +704,7 @@ void AITwinCesiumGeoreference::_createSubLevelsFromWorldComposition() {
     // This happens for the georeference that is shown in the
     // content browser. Might omit this message.
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Verbose,
         TEXT(
             "Georeference is not spawned in world: %s, skipping _updateCesiumSubLevels"),
@@ -800,7 +800,7 @@ void AITwinCesiumGeoreference::_createSubLevelsFromWorldComposition() {
   this->CesiumSubLevels_DEPRECATED.Empty();
 
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       Warning,
       TEXT(
           "Cesium sub-levels based on World Composition have been converted to Level Instances. Save the level to keep these changes. We recommend disabling World Composition in the World Settings, as it is now obsolete."));
@@ -860,7 +860,7 @@ void AITwinCesiumGeoreference::UpdateGeoreference() {
   }
 
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       Verbose,
       TEXT("Broadcasting OnGeoreferenceUpdated for Georeference %s"),
       *this->GetFullName());
@@ -880,7 +880,7 @@ FName AITwinCesiumGeoreference::DEFAULT_GEOREFERENCE_TAG =
     FName("DEFAULT_GEOREFERENCE");
 
 void AITwinCesiumGeoreference::_updateCoordinateSystem() {
-  if (this->OriginPlacement == EITwinOriginPlacement::CartographicOrigin) {
+  if (this->OriginPlacement == EOriginPlacement::CartographicOrigin) {
     FVector origin = this->GetOriginLongitudeLatitudeHeight();
     this->_coordinateSystem = createCoordinateSystem(
         this->GetOriginEarthCenteredEarthFixed(),

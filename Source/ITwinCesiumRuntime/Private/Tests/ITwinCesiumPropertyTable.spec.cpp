@@ -32,7 +32,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTable);
+          ECesiumPropertyTableStatus::ErrorInvalidPropertyTable);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -48,7 +48,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTableClass);
+          ECesiumPropertyTableStatus::ErrorInvalidPropertyTableClass);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -64,7 +64,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTableClass);
+          ECesiumPropertyTableStatus::ErrorInvalidPropertyTableClass);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -90,7 +90,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -118,7 +118,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -136,7 +136,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTable);
+          ECesiumPropertyTableStatus::ErrorInvalidPropertyTable);
       const auto properties =
           UITwinCesiumPropertyTableBlueprintLibrary::GetProperties(propertyTable);
       TestTrue("properties are empty", properties.IsEmpty());
@@ -174,7 +174,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -193,7 +193,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTablePropertyStatus",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::
               GetPropertyTablePropertyStatus(scalarProperty),
-          EITwinCesiumPropertyTablePropertyStatus::Valid);
+          ECesiumPropertyTablePropertyStatus::Valid);
       TestEqual<int64>(
           "Size",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(
@@ -218,7 +218,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTablePropertyStatus",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::
               GetPropertyTablePropertyStatus(vec2Property),
-          EITwinCesiumPropertyTablePropertyStatus::Valid);
+          ECesiumPropertyTablePropertyStatus::Valid);
       TestEqual<int64>(
           "Size",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(
@@ -258,7 +258,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -277,7 +277,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTablePropertyStatus",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::
               GetPropertyTablePropertyStatus(property),
-          EITwinCesiumPropertyTablePropertyStatus::ErrorInvalidPropertyData);
+          ECesiumPropertyTablePropertyStatus::ErrorInvalidPropertyData);
       TestEqual<int64>(
           "Size",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(
@@ -295,7 +295,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTable);
+          ECesiumPropertyTableStatus::ErrorInvalidPropertyTable);
       const auto properties =
           UITwinCesiumPropertyTableBlueprintLibrary::GetProperties(propertyTable);
       TestTrue("properties are empty", properties.IsEmpty());
@@ -343,7 +343,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -385,7 +385,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -400,7 +400,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTablePropertyStatus",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::
               GetPropertyTablePropertyStatus(property),
-          EITwinCesiumPropertyTablePropertyStatus::ErrorInvalidProperty);
+          ECesiumPropertyTablePropertyStatus::ErrorInvalidProperty);
       TestEqual<int64>(
           "Size",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(
@@ -440,7 +440,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -455,7 +455,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTablePropertyStatus",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::
               GetPropertyTablePropertyStatus(scalarProperty),
-          EITwinCesiumPropertyTablePropertyStatus::Valid);
+          ECesiumPropertyTablePropertyStatus::Valid);
       TestEqual<int64>(
           "Size",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(
@@ -470,7 +470,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTablePropertyStatus",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::
               GetPropertyTablePropertyStatus(vec2Property),
-          EITwinCesiumPropertyTablePropertyStatus::Valid);
+          ECesiumPropertyTablePropertyStatus::Valid);
       TestEqual<int64>(
           "Size",
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(
@@ -489,7 +489,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTable);
+          ECesiumPropertyTableStatus::ErrorInvalidPropertyTable);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -536,7 +536,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -591,7 +591,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -649,7 +649,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -674,7 +674,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTable);
+          ECesiumPropertyTableStatus::ErrorInvalidPropertyTable);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -719,7 +719,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -770,7 +770,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
@@ -824,7 +824,7 @@ void FITwinCesiumPropertyTableSpec::Define() {
           "PropertyTableStatus",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
               propertyTable),
-          EITwinCesiumPropertyTableStatus::Valid);
+          ECesiumPropertyTableStatus::Valid);
       TestEqual<int64>(
           "Count",
           UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(

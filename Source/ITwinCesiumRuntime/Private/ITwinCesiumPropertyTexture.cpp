@@ -13,13 +13,13 @@ static FITwinCesiumPropertyTextureProperty EmptyPropertyTextureProperty;
 FITwinCesiumPropertyTexture::FITwinCesiumPropertyTexture(
     const CesiumGltf::Model& Model,
     const CesiumGltf::PropertyTexture& PropertyTexture)
-    : _status(EITwinCesiumPropertyTextureStatus::ErrorInvalidPropertyTextureClass),
+    : _status(ECesiumPropertyTextureStatus::ErrorInvalidPropertyTextureClass),
       _name(PropertyTexture.name.value_or("").c_str()),
       _className(PropertyTexture.classProperty.c_str()) {
   PropertyTextureView propertyTextureView(Model, PropertyTexture);
   switch (propertyTextureView.status()) {
   case PropertyTextureViewStatus::Valid:
-    _status = EITwinCesiumPropertyTextureStatus::Valid;
+    _status = ECesiumPropertyTextureStatus::Valid;
     break;
   default:
     // Status was already set in initializer list.
@@ -34,7 +34,7 @@ FITwinCesiumPropertyTexture::FITwinCesiumPropertyTexture(
   });
 }
 
-/*static*/ const EITwinCesiumPropertyTextureStatus
+/*static*/ const ECesiumPropertyTextureStatus
 UITwinCesiumPropertyTextureBlueprintLibrary::GetPropertyTextureStatus(
     UPARAM(ref) const FITwinCesiumPropertyTexture& PropertyTexture) {
   return PropertyTexture._status;
@@ -77,10 +77,10 @@ UITwinCesiumPropertyTextureBlueprintLibrary::GetMetadataValuesForUV(
 
   for (const auto& propertyIt : PropertyTexture._properties) {
     const FITwinCesiumPropertyTextureProperty& property = propertyIt.Value;
-    EITwinCesiumPropertyTexturePropertyStatus status =
+    ECesiumPropertyTexturePropertyStatus status =
         UITwinCesiumPropertyTexturePropertyBlueprintLibrary::
             GetPropertyTexturePropertyStatus(property);
-    if (status == EITwinCesiumPropertyTexturePropertyStatus::Valid) {
+    if (status == ECesiumPropertyTexturePropertyStatus::Valid) {
       values.Add(
           propertyIt.Key,
           UITwinCesiumPropertyTexturePropertyBlueprintLibrary::GetValue(
@@ -88,7 +88,7 @@ UITwinCesiumPropertyTextureBlueprintLibrary::GetMetadataValuesForUV(
               UV));
     } else if (
         status ==
-        EITwinCesiumPropertyTexturePropertyStatus::EmptyPropertyWithDefault) {
+        ECesiumPropertyTexturePropertyStatus::EmptyPropertyWithDefault) {
       values.Add(
           propertyIt.Key,
           UITwinCesiumPropertyTexturePropertyBlueprintLibrary::GetDefaultValue(
@@ -108,7 +108,7 @@ UITwinCesiumPropertyTextureBlueprintLibrary::GetMetadataValuesFromHit(
   for (const auto& propertyIt : PropertyTexture._properties) {
     if (UITwinCesiumPropertyTexturePropertyBlueprintLibrary::
             GetPropertyTexturePropertyStatus(propertyIt.Value) ==
-        EITwinCesiumPropertyTexturePropertyStatus::EmptyPropertyWithDefault) {
+        ECesiumPropertyTexturePropertyStatus::EmptyPropertyWithDefault) {
       values.Add(
           propertyIt.Key,
           UITwinCesiumPropertyTexturePropertyBlueprintLibrary::GetDefaultValue(
@@ -118,7 +118,7 @@ UITwinCesiumPropertyTextureBlueprintLibrary::GetMetadataValuesFromHit(
 
     if (UITwinCesiumPropertyTexturePropertyBlueprintLibrary::
             GetPropertyTexturePropertyStatus(propertyIt.Value) !=
-        EITwinCesiumPropertyTexturePropertyStatus::Valid) {
+        ECesiumPropertyTexturePropertyStatus::Valid) {
       continue;
     }
 

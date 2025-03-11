@@ -5,18 +5,18 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/vec3.hpp>
 
-glm::dmat4 FITwinCalcBoundsOperation::getModelToUnrealWorldMatrix() const {
+glm::dmat4 CalcBoundsOperation::getModelToUnrealWorldMatrix() const {
   const FMatrix matrix = localToWorld.ToMatrixWithScale();
-  return FITwinVecMath::createMatrix4D(matrix);
+  return VecMath::createMatrix4D(matrix);
 }
 
-glm::dmat4 FITwinCalcBoundsOperation::getTilesetToUnrealWorldMatrix() const {
+glm::dmat4 CalcBoundsOperation::getTilesetToUnrealWorldMatrix() const {
   const glm::dmat4 modelToUnreal = getModelToUnrealWorldMatrix();
   const glm::dmat4 tilesetToModel = glm::affineInverse(highPrecisionTransform);
   return modelToUnreal * tilesetToModel;
 }
 
-FBoxSphereBounds FITwinCalcBoundsOperation::operator()(
+FBoxSphereBounds CalcBoundsOperation::operator()(
     const CesiumGeometry::BoundingSphere& sphere) const {
   glm::dmat4 matrix = getTilesetToUnrealWorldMatrix();
   glm::dvec3 center = glm::dvec3(matrix * glm::dvec4(sphere.getCenter(), 1.0));
@@ -28,13 +28,13 @@ FBoxSphereBounds FITwinCalcBoundsOperation::operator()(
   sphereRadius = glm::max(sphereRadius, glm::length(halfAxes[2]));
 
   FBoxSphereBounds result;
-  result.Origin = FITwinVecMath::createVector(center);
+  result.Origin = VecMath::createVector(center);
   result.SphereRadius = sphereRadius;
   result.BoxExtent = FVector(sphereRadius, sphereRadius, sphereRadius);
   return result;
 }
 
-FBoxSphereBounds FITwinCalcBoundsOperation::operator()(
+FBoxSphereBounds CalcBoundsOperation::operator()(
     const CesiumGeometry::OrientedBoundingBox& box) const {
   glm::dmat4 matrix = getTilesetToUnrealWorldMatrix();
   glm::dvec3 center = glm::dvec3(matrix * glm::dvec4(box.getCenter(), 1.0));
@@ -55,24 +55,24 @@ FBoxSphereBounds FITwinCalcBoundsOperation::operator()(
                 glm::abs(halfAxes[2].z);
 
   FBoxSphereBounds result;
-  result.Origin = FITwinVecMath::createVector(center);
+  result.Origin = VecMath::createVector(center);
   result.SphereRadius = sphereRadius;
   result.BoxExtent = FVector(maxX, maxY, maxZ);
   return result;
 }
 
-FBoxSphereBounds FITwinCalcBoundsOperation::operator()(
+FBoxSphereBounds CalcBoundsOperation::operator()(
     const CesiumGeospatial::BoundingRegion& region) const {
   return (*this)(region.getBoundingBox());
 }
 
-FBoxSphereBounds FITwinCalcBoundsOperation::operator()(
+FBoxSphereBounds CalcBoundsOperation::operator()(
     const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
     const {
   return (*this)(region.getBoundingRegion());
 }
 
-FBoxSphereBounds FITwinCalcBoundsOperation::operator()(
+FBoxSphereBounds CalcBoundsOperation::operator()(
     const CesiumGeospatial::S2CellBoundingVolume& s2) const {
   return (*this)(s2.computeBoundingRegion());
 }

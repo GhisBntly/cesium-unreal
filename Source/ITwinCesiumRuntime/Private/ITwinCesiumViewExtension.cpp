@@ -7,12 +7,12 @@
 
 using namespace Cesium3DTilesSelection;
 
-FITwinCesiumViewExtension::FITwinCesiumViewExtension(const FAutoRegister& autoRegister)
+CesiumViewExtension::CesiumViewExtension(const FAutoRegister& autoRegister)
     : FSceneViewExtensionBase(autoRegister) {}
 
-FITwinCesiumViewExtension::~FITwinCesiumViewExtension() {}
+CesiumViewExtension::~CesiumViewExtension() {}
 
-TileOcclusionState FITwinCesiumViewExtension::getPrimitiveOcclusionState(
+TileOcclusionState CesiumViewExtension::getPrimitiveOcclusionState(
     const FPrimitiveComponentId& id,
     bool previouslyOccluded,
     float frameTimeCutoff) const {
@@ -57,13 +57,13 @@ TileOcclusionState FITwinCesiumViewExtension::getPrimitiveOcclusionState(
   }
 }
 
-void FITwinCesiumViewExtension::SetupViewFamily(FSceneViewFamily& InViewFamily) {}
+void CesiumViewExtension::SetupViewFamily(FSceneViewFamily& InViewFamily) {}
 
-void FITwinCesiumViewExtension::SetupView(
+void CesiumViewExtension::SetupView(
     FSceneViewFamily& InViewFamily,
     FSceneView& InView) {}
 
-void FITwinCesiumViewExtension::BeginRenderViewFamily(
+void CesiumViewExtension::BeginRenderViewFamily(
     FSceneViewFamily& InViewFamily) {
   if (!this->_isEnabled)
     return;
@@ -85,11 +85,11 @@ void FITwinCesiumViewExtension::BeginRenderViewFamily(
   }
 }
 
-void FITwinCesiumViewExtension::PreRenderViewFamily_RenderThread(
+void CesiumViewExtension::PreRenderViewFamily_RenderThread(
     FRHICommandListImmediate& RHICmdList,
     FSceneViewFamily& InViewFamily) {}
 
-void FITwinCesiumViewExtension::PreRenderView_RenderThread(
+void CesiumViewExtension::PreRenderView_RenderThread(
     FRHICommandListImmediate& RHICmdList,
     FSceneView& InView) {}
 
@@ -106,7 +106,7 @@ getOcclusionHistorySet(const FSceneViewState* pViewState) {
 
 } // namespace
 
-void FITwinCesiumViewExtension::PostRenderViewFamily_RenderThread(
+void CesiumViewExtension::PostRenderViewFamily_RenderThread(
     FRHICommandListImmediate& RHICmdList,
     FSceneViewFamily& InViewFamily) {
   if (!this->_isEnabled)
@@ -195,6 +195,6 @@ void FITwinCesiumViewExtension::PostRenderViewFamily_RenderThread(
   }
 }
 
-void FITwinCesiumViewExtension::SetEnabled(bool enabled) {
+void CesiumViewExtension::SetEnabled(bool enabled) {
   this->_isEnabled = enabled;
 }

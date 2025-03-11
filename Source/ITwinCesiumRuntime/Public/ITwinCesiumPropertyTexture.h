@@ -15,7 +15,7 @@ struct PropertyTexture;
 }; // namespace CesiumGltf
 
 UENUM(BlueprintType)
-enum class EITwinCesiumPropertyTextureStatus : uint8 {
+enum class ECesiumPropertyTextureStatus : uint8 {
   /* The property texture is valid. */
   Valid = 0,
   /* The property texture instance was not initialized from an actual glTF
@@ -37,7 +37,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumPropertyTexture {
 
 public:
   FITwinCesiumPropertyTexture()
-      : _status(EITwinCesiumPropertyTextureStatus::ErrorInvalidPropertyTexture) {}
+      : _status(ECesiumPropertyTextureStatus::ErrorInvalidPropertyTexture) {}
 
   FITwinCesiumPropertyTexture(
       const CesiumGltf::Model& model,
@@ -49,7 +49,7 @@ public:
   FString getClassName() const { return _className; }
 
 private:
-  EITwinCesiumPropertyTextureStatus _status;
+  ECesiumPropertyTextureStatus _status;
   FString _name;
   FString _className;
 
@@ -72,7 +72,7 @@ public:
       BlueprintCallable,
       BlueprintPure,
       Category = "Cesium|Metadata|PropertyTexture")
-  static const EITwinCesiumPropertyTextureStatus
+  static const ECesiumPropertyTextureStatus
   GetPropertyTextureStatus(UPARAM(ref)
                                const FITwinCesiumPropertyTexture& PropertyTexture);
 

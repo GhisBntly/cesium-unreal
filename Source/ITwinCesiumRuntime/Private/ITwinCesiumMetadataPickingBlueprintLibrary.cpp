@@ -256,9 +256,9 @@ UITwinCesiumMetadataPickingBlueprintLibrary::FindValidProperty(
         UITwinCesiumPropertyTableBlueprintLibrary::FindProperty(
             propertyTables[propertyTableIndex],
             PropertyName);
-    const EITwinCesiumPropertyTablePropertyStatus status =
+    const ECesiumPropertyTablePropertyStatus status =
         UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetPropertyTablePropertyStatus(propWithName);
-    if (status != EITwinCesiumPropertyTablePropertyStatus::Valid) {
+    if (status != ECesiumPropertyTablePropertyStatus::Valid) {
         return nullptr;
     }
     return &propWithName;

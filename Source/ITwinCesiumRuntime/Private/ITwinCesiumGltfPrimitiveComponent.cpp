@@ -31,7 +31,7 @@ UITwinCesiumGltfPrimitiveComponent::~UITwinCesiumGltfPrimitiveComponent() {}
 
 void UITwinCesiumGltfPrimitiveComponent::UpdateTransformFromCesium(
     const glm::dmat4& CesiumToUnrealTransform) {
-  const FTransform transform = FTransform(FITwinVecMath::createMatrix(
+  const FTransform transform = FTransform(VecMath::createMatrix(
       CesiumToUnrealTransform * this->HighPrecisionNodeTransform));
 
   if (this->Mobility == EComponentMobility::Movable) {
@@ -69,7 +69,7 @@ void destroyMaterialTexture(
           FMaterialParameterInfo(name, assocation, index),
           pTexture,
           true)) {
-    ITwinCesiumTextureUtility::destroyTexture(pTexture);
+    CesiumTextureUtility::destroyTexture(pTexture);
   }
 }
 
@@ -135,18 +135,18 @@ void UITwinCesiumGltfPrimitiveComponent::BeginDestroy() {
       }
     }
 
-    ITwinCesiumEncodedFeaturesMetadata::destroyEncodedPrimitiveFeatures(
+    CesiumEncodedFeaturesMetadata::destroyEncodedPrimitiveFeatures(
         this->EncodedFeatures);
 
     PRAGMA_DISABLE_DEPRECATION_WARNINGS
     if (this->EncodedMetadata_DEPRECATED) {
-      ITwinCesiumEncodedMetadataUtility::destroyEncodedMetadataPrimitive(
+      CesiumEncodedMetadataUtility::destroyEncodedMetadataPrimitive(
           *this->EncodedMetadata_DEPRECATED);
       this->EncodedMetadata_DEPRECATED = std::nullopt;
     }
     PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
-    FITwinCesiumLifetime::destroy(pMaterial);
+    CesiumLifetime::destroy(pMaterial);
   }
 
   UStaticMesh* pMesh = this->GetStaticMesh();
@@ -154,10 +154,10 @@ void UITwinCesiumGltfPrimitiveComponent::BeginDestroy() {
     UBodySetup* pBodySetup = pMesh->GetBodySetup();
 
     if (pBodySetup) {
-      FITwinCesiumLifetime::destroy(pBodySetup);
+      CesiumLifetime::destroy(pBodySetup);
     }
 
-    FITwinCesiumLifetime::destroy(pMesh);
+    CesiumLifetime::destroy(pMesh);
   }
 
   Super::BeginDestroy();
@@ -170,6 +170,6 @@ FBoxSphereBounds UITwinCesiumGltfPrimitiveComponent::CalcBounds(
   }
 
   return std::visit(
-      FITwinCalcBoundsOperation{LocalToWorld, this->HighPrecisionNodeTransform},
+      CalcBoundsOperation{LocalToWorld, this->HighPrecisionNodeTransform},
       *this->boundingVolume);
 }

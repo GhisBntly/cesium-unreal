@@ -9,13 +9,13 @@ using namespace CesiumGeospatial;
 using namespace CesiumUtility;
 
 BEGIN_DEFINE_SPEC(
-    FITwinGeoTransformsSpec,
+    FGeoTransformsSpec,
     "Cesium.Unit.GeoTransforms",
     EAutomationTestFlags::ApplicationContextMask |
         EAutomationTestFlags::ProductFilter)
-END_DEFINE_SPEC(FITwinGeoTransformsSpec)
+END_DEFINE_SPEC(FGeoTransformsSpec)
 
-void FITwinGeoTransformsSpec::Define() {
+void FGeoTransformsSpec::Define() {
   Describe("TransformLongitudeLatitudeHeightToUnreal", [this]() {
     It("returns the origin when given the origin LLH", [this]() {
       ITwinGeoTransforms geotransforms{};

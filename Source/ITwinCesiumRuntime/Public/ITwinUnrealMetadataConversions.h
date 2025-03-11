@@ -9,7 +9,7 @@
 #include <glm/common.hpp>
 #include <type_traits>
 
-enum class EITwinCesiumEncodedMetadataComponentType : uint8;
+enum class ECesiumEncodedMetadataComponentType : uint8;
 
 /**
  * @brief Converts a FITwinCesiumMetadataValueType to the best-fitting Blueprints
@@ -17,20 +17,20 @@ enum class EITwinCesiumEncodedMetadataComponentType : uint8;
  *
  * @param ValueType The input metadata value type.
  */
-EITwinCesiumMetadataBlueprintType
+ECesiumMetadataBlueprintType
 CesiumMetadataValueTypeToBlueprintType(FITwinCesiumMetadataValueType ValueType);
 
 // Deprecated.
-EITwinCesiumMetadataBlueprintType CesiumMetadataTrueTypeToBlueprintType(
-    EITwinCesiumMetadataTrueType_DEPRECATED trueType);
+ECesiumMetadataBlueprintType CesiumMetadataTrueTypeToBlueprintType(
+    ECesiumMetadataTrueType_DEPRECATED trueType);
 
 // For backwards compatibility.
-EITwinCesiumMetadataTrueType_DEPRECATED
+ECesiumMetadataTrueType_DEPRECATED
 CesiumMetadataValueTypeToTrueType(FITwinCesiumMetadataValueType ValueType);
 
 static const std::string VectorComponents = "XYZW";
 
-struct FITwinUnrealMetadataConversions {
+struct UnrealMetadataConversions {
 public:
   static FIntPoint toIntPoint(const glm::ivec2& vec2);
   /**

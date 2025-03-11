@@ -19,7 +19,7 @@ struct PropertyTable;
  * cannot be accessed, this briefly indicates why.
  */
 UENUM(BlueprintType)
-enum class EITwinCesiumPropertyTableStatus : uint8 {
+enum class ECesiumPropertyTableStatus : uint8 {
   /* The property table is valid. */
   Valid = 0,
   /* The property table instance was not initialized from an actual glTF
@@ -44,7 +44,7 @@ public:
    * Construct an empty property table instance.
    */
   FITwinCesiumPropertyTable()
-      : _status(EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTable){};
+      : _status(ECesiumPropertyTableStatus::ErrorInvalidPropertyTable){};
 
   /**
    * Constructs a property table from a glTF Property Table.
@@ -62,7 +62,7 @@ public:
   FString getClassName() const { return _className; }
 
 private:
-  EITwinCesiumPropertyTableStatus _status;
+  ECesiumPropertyTableStatus _status;
   FString _name;
   FString _className;
 
@@ -86,7 +86,7 @@ public:
       BlueprintCallable,
       BlueprintPure,
       Category = "Cesium|Metadata|PropertyTable")
-  static EITwinCesiumPropertyTableStatus
+  static ECesiumPropertyTableStatus
   GetPropertyTableStatus(UPARAM(ref) const FITwinCesiumPropertyTable& PropertyTable);
 
   /**

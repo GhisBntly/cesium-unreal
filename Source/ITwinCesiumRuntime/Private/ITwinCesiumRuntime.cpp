@@ -26,13 +26,13 @@
 
 #define LOCTEXT_NAMESPACE "FITwinCesiumRuntimeModule"
 
-DEFINE_LOG_CATEGORY(LogITwinCesium);
+DEFINE_LOG_CATEGORY(LogCesium);
 
 void FITwinCesiumRuntimeModule::StartupModule() {
   Cesium3DTilesContent::registerAllTileContentTypes();
 
   std::shared_ptr<spdlog::logger> pLogger = spdlog::default_logger();
-  pLogger->sinks() = {std::make_shared<ITwinSpdlogUnrealLoggerSink>()};
+  pLogger->sinks() = {std::make_shared<SpdlogUnrealLoggerSink>()};
 
   FModuleManager::Get().LoadModuleChecked(TEXT("HTTP"));
 
@@ -62,13 +62,13 @@ FITwinCesium3DTilesetIonTroubleshooting OnCesium3DTilesetIonTroubleshooting{};
 FITwinCesiumRasterOverlayIonTroubleshooting
     OnCesiumRasterOverlayIonTroubleshooting{};
 
-CesiumAsync::AsyncSystem& ITwinCesium::getAsyncSystem() noexcept {
+CesiumAsync::AsyncSystem& getAsyncSystem() noexcept {
   static CesiumAsync::AsyncSystem asyncSystem(
       std::make_shared<ITwinUnrealTaskProcessor>());
   return asyncSystem;
 }
 
-namespace ITwinCesium {
+namespace {
 
 std::string getCacheDatabaseName() {
 #if PLATFORM_ANDROID
@@ -90,13 +90,15 @@ std::string getCacheDatabaseName() {
           *CesiumDBFile);
 
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       Display,
       TEXT("Caching Cesium requests in %s"),
       *PlatformAbsolutePath);
 
   return TCHAR_TO_UTF8(*PlatformAbsolutePath);
 }
+
+} // namespace
 
 std::shared_ptr<CesiumAsync::ICacheDatabase>& getCacheDatabase() {
   static int MaxCacheItems =
@@ -105,7 +107,7 @@ std::shared_ptr<CesiumAsync::ICacheDatabase>& getCacheDatabase() {
   static std::shared_ptr<CesiumAsync::ICacheDatabase> pCacheDatabase =
       std::make_shared<CesiumAsync::SqliteCache>(
           spdlog::default_logger(),
-          ITwinCesium::getCacheDatabaseName(),
+          getCacheDatabaseName(),
           MaxCacheItems);
 
   return pCacheDatabase;
@@ -119,9 +121,7 @@ const std::shared_ptr<CesiumAsync::IAssetAccessor>& getAssetAccessor() {
           std::make_shared<CesiumAsync::CachingAssetAccessor>(
               spdlog::default_logger(),
               std::make_shared<ITwinUnrealAssetAccessor>(),
-              ITwinCesium::getCacheDatabase(),
+              getCacheDatabase(),
               RequestsPerCachePrune));
   return pAssetAccessor;
 }
-
-} //ITwinCesium

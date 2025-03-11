@@ -15,7 +15,7 @@
 /**
  * @brief Utility functions related to Unreal actors
  */
-class ITwinCesiumActors {
+class CesiumActors {
 public:
   /**
    * @brief Returns the origin location of the world that the given

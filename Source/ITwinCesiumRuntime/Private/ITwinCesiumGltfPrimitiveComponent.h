@@ -43,12 +43,12 @@ public:
   /**
    * The encoded representation of the primitive's EXT_mesh_features extension.
    */
-  ITwinCesiumEncodedFeaturesMetadata::EncodedPrimitiveFeatures EncodedFeatures;
+  CesiumEncodedFeaturesMetadata::EncodedPrimitiveFeatures EncodedFeatures;
   /**
    * The encoded representation of the primitive's EXT_structural_metadata
    * extension.
    */
-  ITwinCesiumEncodedFeaturesMetadata::EncodedPrimitiveMetadata EncodedMetadata;
+  CesiumEncodedFeaturesMetadata::EncodedPrimitiveMetadata EncodedMetadata;
 
   PRAGMA_DISABLE_DEPRECATION_WARNINGS
   /**
@@ -56,7 +56,7 @@ public:
    */
   FITwinCesiumMetadataPrimitive Metadata_DEPRECATED;
 
-  std::optional<ITwinCesiumEncodedMetadataUtility::EncodedMetadataPrimitive>
+  std::optional<CesiumEncodedMetadataUtility::EncodedMetadataPrimitive>
       EncodedMetadata_DEPRECATED;
   PRAGMA_ENABLE_DEPRECATION_WARNINGS
 

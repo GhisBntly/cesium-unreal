@@ -149,7 +149,7 @@ UITwinCesiumIonServer::GetBackwardCompatibleServer(const FString& apiUrl) {
 
 CesiumAsync::Future<void> UITwinCesiumIonServer::ResolveApiUrl() {
   if (!this->ApiUrl.IsEmpty())
-    return ITwinCesium::getAsyncSystem().createResolvedFuture();
+    return getAsyncSystem().createResolvedFuture();
 
   if (this->ServerUrl.IsEmpty()) {
     // We don't even have a server URL, so use the SaaS defaults.
@@ -157,14 +157,14 @@ CesiumAsync::Future<void> UITwinCesiumIonServer::ResolveApiUrl() {
     this->ApiUrl = TEXT("https://api.cesium.com/");
     this->Modify();
     UEditorLoadingAndSavingUtils::SavePackages({this->GetPackage()}, true);
-    return ITwinCesium::getAsyncSystem().createResolvedFuture();
+    return getAsyncSystem().createResolvedFuture();
   }
 
   TObjectPtr<UITwinCesiumIonServer> pServer = this;
 
   return CesiumIonClient::Connection::getApiUrl(
-             ITwinCesium::getAsyncSystem(),
-             ITwinCesium::getAssetAccessor(),
+             getAsyncSystem(),
+             getAssetAccessor(),
              TCHAR_TO_UTF8(*this->ServerUrl))
       .thenInMainThread([pServer](std::optional<std::string>&& apiUrl) {
         if (pServer && pServer->ApiUrl.IsEmpty()) {

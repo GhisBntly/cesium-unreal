@@ -22,16 +22,16 @@ void FITwinCesiumPropertyArraySpec::Define() {
 
       FITwinCesiumMetadataValueType valueType =
           UITwinCesiumPropertyArrayBlueprintLibrary::GetElementValueType(array);
-      TestEqual("type", valueType.Type, EITwinCesiumMetadataType::Invalid);
+      TestEqual("type", valueType.Type, ECesiumMetadataType::Invalid);
       TestEqual(
           "componentType",
           valueType.ComponentType,
-          EITwinCesiumMetadataComponentType::None);
+          ECesiumMetadataComponentType::None);
 
       TestEqual(
           "blueprint type",
           UITwinCesiumPropertyArrayBlueprintLibrary::GetElementBlueprintType(array),
-          EITwinCesiumMetadataBlueprintType::None);
+          ECesiumMetadataBlueprintType::None);
     });
 
     It("constructs empty array from empty view", [this]() {
@@ -44,16 +44,16 @@ void FITwinCesiumPropertyArraySpec::Define() {
 
       FITwinCesiumMetadataValueType valueType =
           UITwinCesiumPropertyArrayBlueprintLibrary::GetElementValueType(array);
-      TestEqual("type", valueType.Type, EITwinCesiumMetadataType::Scalar);
+      TestEqual("type", valueType.Type, ECesiumMetadataType::Scalar);
       TestEqual(
           "componentType",
           valueType.ComponentType,
-          EITwinCesiumMetadataComponentType::Uint8);
+          ECesiumMetadataComponentType::Uint8);
 
       TestEqual(
           "blueprint type",
           UITwinCesiumPropertyArrayBlueprintLibrary::GetElementBlueprintType(array),
-          EITwinCesiumMetadataBlueprintType::Byte);
+          ECesiumMetadataBlueprintType::Byte);
     });
 
     It("constructs non-empty array", [this]() {
@@ -67,16 +67,16 @@ void FITwinCesiumPropertyArraySpec::Define() {
 
       FITwinCesiumMetadataValueType valueType =
           UITwinCesiumPropertyArrayBlueprintLibrary::GetElementValueType(array);
-      TestEqual("type", valueType.Type, EITwinCesiumMetadataType::Scalar);
+      TestEqual("type", valueType.Type, ECesiumMetadataType::Scalar);
       TestEqual(
           "componentType",
           valueType.ComponentType,
-          EITwinCesiumMetadataComponentType::Uint8);
+          ECesiumMetadataComponentType::Uint8);
 
       TestEqual(
           "blueprint type",
           UITwinCesiumPropertyArrayBlueprintLibrary::GetElementBlueprintType(array),
-          EITwinCesiumMetadataBlueprintType::Byte);
+          ECesiumMetadataBlueprintType::Byte);
     });
   });
 
@@ -95,19 +95,19 @@ void FITwinCesiumPropertyArraySpec::Define() {
       FITwinCesiumMetadataValueType valueType =
           UITwinCesiumMetadataValueBlueprintLibrary::GetValueType(value);
 
-      TestEqual("type", valueType.Type, EITwinCesiumMetadataType::Invalid);
+      TestEqual("type", valueType.Type, ECesiumMetadataType::Invalid);
       TestEqual(
           "componentType",
           valueType.ComponentType,
-          EITwinCesiumMetadataComponentType::None);
+          ECesiumMetadataComponentType::None);
 
       value = UITwinCesiumPropertyArrayBlueprintLibrary::GetValue(array, 1);
       valueType = UITwinCesiumMetadataValueBlueprintLibrary::GetValueType(value);
-      TestEqual("type", valueType.Type, EITwinCesiumMetadataType::Invalid);
+      TestEqual("type", valueType.Type, ECesiumMetadataType::Invalid);
       TestEqual(
           "componentType",
           valueType.ComponentType,
-          EITwinCesiumMetadataComponentType::None);
+          ECesiumMetadataComponentType::None);
     });
 
     It("gets value for valid index", [this]() {
@@ -127,11 +127,11 @@ void FITwinCesiumPropertyArraySpec::Define() {
 
         FITwinCesiumMetadataValueType valueType =
             UITwinCesiumMetadataValueBlueprintLibrary::GetValueType(value);
-        TestEqual("type", valueType.Type, EITwinCesiumMetadataType::Scalar);
+        TestEqual("type", valueType.Type, ECesiumMetadataType::Scalar);
         TestEqual(
             "componentType",
             valueType.ComponentType,
-            EITwinCesiumMetadataComponentType::Uint8);
+            ECesiumMetadataComponentType::Uint8);
 
         TestEqual(
             "byte value",

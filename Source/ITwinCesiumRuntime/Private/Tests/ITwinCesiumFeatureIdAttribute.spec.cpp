@@ -30,7 +30,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAttribute);
+          ECesiumFeatureIdAttributeStatus::ErrorInvalidAttribute);
     });
 
     It("constructs invalid instance for nonexistent attribute", [this]() {
@@ -48,7 +48,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAttribute);
+          ECesiumFeatureIdAttributeStatus::ErrorInvalidAttribute);
     });
 
     It("constructs invalid instance for attribute with nonexistent accessor",
@@ -69,7 +69,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
              "FeatureIDAttributeStatus",
              UITwinCesiumFeatureIdAttributeBlueprintLibrary::
                  GetFeatureIDAttributeStatus(featureIDAttribute),
-             EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
+             ECesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
        });
 
     It("constructs invalid instance for attribute with invalid accessor",
@@ -93,13 +93,13 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
              "FeatureIDAttributeStatus",
              UITwinCesiumFeatureIdAttributeBlueprintLibrary::
                  GetFeatureIDAttributeStatus(featureIDAttribute),
-             EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
+             ECesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
        });
 
     It("constructs valid instance", [this]() {
       const int64 attributeIndex = 0;
       const std::vector<uint8_t> featureIDs{0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 2};
-      ITwinCesium::AddFeatureIDsAsAttributeToModel(
+      AddFeatureIDsAsAttributeToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -119,7 +119,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::Valid);
+          ECesiumFeatureIdAttributeStatus::Valid);
     });
   });
 
@@ -143,7 +143,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
+          ECesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
       TestEqual(
           "VertexCount",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::GetVertexCount(
@@ -155,7 +155,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
       const int64 attributeIndex = 0;
       const std::vector<uint8_t> featureIDs{0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 2};
       const int64 vertexCount = static_cast<int64>(featureIDs.size());
-      ITwinCesium::AddFeatureIDsAsAttributeToModel(
+      AddFeatureIDsAsAttributeToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -171,7 +171,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::Valid);
+          ECesiumFeatureIdAttributeStatus::Valid);
       TestEqual(
           "VertexCount",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::GetVertexCount(
@@ -200,7 +200,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
+          ECesiumFeatureIdAttributeStatus::ErrorInvalidAccessor);
       TestEqual(
           "FeatureIDForVertex",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::GetFeatureIDForVertex(
@@ -212,7 +212,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
     It("returns -1 for out-of-bounds index", [this]() {
       const int64 attributeIndex = 0;
       const std::vector<uint8_t> featureIDs{0, 0, 0, 1, 1, 1};
-      ITwinCesium::AddFeatureIDsAsAttributeToModel(
+      AddFeatureIDsAsAttributeToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -228,7 +228,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::Valid);
+          ECesiumFeatureIdAttributeStatus::Valid);
       TestEqual(
           "FeatureIDForNegativeVertex",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::GetFeatureIDForVertex(
@@ -246,7 +246,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
     It("returns correct value for valid attribute", [this]() {
       const int64 attributeIndex = 0;
       const std::vector<uint8_t> featureIDs{0, 0, 0, 3, 3, 3, 1, 1, 1, 2, 2, 2};
-      ITwinCesium::AddFeatureIDsAsAttributeToModel(
+      AddFeatureIDsAsAttributeToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -262,7 +262,7 @@ void FITwinCesiumFeatureIdAttributeSpec::Define() {
           "FeatureIDAttributeStatus",
           UITwinCesiumFeatureIdAttributeBlueprintLibrary::
               GetFeatureIDAttributeStatus(featureIDAttribute),
-          EITwinCesiumFeatureIdAttributeStatus::Valid);
+          ECesiumFeatureIdAttributeStatus::Valid);
       for (size_t i = 0; i < featureIDs.size(); i++) {
         TestEqual(
             "FeatureIDForVertex",

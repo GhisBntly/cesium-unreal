@@ -8,7 +8,7 @@
  * Constants useful for transformation between Cesium and Unreal Engine
  * coordinate systems.
  */
-class ITwinCesiumTransforms {
+class CesiumTransforms {
 public:
   /**
    * The constant to multiply to transform meters to centimeters (100.0).

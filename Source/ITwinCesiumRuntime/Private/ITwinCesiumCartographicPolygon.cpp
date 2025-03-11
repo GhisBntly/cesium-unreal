@@ -84,6 +84,6 @@ void AITwinCesiumCartographicPolygon::MakeLinear() {
 void AITwinCesiumCartographicPolygon::PostLoad() {
   Super::PostLoad();
 
-  if (ITwinCesiumActors::shouldValidateFlags(this))
-    ITwinCesiumActors::validateActorFlags(this);
+  if (CesiumActors::shouldValidateFlags(this))
+    CesiumActors::validateActorFlags(this);
 }

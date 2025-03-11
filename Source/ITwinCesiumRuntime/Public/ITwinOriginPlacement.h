@@ -11,7 +11,7 @@
  * a Georeference.
  */
 UENUM(BlueprintType)
-enum class EITwinOriginPlacement : uint8 {
+enum class EOriginPlacement : uint8 {
   /**
    * Use the tileset's true origin as the Actor's origin. For georeferenced
    * tilesets, this usually means the Actor's origin will be at the center

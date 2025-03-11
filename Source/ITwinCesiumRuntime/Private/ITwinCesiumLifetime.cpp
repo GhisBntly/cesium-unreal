@@ -16,17 +16,17 @@
 #include <algorithm>
 
 /*static*/
-FITwinAmortizedDestructor FITwinCesiumLifetime::amortizedDestructor = FITwinAmortizedDestructor();
+AmortizedDestructor CesiumLifetime::amortizedDestructor = AmortizedDestructor();
 
-/*static*/ void FITwinCesiumLifetime::destroy(UObject* pObject) {
+/*static*/ void CesiumLifetime::destroy(UObject* pObject) {
   amortizedDestructor.destroy(pObject);
 }
 
 /*static*/ void
-FITwinCesiumLifetime::destroyComponentRecursively(USceneComponent* pComponent) {
+CesiumLifetime::destroyComponentRecursively(USceneComponent* pComponent) {
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::DestroyComponent)
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       VeryVerbose,
       TEXT("Destroying scene component recursively"));
 
@@ -56,28 +56,28 @@ FITwinCesiumLifetime::destroyComponentRecursively(USceneComponent* pComponent) {
   pComponent->DestroyComponent();
   pComponent->ConditionalBeginDestroy();
 
-  UE_LOG(LogITwinCesium, VeryVerbose, TEXT("Destroying scene component done"));
+  UE_LOG(LogCesium, VeryVerbose, TEXT("Destroying scene component done"));
 }
 
-void FITwinAmortizedDestructor::Tick(float DeltaTime) { processPending(); }
+void AmortizedDestructor::Tick(float DeltaTime) { processPending(); }
 
-ETickableTickType FITwinAmortizedDestructor::GetTickableTickType() const {
+ETickableTickType AmortizedDestructor::GetTickableTickType() const {
   return ETickableTickType::Always;
 }
 
-bool FITwinAmortizedDestructor::IsTickableWhenPaused() const { return true; }
+bool AmortizedDestructor::IsTickableWhenPaused() const { return true; }
 
-bool FITwinAmortizedDestructor::IsTickableInEditor() const { return true; }
+bool AmortizedDestructor::IsTickableInEditor() const { return true; }
 
-TStatId FITwinAmortizedDestructor::GetStatId() const { return TStatId(); }
+TStatId AmortizedDestructor::GetStatId() const { return TStatId(); }
 
-void FITwinAmortizedDestructor::destroy(UObject* pObject) {
+void AmortizedDestructor::destroy(UObject* pObject) {
   if (!runDestruction(pObject)) {
     addToPending(pObject);
   }
 }
 
-bool FITwinAmortizedDestructor::runDestruction(UObject* pObject) const {
+bool AmortizedDestructor::runDestruction(UObject* pObject) const {
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::RunDestruction)
 
   if (!pObject) {
@@ -108,11 +108,11 @@ bool FITwinAmortizedDestructor::runDestruction(UObject* pObject) const {
   return false;
 }
 
-void FITwinAmortizedDestructor::addToPending(UObject* pObject) {
+void AmortizedDestructor::addToPending(UObject* pObject) {
   _pending.Add(pObject);
 }
 
-void FITwinAmortizedDestructor::processPending() {
+void AmortizedDestructor::processPending() {
   std::swap(_nextPending, _pending);
   _pending.Empty();
 
@@ -121,7 +121,7 @@ void FITwinAmortizedDestructor::processPending() {
   }
 }
 
-void FITwinAmortizedDestructor::finalizeDestroy(UObject* pObject) const {
+void AmortizedDestructor::finalizeDestroy(UObject* pObject) const {
   // The freeing/clearing/destroying done here is normally done in these
   // objects' FinishDestroy method, but unfortunately we can't call that
   // directly without confusing the garbage collector if and when it _does_

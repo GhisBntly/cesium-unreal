@@ -20,7 +20,7 @@ struct FeatureIdTexture;
  * texture cannot be accessed, this briefly indicates why.
  */
 UENUM(BlueprintType)
-enum EITwinCesiumFeatureIdTextureStatus {
+enum ECesiumFeatureIdTextureStatus {
   /* The feature ID texture is valid. */
   Valid = 0,
   /* The feature ID texture cannot be found in the glTF, or the texture itself
@@ -48,7 +48,7 @@ public:
    * texture.
    */
   FITwinCesiumFeatureIdTexture()
-      : _status(EITwinCesiumFeatureIdTextureStatus::ErrorInvalidTexture) {}
+      : _status(ECesiumFeatureIdTextureStatus::ErrorInvalidTexture) {}
 
   /**
    * @brief Constructs a feature ID texture instance.
@@ -74,7 +74,7 @@ public:
   }
 
 private:
-  EITwinCesiumFeatureIdTextureStatus _status;
+  ECesiumFeatureIdTextureStatus _status;
   CesiumGltf::FeatureIdTextureView _featureIdTextureView;
   CesiumGltf::TexCoordAccessorType _texCoordAccessor;
   int64 _textureCoordinateSetIndex;
@@ -118,7 +118,7 @@ public:
       BlueprintCallable,
       BlueprintPure,
       Category = "Cesium|Features|FeatureIDTexture")
-  static EITwinCesiumFeatureIdTextureStatus GetFeatureIDTextureStatus(
+  static ECesiumFeatureIdTextureStatus GetFeatureIDTextureStatus(
       UPARAM(ref) const FITwinCesiumFeatureIdTexture& FeatureIDTexture);
 
   /**

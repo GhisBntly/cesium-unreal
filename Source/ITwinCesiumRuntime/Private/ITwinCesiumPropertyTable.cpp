@@ -10,7 +10,7 @@ static FITwinCesiumPropertyTableProperty EmptyPropertyTableProperty;
 FITwinCesiumPropertyTable::FITwinCesiumPropertyTable(
     const Model& Model,
     const PropertyTable& PropertyTable)
-    : _status(EITwinCesiumPropertyTableStatus::ErrorInvalidPropertyTableClass),
+    : _status(ECesiumPropertyTableStatus::ErrorInvalidPropertyTableClass),
       _name(PropertyTable.name.value_or("").c_str()),
       _className(PropertyTable.classProperty.c_str()),
       _count(PropertyTable.count),
@@ -18,7 +18,7 @@ FITwinCesiumPropertyTable::FITwinCesiumPropertyTable(
   PropertyTableView propertyTableView{Model, PropertyTable};
   switch (propertyTableView.status()) {
   case PropertyTableViewStatus::Valid:
-    _status = EITwinCesiumPropertyTableStatus::Valid;
+    _status = ECesiumPropertyTableStatus::Valid;
     break;
   default:
     // Status was already set in initializer list.
@@ -33,7 +33,7 @@ FITwinCesiumPropertyTable::FITwinCesiumPropertyTable(
   });
 }
 
-/*static*/ EITwinCesiumPropertyTableStatus
+/*static*/ ECesiumPropertyTableStatus
 UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableStatus(
     UPARAM(ref) const FITwinCesiumPropertyTable& PropertyTable) {
   return PropertyTable._status;
@@ -47,7 +47,7 @@ UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableName(
 
 /*static*/ int64 UITwinCesiumPropertyTableBlueprintLibrary::GetPropertyTableCount(
     UPARAM(ref) const FITwinCesiumPropertyTable& PropertyTable) {
-  if (PropertyTable._status != EITwinCesiumPropertyTableStatus::Valid) {
+  if (PropertyTable._status != ECesiumPropertyTableStatus::Valid) {
     return 0;
   }
 
@@ -88,10 +88,10 @@ UITwinCesiumPropertyTableBlueprintLibrary::GetMetadataValuesForFeature(
 
   for (const auto& pair : PropertyTable._properties) {
     const FITwinCesiumPropertyTableProperty& property = pair.Value;
-    EITwinCesiumPropertyTablePropertyStatus status =
+    ECesiumPropertyTablePropertyStatus status =
         UITwinCesiumPropertyTablePropertyBlueprintLibrary::
             GetPropertyTablePropertyStatus(property);
-    if (status == EITwinCesiumPropertyTablePropertyStatus::Valid) {
+    if (status == ECesiumPropertyTablePropertyStatus::Valid) {
       values.Add(
           pair.Key,
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetValue(
@@ -99,7 +99,7 @@ UITwinCesiumPropertyTableBlueprintLibrary::GetMetadataValuesForFeature(
               FeatureID));
     } else if (
         status ==
-        EITwinCesiumPropertyTablePropertyStatus::EmptyPropertyWithDefault) {
+        ECesiumPropertyTablePropertyStatus::EmptyPropertyWithDefault) {
       values.Add(
           pair.Key,
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetDefaultValue(
@@ -121,10 +121,10 @@ UITwinCesiumPropertyTableBlueprintLibrary::GetMetadataValuesForFeatureAsStrings(
 
   for (const auto& pair : PropertyTable._properties) {
     const FITwinCesiumPropertyTableProperty& property = pair.Value;
-    EITwinCesiumPropertyTablePropertyStatus status =
+    ECesiumPropertyTablePropertyStatus status =
         UITwinCesiumPropertyTablePropertyBlueprintLibrary::
             GetPropertyTablePropertyStatus(property);
-    if (status == EITwinCesiumPropertyTablePropertyStatus::Valid) {
+    if (status == ECesiumPropertyTablePropertyStatus::Valid) {
       values.Add(
           pair.Key,
           UITwinCesiumPropertyTablePropertyBlueprintLibrary::GetString(

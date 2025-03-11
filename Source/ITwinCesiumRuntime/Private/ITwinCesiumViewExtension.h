@@ -13,7 +13,7 @@
 
 class AITwinCesium3DTileset;
 
-class FITwinCesiumViewExtension : public FSceneViewExtensionBase {
+class CesiumViewExtension : public FSceneViewExtensionBase {
 private:
   // Occlusion results for a single view.
   struct PrimitiveOcclusionResult {
@@ -96,8 +96,8 @@ private:
   std::atomic<bool> _isEnabled = false;
 
 public:
-  FITwinCesiumViewExtension(const FAutoRegister& autoRegister);
-  ~FITwinCesiumViewExtension();
+  CesiumViewExtension(const FAutoRegister& autoRegister);
+  ~CesiumViewExtension();
 
   Cesium3DTilesSelection::TileOcclusionState getPrimitiveOcclusionState(
       const FPrimitiveComponentId& id,

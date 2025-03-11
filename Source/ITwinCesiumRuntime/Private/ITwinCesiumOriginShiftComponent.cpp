@@ -12,11 +12,11 @@
 #include "Editor.h"
 #endif
 
-EITwinCesiumOriginShiftMode UITwinCesiumOriginShiftComponent::GetMode() const {
+ECesiumOriginShiftMode UITwinCesiumOriginShiftComponent::GetMode() const {
   return this->Mode;
 }
 
-void UITwinCesiumOriginShiftComponent::SetMode(EITwinCesiumOriginShiftMode NewMode) {
+void UITwinCesiumOriginShiftComponent::SetMode(ECesiumOriginShiftMode NewMode) {
   this->Mode = NewMode;
 }
 
@@ -64,7 +64,7 @@ void UITwinCesiumOriginShiftComponent::TickComponent(
   if (TickType != ELevelTick::LEVELTICK_All)
     return;
 
-  if (!this->IsActive() || this->Mode == EITwinCesiumOriginShiftMode::Disabled)
+  if (!this->IsActive() || this->Mode == ECesiumOriginShiftMode::Disabled)
     return;
 
   UITwinCesiumGlobeAnchorComponent* GlobeAnchor = this->GetGlobeAnchor();
@@ -87,7 +87,7 @@ void UITwinCesiumOriginShiftComponent::TickComponent(
   // If we don't have any known sub-levels, and aren't origin shifting outside
   // of sub-levels, then bail quickly to save ourselves a little work.
   if (Sublevels.IsEmpty() &&
-      this->Mode == EITwinCesiumOriginShiftMode::SwitchSubLevelsOnly) {
+      this->Mode == ECesiumOriginShiftMode::SwitchSubLevelsOnly) {
     return;
   }
 
@@ -130,7 +130,7 @@ void UITwinCesiumOriginShiftComponent::TickComponent(
   bool doOriginShift =
       Switcher->GetTargetSubLevel() == nullptr &&
       Switcher->GetCurrentSubLevel() == nullptr &&
-      this->Mode != EITwinCesiumOriginShiftMode::SwitchSubLevelsOnly;
+      this->Mode != ECesiumOriginShiftMode::SwitchSubLevelsOnly;
 
   if (doOriginShift) {
     // We're between sub-levels, but we also only want to shift the origin when
@@ -142,10 +142,10 @@ void UITwinCesiumOriginShiftComponent::TickComponent(
   }
 
   if (doOriginShift) {
-    if (this->Mode == EITwinCesiumOriginShiftMode::ChangeCesiumGeoreference) {
+    if (this->Mode == ECesiumOriginShiftMode::ChangeCesiumGeoreference) {
       Georeference->SetOriginEarthCenteredEarthFixed(ActorEcef);
     } else {
-      check(false && "Missing EITwinCesiumOriginShiftMode implementation.")
+      check(false && "Missing ECesiumOriginShiftMode implementation.")
     }
   }
 }

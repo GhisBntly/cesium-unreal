@@ -16,7 +16,7 @@ struct FeatureId;
  * @brief The type of a feature ID set.
  */
 UENUM(BlueprintType)
-enum class EITwinCesiumFeatureIdSetType : uint8 {
+enum class ECesiumFeatureIdSetType : uint8 {
   None,
   Attribute,
   Texture,
@@ -40,7 +40,7 @@ struct ITWINCESIUMRUNTIME_API FITwinCesiumFeatureIdSet {
 
 public:
   FITwinCesiumFeatureIdSet()
-      : _featureIDSetType(EITwinCesiumFeatureIdSetType::None),
+      : _featureIDSetType(ECesiumFeatureIdSetType::None),
         _featureCount(0),
         _nullFeatureID(-1) {}
 
@@ -51,7 +51,7 @@ public:
 
 private:
   FeatureIDType _featureID;
-  EITwinCesiumFeatureIdSetType _featureIDSetType;
+  ECesiumFeatureIdSetType _featureIDSetType;
   int64 _featureCount;
   int64 _nullFeatureID;
   int64 _propertyTableIndex;
@@ -72,7 +72,7 @@ public:
       BlueprintCallable,
       BlueprintPure,
       Category = "Cesium|Features|FeatureIDSet")
-  static const EITwinCesiumFeatureIdSetType
+  static const ECesiumFeatureIdSetType
   GetFeatureIDSetType(UPARAM(ref) const FITwinCesiumFeatureIdSet& FeatureIDSet);
 
   /**

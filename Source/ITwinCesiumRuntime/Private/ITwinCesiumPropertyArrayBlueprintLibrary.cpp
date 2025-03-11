@@ -4,13 +4,13 @@
 #include "ITwinUnrealMetadataConversions.h"
 #include <CesiumGltf/MetadataConversions.h>
 
-EITwinCesiumMetadataBlueprintType
+ECesiumMetadataBlueprintType
 UITwinCesiumPropertyArrayBlueprintLibrary::GetElementBlueprintType(
     UPARAM(ref) const FITwinCesiumPropertyArray& array) {
   return CesiumMetadataValueTypeToBlueprintType(array._elementType);
 }
 
-EITwinCesiumMetadataBlueprintType
+ECesiumMetadataBlueprintType
 UITwinCesiumPropertyArrayBlueprintLibrary::GetBlueprintComponentType(
     UPARAM(ref) const FITwinCesiumPropertyArray& array) {
   return CesiumMetadataValueTypeToBlueprintType(array._elementType);
@@ -53,7 +53,7 @@ FITwinCesiumMetadataValue UITwinCesiumPropertyArrayBlueprintLibrary::GetValue(
       array._value);
 }
 
-EITwinCesiumMetadataTrueType_DEPRECATED
+ECesiumMetadataTrueType_DEPRECATED
 UITwinCesiumPropertyArrayBlueprintLibrary::GetTrueComponentType(
     UPARAM(ref) const FITwinCesiumPropertyArray& array) {
   return CesiumMetadataValueTypeToTrueType(array._elementType);
@@ -173,7 +173,7 @@ FString UITwinCesiumPropertyArrayBlueprintLibrary::GetString(
         if (!maybeString) {
           return defaultValue;
         }
-        return FITwinUnrealMetadataConversions::toString(*maybeString);
+        return UnrealMetadataConversions::toString(*maybeString);
       },
       array._value);
 }

@@ -36,7 +36,7 @@ namespace {
 AITwinCesiumCreditSystem* findValidDefaultCreditSystem(ULevel* Level) {
   if (!IsValid(Level)) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT("No valid level for findValidDefaultCreditSystem"));
     return nullptr;
@@ -65,7 +65,7 @@ AITwinCesiumCreditSystem* findValidDefaultCreditSystem(ULevel* Level) {
 bool checkIfInSubLevel(AITwinCesiumCreditSystem* pCreditSystem) {
   if (pCreditSystem->GetLevel() != pCreditSystem->GetWorld()->PersistentLevel) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT(
             "CesiumCreditSystem should only exist in the Persistent Level. Adding it to a sub-level may cause credits to be lost."));
@@ -104,7 +104,7 @@ AITwinCesiumCreditSystem::GetDefaultCreditSystem(const UObject* WorldContextObje
     return nullptr;
   }
   UE_LOG(
-      LogITwinCesium,
+      LogCesium,
       Verbose,
       TEXT("World name for GetDefaultCreditSystem: %s"),
       *world->GetFullName());
@@ -143,7 +143,7 @@ AITwinCesiumCreditSystem::GetDefaultCreditSystem(const UObject* WorldContextObje
   }
   if (!pCreditSystem) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Verbose,
         TEXT("Creating default Credit System for actor %s"),
         *WorldContextObject->GetName());
@@ -162,7 +162,7 @@ AITwinCesiumCreditSystem::GetDefaultCreditSystem(const UObject* WorldContextObje
     }
   } else {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Verbose,
         TEXT("Using existing CreditSystem %s for actor %s"),
         *pCreditSystem->GetName(),

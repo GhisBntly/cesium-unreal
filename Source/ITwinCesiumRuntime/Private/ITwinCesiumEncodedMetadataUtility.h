@@ -16,15 +16,15 @@ struct FITwinCesiumModelMetadata;
 struct FITwinCesiumMetadataPrimitive;
 struct FITwinCesiumPropertyTable;
 struct FITwinCesiumPropertyTexture;
-struct FITwinFeatureTableDescription;
-struct FITwinFeatureTextureDescription;
-struct FITwinMetadataDescription;
+struct FFeatureTableDescription;
+struct FFeatureTextureDescription;
+struct FMetadataDescription;
 struct FITwinCesiumPrimitiveFeaturesDescription;
 
 /**
- * DEPRECATED. Use ITwinCesiumEncodedFeaturesMetadata instead.
+ * DEPRECATED. Use CesiumEncodedFeaturesMetadata instead.
  */
-namespace ITwinCesiumEncodedMetadataUtility {
+namespace CesiumEncodedMetadataUtility {
 struct EncodedMetadataProperty {
   /**
    * @brief The name of this property.
@@ -34,7 +34,7 @@ struct EncodedMetadataProperty {
   /**
    * @brief The encoded property array.
    */
-  TUniquePtr<ITwinCesiumTextureUtility::LoadedTextureResult> pTexture;
+  TUniquePtr<CesiumTextureUtility::LoadedTextureResult> pTexture;
 };
 
 struct EncodedMetadataFeatureTable {
@@ -59,7 +59,7 @@ struct EncodedFeatureIdTexture {
   /**
    * @brief The actual feature id texture.
    */
-  TSharedPtr<ITwinCesiumTextureUtility::LoadedTextureResult> pTexture;
+  TSharedPtr<CesiumTextureUtility::LoadedTextureResult> pTexture;
 
   /**
    * @brief The channel that this feature id texture uses within the image.
@@ -80,7 +80,7 @@ struct EncodedFeatureIdAttribute {
 
 struct EncodedFeatureTextureProperty {
   FString baseName;
-  TSharedPtr<ITwinCesiumTextureUtility::LoadedTextureResult> pTexture;
+  TSharedPtr<CesiumTextureUtility::LoadedTextureResult> pTexture;
   int64 textureCoordinateAttributeId;
   int32 channelOffsets[4];
 };
@@ -101,31 +101,31 @@ struct EncodedMetadata {
 };
 
 EncodedMetadataFeatureTable encodeMetadataFeatureTableAnyThreadPart(
-    const FITwinFeatureTableDescription& featureTableDescription,
+    const FFeatureTableDescription& featureTableDescription,
     const FITwinCesiumPropertyTable& featureTable);
 
 EncodedFeatureTexture encodeFeatureTextureAnyThreadPart(
     TMap<
         const CesiumGltf::ImageCesium*,
-        TWeakPtr<ITwinCesiumTextureUtility::LoadedTextureResult>>&
+        TWeakPtr<CesiumTextureUtility::LoadedTextureResult>>&
         featureTexturePropertyMap,
-    const FITwinFeatureTextureDescription& featureTextureDescription,
+    const FFeatureTextureDescription& featureTextureDescription,
     const FString& featureTextureName,
     const FITwinCesiumPropertyTexture& featureTexture);
 
 EncodedMetadataPrimitive encodeMetadataPrimitiveAnyThreadPart(
-    const FITwinMetadataDescription& metadataDescription,
+    const FMetadataDescription& metadataDescription,
     const FITwinCesiumMetadataPrimitive& primitive);
 
 EncodedMetadata encodeMetadataAnyThreadPart(
-    const FITwinMetadataDescription& metadataDescription,
+    const FMetadataDescription& metadataDescription,
     const FITwinCesiumModelMetadata& metadata);
 
 bool encodeMetadataFeatureTableGameThreadPart(
     EncodedMetadataFeatureTable& encodedFeatureTable);
 
 bool encodeFeatureTextureGameThreadPart(
-    TArray<TUniquePtr<ITwinCesiumTextureUtility::LoadedTextureResult>>&
+    TArray<TUniquePtr<CesiumTextureUtility::LoadedTextureResult>>&
         uniqueTextures,
     EncodedFeatureTexture& encodedFeatureTexture);
 
@@ -141,6 +141,6 @@ void destroyEncodedMetadata(EncodedMetadata& encodedMetadata);
 
 FString createHlslSafeName(const FString& rawName);
 
-} // namespace ITwinCesiumEncodedMetadataUtility
+} // namespace CesiumEncodedMetadataUtility
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

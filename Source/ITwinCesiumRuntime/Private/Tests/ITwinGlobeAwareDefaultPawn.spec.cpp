@@ -40,7 +40,7 @@ void FGlobeAwareDefaultPawnSpec::Define() {
                       FTransform::Identity,
                       false));
               pFlyTo->RotationToUse =
-                  EITwinCesiumFlyToRotation::ControlRotationInEastSouthUp;
+                  ECesiumFlyToRotation::ControlRotationInEastSouthUp;
 
               subscriptionPostPIEStarted =
                   FEditorDelegates::PostPIEStarted.AddLambda(

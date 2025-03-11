@@ -16,7 +16,7 @@ struct Accessor;
  * attribute cannot be accessed, this briefly indicates why.
  */
 UENUM(BlueprintType)
-enum class EITwinCesiumFeatureIdAttributeStatus : uint8 {
+enum class ECesiumFeatureIdAttributeStatus : uint8 {
   /* The feature ID attribute is valid. */
   Valid = 0,
   /* The feature ID attribute does not exist in the glTF primitive. */
@@ -42,7 +42,7 @@ public:
    * attribute.
    */
   FITwinCesiumFeatureIdAttribute()
-      : _status(EITwinCesiumFeatureIdAttributeStatus::ErrorInvalidAttribute),
+      : _status(ECesiumFeatureIdAttributeStatus::ErrorInvalidAttribute),
         _featureIdAccessor(),
         _attributeIndex(-1) {}
 
@@ -67,7 +67,7 @@ public:
   int64 getAttributeIndex() const { return this->_attributeIndex; }
 
 private:
-  EITwinCesiumFeatureIdAttributeStatus _status;
+  ECesiumFeatureIdAttributeStatus _status;
   CesiumGltf::FeatureIdAccessorType _featureIdAccessor;
   int64 _attributeIndex;
 
@@ -110,7 +110,7 @@ public:
       BlueprintCallable,
       BlueprintPure,
       Category = "Cesium|Features|FeatureIDAttribute")
-  static EITwinCesiumFeatureIdAttributeStatus GetFeatureIDAttributeStatus(
+  static ECesiumFeatureIdAttributeStatus GetFeatureIDAttributeStatus(
       UPARAM(ref) const FITwinCesiumFeatureIdAttribute& FeatureIDAttribute);
 
   /**

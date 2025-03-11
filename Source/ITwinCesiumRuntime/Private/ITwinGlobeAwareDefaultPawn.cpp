@@ -154,7 +154,7 @@ void AITwinGlobeAwareDefaultPawn::FlyToLocationECEF(
       this->FindComponentByClass<UITwinCesiumFlyToComponent>();
   if (!IsValid(FlyTo)) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT(
             "Cannot call deprecated FlyToLocationLongitudeLatitudeHeight because the GlobeAwareDefaultPawn does not have a CesiumFlyToComponent."))
@@ -185,7 +185,7 @@ void AITwinGlobeAwareDefaultPawn::FlyToLocationLongitudeLatitudeHeight(
       this->FindComponentByClass<UITwinCesiumFlyToComponent>();
   if (!IsValid(FlyTo)) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Warning,
         TEXT(
             "Cannot call deprecated FlyToLocationLongitudeLatitudeHeight because the GlobeAwareDefaultPawn does not have a CesiumFlyToComponent."))
@@ -250,14 +250,14 @@ void AITwinGlobeAwareDefaultPawn::PostLoad() {
       this->AddInstanceComponent(FlyTo);
 
       UE_LOG(
-          LogITwinCesium,
+          LogCesium,
           Warning,
           TEXT(
               "Added CesiumFlyToComponent to %s in order to preserve backward compatibility."),
           *this->GetName());
     }
 
-    FlyTo->RotationToUse = EITwinCesiumFlyToRotation::ControlRotationInEastSouthUp;
+    FlyTo->RotationToUse = ECesiumFlyToRotation::ControlRotationInEastSouthUp;
     FlyTo->ProgressCurve = this->FlyToProgressCurve_DEPRECATED;
     FlyTo->HeightPercentageCurve = this->FlyToAltitudeProfileCurve_DEPRECATED;
     FlyTo->MaximumHeightByDistanceCurve =
@@ -270,7 +270,7 @@ void AITwinGlobeAwareDefaultPawn::PostLoad() {
 AITwinCesiumGeoreference* AITwinGlobeAwareDefaultPawn::GetGeoreference() const {
   if (!IsValid(this->GlobeAnchor)) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Error,
         TEXT(
             "GlobeAwareDefaultPawn %s does not have a valid GlobeAnchorComponent."),
@@ -281,7 +281,7 @@ AITwinCesiumGeoreference* AITwinGlobeAwareDefaultPawn::GetGeoreference() const {
   AITwinCesiumGeoreference* pGeoreference = this->GlobeAnchor->ResolveGeoreference();
   if (!IsValid(pGeoreference)) {
     UE_LOG(
-        LogITwinCesium,
+        LogCesium,
         Error,
         TEXT(
             "GlobeAwareDefaultPawn %s does not have a valid CesiumGeoreference."),
