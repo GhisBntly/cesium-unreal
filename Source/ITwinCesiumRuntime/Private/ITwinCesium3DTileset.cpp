@@ -2315,7 +2315,7 @@ bool AITwinCesium3DTileset::NeedGltfTuning(const Cesium3DTilesSelection::Tile& t
     {
         auto* renderContent = tile.getContent().getRenderContent();
         if (renderContent &&
-            renderContent->tuneVersion < _gltfTuner->currentVersion)
+            renderContent->tuneVersion < _gltfTuner->getCurrentVersion())
         {
             return true;
         }
