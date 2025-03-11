@@ -56,7 +56,7 @@ void FITwinCesiumRuntimeModule::ShutdownModule() { CESIUM_TRACE_SHUTDOWN(); }
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FITwinCesiumRuntimeModule, ITwinCesiumRuntime)
+IMPLEMENT_MODULE(FITwinCesiumRuntimeModule, CesiumRuntime)
 
 FITwinCesium3DTilesetIonTroubleshooting OnCesium3DTilesetIonTroubleshooting{};
 FITwinCesiumRasterOverlayIonTroubleshooting
