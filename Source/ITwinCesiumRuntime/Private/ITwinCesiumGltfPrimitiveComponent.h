@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Cesium3DTilesSelection/BoundingVolume.h"
+#include "CesiumCustomVisibilitiesMeshComponent.h"
 #include "ITwinCesium3DTileset.h"
 #include "ITwinCesiumEncodedFeaturesMetadata.h"
 #include "ITwinCesiumEncodedMetadataUtility.h"
@@ -14,6 +15,7 @@
 #include <CesiumGltf/AccessorUtility.h>
 #include <cstdint>
 #include <glm/mat4x4.hpp>
+#include <optional>
 #include <unordered_map>
 #include "ITwinCesiumGltfPrimitiveComponent.generated.h"
 
@@ -23,7 +25,7 @@ struct MeshPrimitive;
 } // namespace CesiumGltf
 
 UCLASS()
-class UITwinCesiumGltfPrimitiveComponent : public UStaticMeshComponent {
+class UITwinCesiumGltfPrimitiveComponent : public UCesiumCustomVisibilitiesMeshComponent {
   GENERATED_BODY()
 
 public:
