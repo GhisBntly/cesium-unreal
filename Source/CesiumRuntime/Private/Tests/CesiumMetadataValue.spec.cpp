@@ -1,15 +1,17 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #include "CesiumMetadataValue.h"
 #include "CesiumPropertyArrayBlueprintLibrary.h"
 #include "Misc/AutomationTest.h"
 
 #include <limits>
 
-using namespace CesiumGltf;
-
 BEGIN_DEFINE_SPEC(
     FCesiumMetadataValueSpec,
     "Cesium.Unit.MetadataValue",
-    EAutomationTestFlags::ApplicationContextMask |
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext |
+        EAutomationTestFlags::ServerContext |
+        EAutomationTestFlags::CommandletContext |
         EAutomationTestFlags::ProductFilter)
 END_DEFINE_SPEC(FCesiumMetadataValueSpec)
 
@@ -87,8 +89,23 @@ void FCesiumMetadataValueSpec::Define() {
       TestFalse("IsArray", valueType.bIsArray);
     });
 
+    It("constructs enum value with correct type", [this]() {
+      FCesiumMetadataValue value(
+          0,
+          MakeShared<FCesiumMetadataEnum>(
+              StaticEnum<ECesiumMetadataBlueprintType>()));
+      FCesiumMetadataValueType valueType =
+          UCesiumMetadataValueBlueprintLibrary::GetValueType(value);
+      TestEqual("Type", valueType.Type, ECesiumMetadataType::Enum);
+      TestEqual(
+          "ComponentType",
+          valueType.ComponentType,
+          ECesiumMetadataComponentType::Int32);
+      TestFalse("IsArray", valueType.bIsArray);
+    });
+
     It("constructs array value with correct type", [this]() {
-      PropertyArrayView<uint8_t> arrayView;
+      CesiumGltf::PropertyArrayCopy<uint8_t> arrayView;
       FCesiumMetadataValue value(arrayView);
       FCesiumMetadataValueType valueType =
           UCesiumMetadataValueBlueprintLibrary::GetValueType(value);
@@ -1198,6 +1215,18 @@ void FCesiumMetadataValueSpec::Define() {
           UCesiumMetadataValueBlueprintLibrary::GetString(value, FString("")),
           FString(expected.c_str()));
     });
+
+    It("gets from enum", [this]() {
+      TSharedPtr<FCesiumMetadataEnum> enumDef = MakeShared<FCesiumMetadataEnum>(
+          StaticEnum<ECesiumMetadataBlueprintType>());
+      FCesiumMetadataValue value(
+          int32(ECesiumMetadataBlueprintType::Byte),
+          enumDef);
+      TestEqual(
+          "enum",
+          UCesiumMetadataValueBlueprintLibrary::GetString(value, FString("")),
+          FString("Byte"));
+    });
   });
 
   Describe("GetArray", [this]() {
@@ -1224,7 +1253,8 @@ void FCesiumMetadataValueSpec::Define() {
 
     It("gets array from array value", [this]() {
       std::vector<uint8_t> arrayValues{1, 2};
-      PropertyArrayView<uint8_t> arrayView(std::move(arrayValues));
+      CesiumGltf::PropertyArrayCopy<uint8_t> arrayView =
+          std::vector(arrayValues);
 
       FCesiumMetadataValue value(arrayView);
       FCesiumPropertyArray array =
@@ -1289,7 +1319,7 @@ void FCesiumMetadataValueSpec::Define() {
     });
 
     It("returns false for array value", [this]() {
-      PropertyArrayView<uint8_t> arrayView;
+      CesiumGltf::PropertyArrayCopy<uint8_t> arrayView;
       FCesiumMetadataValue value(arrayView);
       TestFalse(
           "IsEmpty",
@@ -1310,7 +1340,9 @@ void FCesiumMetadataValueSpec::Define() {
       values.Add({"scalar", FCesiumMetadataValue(-1)});
       values.Add({"vec2", FCesiumMetadataValue(glm::u8vec2(2, 3))});
       values.Add(
-          {"array", FCesiumMetadataValue(PropertyArrayView<uint8>({1, 2, 3}))});
+          {"array",
+           FCesiumMetadataValue(
+               CesiumGltf::PropertyArrayCopy<uint8>({1, 2, 3}))});
 
       const auto strings =
           UCesiumMetadataValueBlueprintLibrary::GetValuesAsStrings(values);

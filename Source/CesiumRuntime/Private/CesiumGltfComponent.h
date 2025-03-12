@@ -1,4 +1,4 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
@@ -12,6 +12,7 @@
 #include "CoreMinimal.h"
 #include "CustomDepthParameters.h"
 #include "Interfaces/IHttpRequest.h"
+#include <CesiumAsync/SharedFuture.h>
 #include <glm/mat4x4.hpp>
 #include <memory>
 #include "CesiumGltfComponent.generated.h"
@@ -64,12 +65,21 @@ public:
     virtual ~HalfConstructed() = default;
   };
 
-  static TUniquePtr<HalfConstructed> CreateOffGameThread(
+  class CreateOffGameThreadResult {
+  public:
+    TUniquePtr<UCesiumGltfComponent::HalfConstructed> HalfConstructed;
+    Cesium3DTilesSelection::TileLoadResult TileLoadResult;
+  };
+
+  static CesiumAsync::Future<CreateOffGameThreadResult> CreateOffGameThread(
+      const CesiumAsync::AsyncSystem& AsyncSystem,
       const glm::dmat4x4& Transform,
-      const CreateGltfOptions::CreateModelOptions& Options);
+      CreateGltfOptions::CreateModelOptions&& Options,
+      const CesiumGeospatial::Ellipsoid& Ellipsoid =
+          CesiumGeospatial::Ellipsoid::WGS84);
 
   static UCesiumGltfComponent* CreateOnGameThread(
-      const CesiumGltf::Model& model,
+      CesiumGltf::Model& model,
       ACesium3DTileset* ParentActor,
       TUniquePtr<HalfConstructed> HalfConstructed,
       const glm::dmat4x4& CesiumToUnrealTransform,
@@ -81,7 +91,6 @@ public:
       bool createNavCollision);
 
   UCesiumGltfComponent();
-  virtual ~UCesiumGltfComponent();
 
   UPROPERTY(EditAnywhere, Category = "Cesium")
   UMaterialInterface* BaseMaterial = nullptr;

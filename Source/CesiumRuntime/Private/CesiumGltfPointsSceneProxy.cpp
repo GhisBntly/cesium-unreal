@@ -1,14 +1,13 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #include "CesiumGltfPointsSceneProxy.h"
 #include "CesiumGltfPointsComponent.h"
+#include "DataDrivenShaderPlatformInfo.h"
 #include "Engine/StaticMesh.h"
 #include "RHIResources.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "SceneInterface.h"
 #include "StaticMeshResources.h"
-
-#if ENGINE_VERSION_5_2_OR_HIGHER
-#include "DataDrivenShaderPlatformInfo.h"
-#endif
 
 FCesiumGltfPointsSceneProxyTilesetData::FCesiumGltfPointsSceneProxyTilesetData()
     : PointCloudShading(),
@@ -19,7 +18,8 @@ FCesiumGltfPointsSceneProxyTilesetData::FCesiumGltfPointsSceneProxyTilesetData()
 
 void FCesiumGltfPointsSceneProxyTilesetData::UpdateFromComponent(
     UCesiumGltfPointsComponent* Component) {
-  ACesium3DTileset* Tileset = Component->pTilesetActor;
+  CesiumPrimitiveData& primData = Component->getPrimitiveData();
+  ACesium3DTileset* Tileset = primData.pTilesetActor;
   PointCloudShading = Tileset->GetPointCloudShading();
   MaximumScreenSpaceError = Tileset->MaximumScreenSpaceError;
   UsesAdditiveRefinement = Component->UsesAdditiveRefinement;
@@ -50,10 +50,19 @@ FCesiumGltfPointsSceneProxy::FCesiumGltfPointsSceneProxy(
 
 FCesiumGltfPointsSceneProxy::~FCesiumGltfPointsSceneProxy() {}
 
-void FCesiumGltfPointsSceneProxy::CreateRenderThreadResources() {
-  AttenuationVertexFactory.InitResource();
-  AttenuationIndexBuffer.InitResource();
+#if ENGINE_VERSION_5_4_OR_HIGHER
+void FCesiumGltfPointsSceneProxy::CreateRenderThreadResources(
+    FRHICommandListBase& RHICmdList) {
+  AttenuationVertexFactory.InitResource(RHICmdList);
+  AttenuationIndexBuffer.InitResource(RHICmdList);
 }
+#else
+void FCesiumGltfPointsSceneProxy::CreateRenderThreadResources() {
+  FRHICommandListBase& RHICmdList = FRHICommandListImmediate::Get();
+  AttenuationVertexFactory.InitResource(RHICmdList);
+  AttenuationIndexBuffer.InitResource(RHICmdList);
+}
+#endif
 
 void FCesiumGltfPointsSceneProxy::DestroyRenderThreadResources() {
   AttenuationVertexFactory.ReleaseResource();

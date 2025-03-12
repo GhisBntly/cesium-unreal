@@ -1,24 +1,17 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumPointAttenuationVertexFactory.h"
 
+#include "DataDrivenShaderPlatformInfo.h"
+#include "MaterialDomain.h"
 #include "MeshBatch.h"
 #include "MeshDrawShaderBindings.h"
 #include "MeshMaterialShader.h"
 #include "RenderCommandFence.h"
 #include "Runtime/Launch/Resources/Version.h"
 
-#if ENGINE_VERSION_5_2_OR_HIGHER
-#include "DataDrivenShaderPlatformInfo.h"
-#include "MaterialDomain.h"
-#endif
-
-#if ENGINE_VERSION_5_3_OR_HIGHER
 void FCesiumPointAttenuationIndexBuffer::InitRHI(
     FRHICommandListBase& RHICmdList) {
-#else
-void FCesiumPointAttenuationIndexBuffer::InitRHI() {
-#endif
   if (!bAttenuationSupported) {
     return;
   }
@@ -30,14 +23,15 @@ void FCesiumPointAttenuationIndexBuffer::InitRHI() {
   const uint32 NumIndices = NumPoints * 6;
   const uint32 Size = NumIndices * sizeof(uint32);
 
-  IndexBufferRHI = RHICreateBuffer(
+  IndexBufferRHI = RHICmdList.CreateBuffer(
       Size,
       BUF_Static | BUF_IndexBuffer,
       sizeof(uint32),
       ERHIAccess::VertexOrIndexBuffer,
       CreateInfo);
 
-  uint32* Data = (uint32*)RHILockBuffer(IndexBufferRHI, 0, Size, RLM_WriteOnly);
+  uint32* Data =
+      (uint32*)RHICmdList.LockBuffer(IndexBufferRHI, 0, Size, RLM_WriteOnly);
 
   for (uint32 index = 0, bufferIndex = 0; bufferIndex < NumIndices;
        index += 4) {
@@ -51,7 +45,7 @@ void FCesiumPointAttenuationIndexBuffer::InitRHI() {
     Data[bufferIndex++] = index + 3;
   }
 
-  RHIUnlockBuffer(IndexBufferRHI);
+  RHICmdList.UnlockBuffer(IndexBufferRHI);
 }
 
 class FCesiumPointAttenuationVertexFactoryShaderParameters
@@ -126,34 +120,29 @@ private:
  */
 class FCesiumPointAttenuationDummyVertexBuffer : public FVertexBuffer {
 public:
-#if ENGINE_VERSION_5_3_OR_HIGHER
   virtual void InitRHI(FRHICommandListBase& RHICmdList) override;
-#else
-  virtual void InitRHI() override;
-#endif
 };
 
-#if ENGINE_VERSION_5_3_OR_HIGHER
 void FCesiumPointAttenuationDummyVertexBuffer::InitRHI(
     FRHICommandListBase& RHICmdList) {
-#else
-void FCesiumPointAttenuationDummyVertexBuffer::InitRHI() {
-#endif
   FRHIResourceCreateInfo CreateInfo(
       TEXT("FCesiumPointAttenuationDummyVertexBuffer"));
-  VertexBufferRHI = RHICreateBuffer(
+  VertexBufferRHI = RHICmdList.CreateBuffer(
       sizeof(FVector3f) * 4,
       BUF_Static | BUF_VertexBuffer,
       0,
       ERHIAccess::VertexOrIndexBuffer,
       CreateInfo);
-  FVector3f* DummyContents = (FVector3f*)
-      RHILockBuffer(VertexBufferRHI, 0, sizeof(FVector3f) * 4, RLM_WriteOnly);
+  FVector3f* DummyContents = (FVector3f*)RHICmdList.LockBuffer(
+      VertexBufferRHI,
+      0,
+      sizeof(FVector3f) * 4,
+      RLM_WriteOnly);
   DummyContents[0] = FVector3f(0.0f, 0.0f, 0.0f);
   DummyContents[1] = FVector3f(1.0f, 0.0f, 0.0f);
   DummyContents[2] = FVector3f(0.0f, 1.0f, 0.0f);
   DummyContents[3] = FVector3f(1.0f, 1.0f, 0.0f);
-  RHIUnlockBuffer(VertexBufferRHI);
+  RHICmdList.UnlockBuffer(VertexBufferRHI);
 }
 
 TGlobalResource<FCesiumPointAttenuationDummyVertexBuffer>
@@ -177,12 +166,21 @@ bool FCesiumPointAttenuationVertexFactory::ShouldCompilePermutation(
          Parameters.MaterialParameters.bIsSpecialEngineMaterial;
 }
 
-#if ENGINE_VERSION_5_3_OR_HIGHER
+void FCesiumPointAttenuationVertexFactory::ModifyCompilationEnvironment(
+    const FVertexFactoryShaderPermutationParameters& Parameters,
+    FShaderCompilerEnvironment& OutEnvironment) {
+  FLocalVertexFactory::ModifyCompilationEnvironment(Parameters, OutEnvironment);
+#if ENGINE_VERSION_5_4_OR_HIGHER
+  OutEnvironment.SetDefine(TEXT("ENGINE_VERSION_5_4_OR_HIGHER"), TEXT("1"));
+#endif
+
+#if ENGINE_VERSION_5_5_OR_HIGHER
+  OutEnvironment.SetDefine(TEXT("ENGINE_VERSION_5_5_OR_HIGHER"), TEXT("1"));
+#endif
+}
+
 void FCesiumPointAttenuationVertexFactory::InitRHI(
     FRHICommandListBase& RHICmdList) {
-#else
-void FCesiumPointAttenuationVertexFactory::InitRHI() {
-#endif
   FVertexDeclarationElementList Elements;
   Elements.Add(AccessStreamComponent(
       FVertexStreamComponent(

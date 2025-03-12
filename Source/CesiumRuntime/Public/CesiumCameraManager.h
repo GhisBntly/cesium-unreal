@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
@@ -10,7 +10,7 @@
 
 /**
  * @brief Manages custom {@link FCesiumCamera}s for all
- * {@link Cesium3DTileset}s in the world.
+ * {@link ACesium3DTileset}s in the world.
  */
 UCLASS()
 class CESIUMRUNTIME_API ACesiumCameraManager : public AActor {

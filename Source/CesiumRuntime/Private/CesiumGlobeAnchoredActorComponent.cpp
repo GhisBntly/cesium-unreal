@@ -1,7 +1,8 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumGlobeAnchoredActorComponent.h"
 #include "CesiumGlobeAnchorComponent.h"
+#include "GameFramework/Actor.h"
 
 #if WITH_EDITOR
 #include "Editor.h"

@@ -1,4 +1,4 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 #pragma once
 
 #include "CoreMinimal.h"
@@ -36,6 +36,10 @@ struct CESIUMRUNTIME_API FCesiumCustomVersion {
     // Added the CesiumIonServer property to Cesium3DTileset and
     // CesiumIonRasterOverlay.
     CesiumIonServer = 7,
+
+    // Replaced the UseWebMercatorProjection property in
+    // CesiumWebMapTileServiceOverlay with the enum Projection property.
+    WebMapTileServiceProjectionAsEnum = 8,
 
     VersionPlusOne,
     LatestVersion = VersionPlusOne - 1

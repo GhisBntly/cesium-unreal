@@ -1,24 +1,27 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
 #if WITH_EDITOR
 
 #include <functional>
-#include <variant>
+#include <swl/variant.hpp>
 
 #include "CesiumSceneGeneration.h"
 
 namespace Cesium {
 
 struct TestPass {
-  typedef std::variant<int, float> TestingParameter;
+  typedef swl::variant<int, float> TestingParameter;
   typedef std::function<void(SceneGenerationContext&, TestingParameter)>
-      PassCallback;
+      SetupCallback;
+  typedef std::function<
+      bool(SceneGenerationContext&, SceneGenerationContext&, TestingParameter)>
+      VerifyCallback;
 
   FString name;
-  PassCallback setupStep;
-  PassCallback verifyStep;
+  SetupCallback setupStep;
+  VerifyCallback verifyStep;
   TestingParameter optionalParameter;
 
   bool testInProgress = false;

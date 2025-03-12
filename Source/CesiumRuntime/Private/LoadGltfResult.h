@@ -1,7 +1,8 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
+#include "CesiumCommon.h"
 #include "CesiumEncodedFeaturesMetadata.h"
 #include "CesiumMetadataPrimitive.h"
 #include "CesiumModelMetadata.h"
@@ -12,6 +13,7 @@
 #include "Chaos/TriangleMeshImplicitObject.h"
 #include "Containers/Map.h"
 #include "Containers/UnrealString.h"
+#include "Math/TransformNonVectorized.h"
 #include "StaticMeshResources.h"
 #include "Templates/SharedPointer.h"
 
@@ -24,18 +26,26 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 class ICesiumMeshBuildCallbacks;
 
 namespace LoadGltfResult {
 /**
- * Represents the result of loading a glTF primitive on a game thread.
+ * Represents the result of loading a glTF primitive on a load thread.
  * Temporarily holds render data that will be used in the Unreal material, as
  * well as any data that needs to be transferred to the corresponding
  * CesiumGltfPrimitiveComponent after it is created on the main thread.
+ *
+ * This type is move-only due to the use of TUniquePtr.
  */
-struct LoadPrimitiveResult {
+struct LoadedPrimitiveResult {
 #pragma region Temporary render data
+
+  LoadedPrimitiveResult(const LoadedPrimitiveResult&) = delete;
+
+  LoadedPrimitiveResult() {}
+  LoadedPrimitiveResult(LoadedPrimitiveResult&& other) = default;
 
   /**
    * The render data. This is populated so it can be set on the static mesh
@@ -44,12 +54,18 @@ struct LoadPrimitiveResult {
   TUniquePtr<FStaticMeshRenderData> RenderData = nullptr;
 
   /**
-   * A pointer to the glTF material.
+   * The index of the material for this primitive within the parent model, or -1
+   * if none.
    */
-  const CesiumGltf::Material* pMaterial = nullptr;
+  int32_t materialIndex = -1;
+
   glm::dmat4x4 transform{1.0};
+#if ENGINE_VERSION_5_4_OR_HIGHER
+  Chaos::FTriangleMeshImplicitObjectPtr pCollisionMesh = nullptr;
+#else
   TSharedPtr<Chaos::FTriangleMeshImplicitObject, ESPMode::ThreadSafe>
       pCollisionMesh = nullptr;
+#endif
   std::string name{};
 
   TUniquePtr<CesiumTextureUtility::LoadedTextureResult> baseColorTexture;
@@ -84,17 +100,17 @@ struct LoadPrimitiveResult {
 #pragma endregion
 
 #pragma region CesiumGltfPrimitiveComponent data
-  const CesiumGltf::Model* pModel = nullptr;
-  const CesiumGltf::MeshPrimitive* pMeshPrimitive = nullptr;
+  int32_t meshIndex = -1;
+  int32_t primitiveIndex = -1;
 
-  /** Parses EXT_mesh_features from a mesh primitive.*/
+  /** Parses EXT_mesh_features from a mesh primitive. */
   FCesiumPrimitiveFeatures Features{};
-  /** Parses EXT_structural_metadata from a mesh primitive.*/
+  /** Parses EXT_structural_metadata from a mesh primitive. */
   FCesiumPrimitiveMetadata Metadata{};
 
-  /** Encodes the EXT_mesh_features on a mesh primitive.*/
+  /** Encodes the EXT_mesh_features on a mesh primitive. */
   CesiumEncodedFeaturesMetadata::EncodedPrimitiveFeatures EncodedFeatures{};
-  /** Encodes the EXT_structural_metadata on a mesh primitive.*/
+  /** Encodes the EXT_structural_metadata on a mesh primitive. */
   CesiumEncodedFeaturesMetadata::EncodedPrimitiveMetadata EncodedMetadata{};
 
   PRAGMA_DISABLE_DEPRECATION_WARNINGS
@@ -148,34 +164,55 @@ struct LoadPrimitiveResult {
 };
 
 /**
- * Represents the result of loading a glTF mesh on a game thread.
+ * Represents the result of loading a glTF mesh on a load thread.
  */
-struct LoadMeshResult {
-  std::vector<LoadPrimitiveResult> primitiveResults{};
+struct LoadedMeshResult {
+  LoadedMeshResult() {}
+
+  LoadedMeshResult(const LoadedMeshResult&) = delete;
+  LoadedMeshResult(LoadedMeshResult&& other) = default;
+  LoadedMeshResult& operator=(LoadedMeshResult&& other) = default;
+
+  std::vector<LoadedPrimitiveResult> primitiveResults{};
 };
 
 /**
- * Represents the result of loading a glTF node on a game thread.
+ * Represents the result of loading a glTF node on a load thread.
  */
-struct LoadNodeResult {
-  std::optional<LoadMeshResult> meshResult = std::nullopt;
+struct LoadedNodeResult {
+  LoadedNodeResult() {}
+
+  LoadedNodeResult(const LoadedNodeResult&) = delete;
+  LoadedNodeResult(LoadedNodeResult&& other) = default;
+
+  std::optional<LoadedMeshResult> meshResult = std::nullopt;
+  /**
+   * Array of instance transforms, if any.
+   */
+  std::vector<FTransform> InstanceTransforms;
+  /**
+   * Features from EXT_instance_features. A pointer is used for shared ownership
+   * because there may be multiple primitives in the same mesh belonging to a
+   * single instance.
+   */
+  TSharedPtr<FCesiumPrimitiveFeatures> pInstanceFeatures = nullptr;
 };
 
 /**
- * Represents the result of loading a glTF model on a game thread.
+ * Represents the result of loading a glTF model on a load thread.
  * Temporarily holds data that needs to be transferred to the corresponding
  * CesiumGltfComponent after it is created on the main thread.
  */
-struct LoadModelResult {
-  std::vector<LoadNodeResult> nodeResults{};
+struct LoadedModelResult {
+  std::vector<LoadedNodeResult> nodeResults{};
 
-  // Parses the root EXT_structural_metadata extension.
+  /** Parses the root EXT_structural_metadata extension. */
   FCesiumModelMetadata Metadata{};
 
-  // Encodes the EXT_structural_metadata on a glTF model.
+  /** Encodes the EXT_structural_metadata on a glTF model. */
   CesiumEncodedFeaturesMetadata::EncodedModelMetadata EncodedMetadata{};
 
-  // For backwards compatibility with CesiumEncodedMetadataComponent.
+  /** For backwards compatibility with CesiumEncodedMetadataComponent. */
   std::optional<CesiumEncodedMetadataUtility::EncodedMetadata>
       EncodedMetadata_DEPRECATED{};
 };

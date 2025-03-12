@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
@@ -21,11 +21,8 @@ public:
       const int32& NumPoints,
       const bool bAttenuationSupported)
       : NumPoints(NumPoints), bAttenuationSupported(bAttenuationSupported) {}
-#if ENGINE_VERSION_5_3_OR_HIGHER
+
   virtual void InitRHI(FRHICommandListBase& RHICmdList) override;
-#else
-  virtual void InitRHI() override;
-#endif
 
 private:
   // The number of points in the original point mesh. Not to be confused with
@@ -67,11 +64,11 @@ public:
   static bool ShouldCompilePermutation(
       const FVertexFactoryShaderPermutationParameters& Parameters);
 
+  static void ModifyCompilationEnvironment(
+      const FVertexFactoryShaderPermutationParameters& Parameters,
+      FShaderCompilerEnvironment& OutEnvironment);
+
 private:
-#if ENGINE_VERSION_5_3_OR_HIGHER
   virtual void InitRHI(FRHICommandListBase& RHICmdList) override;
-#else
-  virtual void InitRHI() override;
-#endif
   virtual void ReleaseRHI() override;
 };

@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumLifetime.h"
 #include "CesiumRuntime.h"
@@ -129,6 +129,7 @@ void AmortizedDestructor::finalizeDestroy(UObject* pObject) const {
 
   UTexture2D* pTexture2D = Cast<UTexture2D>(pObject);
   if (pTexture2D) {
+    pTexture2D->ReleaseResource();
     FTexturePlatformData* pPlatformData = pTexture2D->GetPlatformData();
     pTexture2D->SetPlatformData(nullptr);
     delete pPlatformData;

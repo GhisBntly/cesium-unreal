@@ -1,10 +1,9 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumGltfPrimitiveComponent.h"
 #include "CalcBounds.h"
 #include "CesiumLifetime.h"
 #include "CesiumMaterialUserData.h"
-#include "Engine/StaticMesh.h"
 #include "Engine/Texture.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "PhysicsEngine/BodySetup.h"
@@ -20,136 +19,32 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 // Sets default values for this component's properties
 UCesiumGltfPrimitiveComponent::UCesiumGltfPrimitiveComponent() {
   PrimaryComponentTick.bCanEverTick = false;
-  pModel = nullptr;
-  pMeshPrimitive = nullptr;
-  pTilesetActor = nullptr;
+}
+
+UCesiumGltfInstancedComponent::UCesiumGltfInstancedComponent() {
+  PrimaryComponentTick.bCanEverTick = false;
 }
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
 UCesiumGltfPrimitiveComponent::~UCesiumGltfPrimitiveComponent() {}
 
-void UCesiumGltfPrimitiveComponent::UpdateTransformFromCesium(
-    const glm::dmat4& CesiumToUnrealTransform) {
-  const FTransform transform = FTransform(VecMath::createMatrix(
-      CesiumToUnrealTransform * this->HighPrecisionNodeTransform));
-
-  if (this->Mobility == EComponentMobility::Movable) {
-    // For movable objects, move the component in the normal way, but don't
-    // generate collisions along the way. Teleporting physics is imperfect, but
-    // it's the best available option.
-    this->SetRelativeTransform(
-        transform,
-        false,
-        nullptr,
-        ETeleportType::TeleportPhysics);
-  } else {
-    // Unreall will yell at us for calling SetRelativeTransform on a static
-    // object, but we still need to adjust (accurately!) for origin rebasing and
-    // georeference changes. It's "ok" to move a static object in this way
-    // because, we assume, the globe and globe-oriented lights, etc. are moving
-    // too, so in a relative sense the object isn't actually moving. This isn't
-    // a perfect assumption, of course.
-    this->SetRelativeTransform_Direct(transform);
-    this->UpdateComponentToWorld();
-    this->MarkRenderTransformDirty();
-    this->SendPhysicsTransform(ETeleportType::ResetPhysics);
-  }
-}
+UCesiumGltfInstancedComponent::~UCesiumGltfInstancedComponent() {}
 
 namespace {
-
-void destroyMaterialTexture(
-    UMaterialInstanceDynamic* pMaterial,
-    const char* name,
-    EMaterialParameterAssociation assocation,
-    int32 index) {
-  UTexture* pTexture = nullptr;
-  if (pMaterial->GetTextureParameterValue(
-          FMaterialParameterInfo(name, assocation, index),
-          pTexture,
-          true)) {
-    CesiumTextureUtility::destroyTexture(pTexture);
-  }
-}
-
-void destroyGltfParameterValues(
-    UMaterialInstanceDynamic* pMaterial,
-    EMaterialParameterAssociation assocation,
-    int32 index) {
-  destroyMaterialTexture(pMaterial, "baseColorTexture", assocation, index);
-  destroyMaterialTexture(
-      pMaterial,
-      "metallicRoughnessTexture",
-      assocation,
-      index);
-  destroyMaterialTexture(pMaterial, "normalTexture", assocation, index);
-  destroyMaterialTexture(pMaterial, "emissiveTexture", assocation, index);
-  destroyMaterialTexture(pMaterial, "occlusionTexture", assocation, index);
-}
-
-void destroyWaterParameterValues(
-    UMaterialInstanceDynamic* pMaterial,
-    EMaterialParameterAssociation assocation,
-    int32 index) {
-  destroyMaterialTexture(pMaterial, "WaterMask", assocation, index);
-}
-} // namespace
-
-void UCesiumGltfPrimitiveComponent::BeginDestroy() {
-  // This should mirror the logic in loadPrimitiveGameThreadPart in
-  // CesiumGltfComponent.cpp
+void destroyCesiumPrimitive(UStaticMeshComponent* pComponent) {
+  // Clear everything we can in order to reduce memory usage, because this
+  // UObject might not actually get deleted by the garbage collector until
+  // much later.
+  auto* cesiumPrimitive = Cast<ICesiumPrimitive>(pComponent);
+  cesiumPrimitive->getPrimitiveData().destroy();
   UMaterialInstanceDynamic* pMaterial =
-      Cast<UMaterialInstanceDynamic>(this->GetMaterial(0));
+      Cast<UMaterialInstanceDynamic>(pComponent->GetMaterial(0));
   if (pMaterial) {
-
-    destroyGltfParameterValues(
-        pMaterial,
-        EMaterialParameterAssociation::GlobalParameter,
-        INDEX_NONE);
-    destroyWaterParameterValues(
-        pMaterial,
-        EMaterialParameterAssociation::GlobalParameter,
-        INDEX_NONE);
-
-    UMaterialInterface* pBaseMaterial = pMaterial->Parent;
-    UMaterialInstance* pBaseAsMaterialInstance =
-        Cast<UMaterialInstance>(pBaseMaterial);
-    UCesiumMaterialUserData* pCesiumData =
-        pBaseAsMaterialInstance
-            ? pBaseAsMaterialInstance
-                  ->GetAssetUserData<UCesiumMaterialUserData>()
-            : nullptr;
-    if (pCesiumData) {
-      destroyGltfParameterValues(
-          pMaterial,
-          EMaterialParameterAssociation::LayerParameter,
-          0);
-
-      int32 waterIndex = pCesiumData->LayerNames.Find("Water");
-      if (waterIndex >= 0) {
-        destroyWaterParameterValues(
-            pMaterial,
-            EMaterialParameterAssociation::LayerParameter,
-            waterIndex);
-      }
-    }
-
-    CesiumEncodedFeaturesMetadata::destroyEncodedPrimitiveFeatures(
-        this->EncodedFeatures);
-
-    PRAGMA_DISABLE_DEPRECATION_WARNINGS
-    if (this->EncodedMetadata_DEPRECATED) {
-      CesiumEncodedMetadataUtility::destroyEncodedMetadataPrimitive(
-          *this->EncodedMetadata_DEPRECATED);
-      this->EncodedMetadata_DEPRECATED = std::nullopt;
-    }
-    PRAGMA_ENABLE_DEPRECATION_WARNINGS
-
     CesiumLifetime::destroy(pMaterial);
   }
 
-  UStaticMesh* pMesh = this->GetStaticMesh();
+  UStaticMesh* pMesh = pComponent->GetStaticMesh();
   if (pMesh) {
     UBodySetup* pBodySetup = pMesh->GetBodySetup();
 
@@ -159,17 +54,116 @@ void UCesiumGltfPrimitiveComponent::BeginDestroy() {
 
     CesiumLifetime::destroy(pMesh);
   }
-
+}
+} // namespace
+void UCesiumGltfPrimitiveComponent::BeginDestroy() {
+  destroyCesiumPrimitive(this);
   Super::BeginDestroy();
 }
 
-FBoxSphereBounds UCesiumGltfPrimitiveComponent::CalcBounds(
-    const FTransform& LocalToWorld) const {
-  if (!this->boundingVolume) {
-    return Super::CalcBounds(LocalToWorld);
+void UCesiumGltfInstancedComponent::BeginDestroy() {
+  destroyCesiumPrimitive(this);
+  Super::BeginDestroy();
+}
+
+namespace {
+
+std::optional<FBoxSphereBounds>
+calcBounds(const ICesiumPrimitive& primitive, const FTransform& LocalToWorld) {
+  const CesiumPrimitiveData& primData = primitive.getPrimitiveData();
+  if (!primData.boundingVolume) {
+    return std::nullopt;
   }
 
   return std::visit(
-      CalcBoundsOperation{LocalToWorld, this->HighPrecisionNodeTransform},
-      *this->boundingVolume);
+      CalcBoundsOperation{LocalToWorld, primData.HighPrecisionNodeTransform},
+      *primData.boundingVolume);
+}
+
+} // namespace
+
+FBoxSphereBounds UCesiumGltfPrimitiveComponent::CalcBounds(
+    const FTransform& LocalToWorld) const {
+  if (auto bounds = calcBounds(*this, LocalToWorld)) {
+    return *bounds;
+  }
+  return Super::CalcBounds(LocalToWorld);
+}
+
+FBoxSphereBounds UCesiumGltfInstancedComponent::CalcBounds(
+    const FTransform& LocalToWorld) const {
+  if (auto bounds = calcBounds(*this, LocalToWorld)) {
+    return *bounds;
+  }
+  return Super::CalcBounds(LocalToWorld);
+}
+
+namespace {
+// Returns true if the component is moveable, so caller can "Do The Right
+// Thing." This avoids making the protected member function SendPhysicsTransform
+// public.
+template <typename CesiumComponent>
+bool UpdateTransformFromCesiumAux(
+    const glm::dmat4& CesiumToUnrealTransform,
+    CesiumComponent* cesiumComponent) {
+  const CesiumPrimitiveData& primData = cesiumComponent->getPrimitiveData();
+  const FTransform transform = VecMath::createTransform(
+      CesiumToUnrealTransform * primData.HighPrecisionNodeTransform);
+
+  if (cesiumComponent->Mobility == EComponentMobility::Movable) {
+    // For movable objects, move the component in the normal way, but don't
+    // generate collisions along the way. Teleporting physics is imperfect,
+    // but it's the best available option.
+    cesiumComponent->SetRelativeTransform(
+        transform,
+        false,
+        nullptr,
+        ETeleportType::TeleportPhysics);
+    return true;
+  }
+  // Unreal will yell at us for calling SetRelativeTransform on a static
+  // object, but we still need to adjust (accurately!) for origin rebasing
+  // and georeference changes. It's "ok" to move a static object in this way
+  // because, we assume, the globe and globe-oriented lights, etc. are
+  // moving too, so in a relative sense the object isn't actually moving.
+  // This isn't a perfect assumption, of course.
+  cesiumComponent->SetRelativeTransform_Direct(transform);
+  cesiumComponent->UpdateComponentToWorld();
+  cesiumComponent->MarkRenderTransformDirty();
+  return false;
+}
+} // namespace
+
+void UCesiumGltfPrimitiveComponent::UpdateTransformFromCesium(
+    const glm::dmat4& CesiumToUnrealTransform) {
+  bool moveable = UpdateTransformFromCesiumAux(CesiumToUnrealTransform, this);
+  if (!moveable) {
+    SendPhysicsTransform(ETeleportType::ResetPhysics);
+  }
+}
+
+void UCesiumGltfInstancedComponent::UpdateTransformFromCesium(
+    const glm::dmat4& CesiumToUnrealTransform) {
+  bool moveable = UpdateTransformFromCesiumAux(CesiumToUnrealTransform, this);
+  if (!moveable) {
+    SendPhysicsTransform(ETeleportType::ResetPhysics);
+  }
+}
+
+CesiumPrimitiveData& UCesiumGltfPrimitiveComponent::getPrimitiveData() {
+  return _cesiumData;
+}
+
+const CesiumPrimitiveData&
+UCesiumGltfPrimitiveComponent::getPrimitiveData() const {
+  return _cesiumData;
+}
+
+CesiumPrimitiveData& UCesiumGltfInstancedComponent::getPrimitiveData() {
+  return _cesiumData;
+}
+
+const CesiumPrimitiveData&
+UCesiumGltfInstancedComponent::getPrimitiveData() const {
+  return _cesiumData;
 }

@@ -1,4 +1,4 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumPropertyTexture.h"
 #include "CesiumGltf/Model.h"
@@ -6,19 +6,18 @@
 #include "CesiumGltf/PropertyTextureView.h"
 #include "CesiumMetadataPickingBlueprintLibrary.h"
 
-using namespace CesiumGltf;
-
 static FCesiumPropertyTextureProperty EmptyPropertyTextureProperty;
 
 FCesiumPropertyTexture::FCesiumPropertyTexture(
     const CesiumGltf::Model& Model,
-    const CesiumGltf::PropertyTexture& PropertyTexture)
+    const CesiumGltf::PropertyTexture& PropertyTexture,
+    const TSharedPtr<FCesiumMetadataEnumCollection>& pEnumCollection)
     : _status(ECesiumPropertyTextureStatus::ErrorInvalidPropertyTextureClass),
       _name(PropertyTexture.name.value_or("").c_str()),
       _className(PropertyTexture.classProperty.c_str()) {
-  PropertyTextureView propertyTextureView(Model, PropertyTexture);
+  CesiumGltf::PropertyTextureView propertyTextureView(Model, PropertyTexture);
   switch (propertyTextureView.status()) {
-  case PropertyTextureViewStatus::Valid:
+  case CesiumGltf::PropertyTextureViewStatus::Valid:
     _status = ECesiumPropertyTextureStatus::Valid;
     break;
   default:
@@ -26,12 +25,55 @@ FCesiumPropertyTexture::FCesiumPropertyTexture(
     return;
   }
 
-  propertyTextureView.forEachProperty([&properties = _properties](
-                                          const std::string& propertyName,
-                                          auto propertyValue) mutable {
-    FString key(UTF8_TO_TCHAR(propertyName.data()));
-    properties.Add(key, FCesiumPropertyTextureProperty(propertyValue));
-  });
+  const CesiumGltf::ExtensionModelExtStructuralMetadata* pExtension =
+      Model.getExtension<CesiumGltf::ExtensionModelExtStructuralMetadata>();
+  // If there was no schema, we would've gotten ErrorMissingSchema for the
+  // propertyTextureView status.
+  check(pExtension != nullptr && pExtension->schema != nullptr);
+
+  const CesiumGltf::Class* pClass = propertyTextureView.getClass();
+  for (const auto& classPropertyPair : pClass->properties) {
+    {
+      const auto& propertyPair =
+          PropertyTexture.properties.find(classPropertyPair.first);
+      if (propertyPair == PropertyTexture.properties.end()) {
+        continue;
+      }
+
+      CesiumGltf::TextureViewOptions options;
+      options.applyKhrTextureTransformExtension = true;
+
+      if (propertyPair->second.extras.find("makeImageCopy") !=
+          propertyPair->second.extras.end()) {
+        options.makeImageCopy = propertyPair->second.extras.at("makeImageCopy")
+                                    .getBoolOrDefault(false);
+      }
+
+      propertyTextureView.getPropertyView(
+          propertyPair->first,
+          [&properties = this->_properties,
+           &pEnumCollection,
+           &propertyTextureView,
+           &classProperty = classPropertyPair.second,
+           &Schema = *pExtension->schema](
+              const std::string& propertyId,
+              auto propertyValue) mutable {
+            FString key(UTF8_TO_TCHAR(propertyId.data()));
+
+            TSharedPtr<FCesiumMetadataEnum> pEnumDefinition = nullptr;
+            if (pEnumCollection.IsValid() &&
+                classProperty.enumType.has_value()) {
+              pEnumDefinition = pEnumCollection->Get(FString(
+                  UTF8_TO_TCHAR(classProperty.enumType.value().c_str())));
+            }
+
+            properties.Add(
+                key,
+                FCesiumPropertyTextureProperty(propertyValue, pEnumDefinition));
+          },
+          options);
+    }
+  }
 }
 
 /*static*/ const ECesiumPropertyTextureStatus

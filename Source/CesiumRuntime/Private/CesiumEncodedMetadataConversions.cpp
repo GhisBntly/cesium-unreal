@@ -1,3 +1,5 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #include "CesiumEncodedMetadataConversions.h"
 #include "CesiumFeaturesMetadataComponent.h"
 #include "CesiumMetadataEncodingDetails.h"
@@ -56,25 +58,6 @@ GetBestFittingEncodedType(FCesiumMetadataPropertyDetails PropertyDetails) {
   }
 }
 
-ECesiumEncodedMetadataComponentType
-GetBestFittingEncodedComponentType(ECesiumMetadataComponentType ComponentType) {
-  switch (ComponentType) {
-  case ECesiumMetadataComponentType::Int8: // lossy or reinterpreted
-  case ECesiumMetadataComponentType::Uint8:
-    return ECesiumEncodedMetadataComponentType::Uint8;
-  case ECesiumMetadataComponentType::Int16:
-  case ECesiumMetadataComponentType::Uint16:
-  case ECesiumMetadataComponentType::Int32:  // lossy or reinterpreted
-  case ECesiumMetadataComponentType::Uint32: // lossy or reinterpreted
-  case ECesiumMetadataComponentType::Int64:  // lossy
-  case ECesiumMetadataComponentType::Uint64: // lossy
-  case ECesiumMetadataComponentType::Float32:
-  case ECesiumMetadataComponentType::Float64: // lossy
-    return ECesiumEncodedMetadataComponentType::Float;
-  default:
-    return ECesiumEncodedMetadataComponentType::None;
-  }
-}
 } // namespace
 
 ECesiumEncodedMetadataType
@@ -94,6 +77,26 @@ CesiumMetadataTypeToEncodingType(ECesiumMetadataType Type) {
   }
 }
 
+ECesiumEncodedMetadataComponentType CesiumMetadataComponentTypeToEncodingType(
+    ECesiumMetadataComponentType ComponentType) {
+  switch (ComponentType) {
+  case ECesiumMetadataComponentType::Int8: // lossy or reinterpreted
+  case ECesiumMetadataComponentType::Uint8:
+    return ECesiumEncodedMetadataComponentType::Uint8;
+  case ECesiumMetadataComponentType::Int16:
+  case ECesiumMetadataComponentType::Uint16:
+  case ECesiumMetadataComponentType::Int32:  // lossy or reinterpreted
+  case ECesiumMetadataComponentType::Uint32: // lossy or reinterpreted
+  case ECesiumMetadataComponentType::Int64:  // lossy
+  case ECesiumMetadataComponentType::Uint64: // lossy
+  case ECesiumMetadataComponentType::Float32:
+  case ECesiumMetadataComponentType::Float64: // lossy
+    return ECesiumEncodedMetadataComponentType::Float;
+  default:
+    return ECesiumEncodedMetadataComponentType::None;
+  }
+}
+
 FCesiumMetadataEncodingDetails CesiumMetadataPropertyDetailsToEncodingDetails(
     FCesiumMetadataPropertyDetails PropertyDetails) {
   ECesiumEncodedMetadataType type = GetBestFittingEncodedType(PropertyDetails);
@@ -104,7 +107,7 @@ FCesiumMetadataEncodingDetails CesiumMetadataPropertyDetailsToEncodingDetails(
   }
 
   ECesiumEncodedMetadataComponentType componentType =
-      GetBestFittingEncodedComponentType(PropertyDetails.ComponentType);
+      CesiumMetadataComponentTypeToEncodingType(PropertyDetails.ComponentType);
 
   return FCesiumMetadataEncodingDetails(
       type,
@@ -133,7 +136,7 @@ template <typename T>
 void coerceAndEncodeArrays(
     const FCesiumPropertyTablePropertyDescription& propertyDescription,
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData,
+    const std::span<std::byte>& textureData,
     size_t pixelSize) {
   int64 propertySize =
       UCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(property);
@@ -178,7 +181,7 @@ void coerceAndEncodeArrays(
 template <typename T>
 void coerceAndEncodeScalars(
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData) {
+    const std::span<std::byte>& textureData) {
   int64 propertySize =
       UCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(property);
   if (textureData.size() < propertySize * sizeof(T)) {
@@ -206,7 +209,7 @@ void coerceAndEncodeScalars(
 template <typename T>
 void coerceAndEncodeVec2s(
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData,
+    const std::span<std::byte>& textureData,
     size_t pixelSize) {
   int64 propertySize =
       UCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(property);
@@ -252,7 +255,7 @@ void coerceAndEncodeVec2s(
 template <typename T>
 void coerceAndEncodeVec3s(
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData,
+    const std::span<std::byte>& textureData,
     size_t pixelSize) {
   int64 propertySize =
       UCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(property);
@@ -296,7 +299,7 @@ void coerceAndEncodeVec3s(
 template <typename T>
 void coerceAndEncodeVec4s(
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData,
+    const std::span<std::byte>& textureData,
     size_t pixelSize) {
   int64 propertySize =
       UCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(property);
@@ -381,7 +384,7 @@ bool CesiumEncodedMetadataCoerce::canEncode(
 void CesiumEncodedMetadataCoerce::encode(
     const FCesiumPropertyTablePropertyDescription& propertyDescription,
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData,
+    const std::span<std::byte>& textureData,
     size_t pixelSize) {
   if (propertyDescription.PropertyDetails.bIsArray) {
     if (propertyDescription.EncodingDetails.ComponentType ==
@@ -495,7 +498,7 @@ glm::u8vec3 getRgbColorFromString(const FString& rgbString) {
 template <typename T>
 void parseAndEncodeColors(
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData,
+    const std::span<std::byte>& textureData,
     size_t pixelSize) {
   int64 propertySize =
       UCesiumPropertyTablePropertyBlueprintLibrary::GetPropertySize(property);
@@ -553,7 +556,7 @@ bool CesiumEncodedMetadataParseColorFromString::canEncode(
 void CesiumEncodedMetadataParseColorFromString::encode(
     const FCesiumPropertyTablePropertyDescription& propertyDescription,
     const FCesiumPropertyTableProperty& property,
-    gsl::span<std::byte>& textureData,
+    const std::span<std::byte>& textureData,
     size_t pixelSize) {
   if (propertyDescription.EncodingDetails.ComponentType ==
       ECesiumEncodedMetadataComponentType::Uint8) {

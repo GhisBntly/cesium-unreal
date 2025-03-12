@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
@@ -106,7 +106,7 @@ EncodedMetadataFeatureTable encodeMetadataFeatureTableAnyThreadPart(
 
 EncodedFeatureTexture encodeFeatureTextureAnyThreadPart(
     TMap<
-        const CesiumGltf::ImageCesium*,
+        const CesiumGltf::ImageAsset*,
         TWeakPtr<CesiumTextureUtility::LoadedTextureResult>>&
         featureTexturePropertyMap,
     const FFeatureTextureDescription& featureTextureDescription,

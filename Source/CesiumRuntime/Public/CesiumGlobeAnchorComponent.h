@@ -1,4 +1,4 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
@@ -179,6 +179,13 @@ public:
   ACesiumGeoreference* ResolveGeoreference(bool bForceReresolve = false);
 
   /**
+   * Obtains the {@link UCesiumEllipsoid} set on the georeference used by this
+   * component.
+   */
+  UFUNCTION(BlueprintGetter, Category = "Cesium")
+  UCesiumEllipsoid* GetEllipsoid() const;
+
+  /**
    * Gets the 4x4 transformation matrix from the Actors's local coordinate
    * system to the Earth-Centered, Earth-Fixed (ECEF) coordinate system.
    *
@@ -323,7 +330,7 @@ public:
    * Moves the Actor to which this component is attached to a given longitude in
    * degrees (X), latitude in degrees (Y), and height in meters (Z).
    *
-   * The Height (Z) is measured in meters above the WGS84 ellipsoid. Do not
+   * The Height (Z) is measured in meters above the ellipsoid. Do not
    * confused an ellipsoidal height with a geoid height or height above mean sea
    * level, which can be tens of meters higher or lower depending on where in
    * the world the object is located.
@@ -351,7 +358,7 @@ public:
    * If AdjustOrientationForGlobeWhenMoving is enabled, this method will
    * also update the orientation based on the globe curvature.
    *
-   * @param newPosition The new position.
+   * @param EarthCenteredEarthFixedPosition The new position.
    */
   UFUNCTION(BlueprintCallable, Category = "Cesium")
   void MoveToEarthCenteredEarthFixedPosition(
@@ -586,7 +593,7 @@ private:
    * Height. The Actor's position and orientation are recomputed from the
    * Component's globe (ECEF) position and orientation.
    */
-  UFUNCTION()
+  UFUNCTION(CallInEditor)
   void _onGeoreferenceChanged();
 
   friend class FCesiumGlobeAnchorCustomization;

@@ -1,11 +1,14 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
-#include <gsl/span>
+#include "HAL/Platform.h"
+#include <span>
 
 enum class ECesiumMetadataType : uint8;
+enum class ECesiumMetadataComponentType : uint8;
 enum class ECesiumEncodedMetadataType : uint8;
+enum class ECesiumEncodedMetadataComponentType : uint8;
 struct FCesiumPropertyTablePropertyDescription;
 struct FCesiumPropertyTableProperty;
 struct FCesiumMetadataPropertyDetails;
@@ -16,6 +19,13 @@ struct FCesiumMetadataEncodingDetails;
  */
 ECesiumEncodedMetadataType
 CesiumMetadataTypeToEncodingType(ECesiumMetadataType Type);
+
+/**
+ * @brief Gets the best-fitting encoded type for the given metadata component
+ * type.
+ */
+ECesiumEncodedMetadataComponentType
+CesiumMetadataComponentTypeToEncodingType(ECesiumMetadataComponentType Type);
 
 /**
  * @brief Gets the best-fitting encoded types and conversion method for a given
@@ -79,7 +89,7 @@ struct CesiumEncodedMetadataCoerce {
   static void encode(
       const FCesiumPropertyTablePropertyDescription& propertyDescription,
       const FCesiumPropertyTableProperty& property,
-      gsl::span<std::byte>& pTextureData,
+      const std::span<std::byte>& pTextureData,
       size_t pixelSize);
 };
 
@@ -112,6 +122,6 @@ struct CesiumEncodedMetadataParseColorFromString {
   static void encode(
       const FCesiumPropertyTablePropertyDescription& propertyDescription,
       const FCesiumPropertyTableProperty& property,
-      gsl::span<std::byte>& textureData,
+      const std::span<std::byte>& textureData,
       size_t pixelSize);
 };

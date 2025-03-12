@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumBingMapsRasterOverlay.h"
 #include "Cesium3DTilesSelection/Tileset.h"
@@ -43,6 +43,5 @@ UCesiumBingMapsRasterOverlay::CreateOverlay(
       TCHAR_TO_UTF8(*this->BingMapsKey),
       mapStyle,
       "",
-      CesiumGeospatial::Ellipsoid::WGS84,
       options);
 }

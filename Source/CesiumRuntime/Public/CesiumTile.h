@@ -1,5 +1,8 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #pragma once
 
+#include "Components/PrimitiveComponent.h"
 #include "CoreMinimal.h"
 #include <Cesium3DTilesSelection/BoundingVolume.h>
 #include "CesiumTile.generated.h"

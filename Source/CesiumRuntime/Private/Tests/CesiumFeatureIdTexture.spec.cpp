@@ -1,18 +1,22 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #include "CesiumFeatureIdTexture.h"
-#include "CesiumGltf/ExtensionExtMeshFeatures.h"
 #include "CesiumGltfPrimitiveComponent.h"
 #include "CesiumGltfSpecUtility.h"
 #include "Misc/AutomationTest.h"
-
-using namespace CesiumGltf;
+#include <CesiumGltf/ExtensionExtMeshFeatures.h>
+#include <CesiumGltf/ExtensionKhrTextureTransform.h>
+#include <CesiumUtility/Math.h>
 
 BEGIN_DEFINE_SPEC(
     FCesiumFeatureIdTextureSpec,
     "Cesium.Unit.FeatureIdTexture",
-    EAutomationTestFlags::ApplicationContextMask |
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext |
+        EAutomationTestFlags::ServerContext |
+        EAutomationTestFlags::CommandletContext |
         EAutomationTestFlags::ProductFilter)
-Model model;
-MeshPrimitive* pPrimitive;
+CesiumGltf::Model model;
+CesiumGltf::MeshPrimitive* pPrimitive;
 const std::vector<glm::vec2> texCoords{
     glm::vec2(0, 0),
     glm::vec2(0.5, 0),
@@ -24,8 +28,8 @@ END_DEFINE_SPEC(FCesiumFeatureIdTextureSpec)
 void FCesiumFeatureIdTextureSpec::Define() {
   Describe("Constructor", [this]() {
     BeforeEach([this]() {
-      model = Model();
-      Mesh& mesh = model.meshes.emplace_back();
+      model = CesiumGltf::Model();
+      CesiumGltf::Mesh& mesh = model.meshes.emplace_back();
       pPrimitive = &mesh.primitives.emplace_back();
     });
 
@@ -41,11 +45,11 @@ void FCesiumFeatureIdTextureSpec::Define() {
       TestEqual(
           "FeatureIDTextureViewStatus",
           featureIDTextureView.status(),
-          FeatureIdTextureViewStatus::ErrorUninitialized);
+          CesiumGltf::FeatureIdTextureViewStatus::ErrorUninitialized);
     });
 
     It("constructs invalid instance for nonexistent texture", [this]() {
-      FeatureIdTexture texture;
+      CesiumGltf::FeatureIdTexture texture;
       texture.index = -1;
       texture.texCoord = 0;
       texture.channels = {0};
@@ -66,14 +70,14 @@ void FCesiumFeatureIdTextureSpec::Define() {
       TestEqual(
           "FeatureIDTextureViewStatus",
           featureIDTextureView.status(),
-          FeatureIdTextureViewStatus::ErrorInvalidTexture);
+          CesiumGltf::FeatureIdTextureViewStatus::ErrorInvalidTexture);
     });
 
     It("constructs invalid instance for texture with invalid image", [this]() {
       CesiumGltf::Texture& gltfTexture = model.textures.emplace_back();
       gltfTexture.source = -1;
 
-      FeatureIdTexture texture;
+      CesiumGltf::FeatureIdTexture texture;
       texture.index = 0;
       texture.texCoord = 0;
       texture.channels = {0};
@@ -94,13 +98,13 @@ void FCesiumFeatureIdTextureSpec::Define() {
       TestEqual(
           "FeatureIDTextureViewStatus",
           featureIDTextureView.status(),
-          FeatureIdTextureViewStatus::ErrorInvalidImage);
+          CesiumGltf::FeatureIdTextureViewStatus::ErrorInvalidImage);
     });
 
     It("constructs valid instance", [this]() {
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
 
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -126,25 +130,26 @@ void FCesiumFeatureIdTextureSpec::Define() {
       TestEqual(
           "FeatureIDTextureViewStatus",
           featureIDTextureView.status(),
-          FeatureIdTextureViewStatus::Valid);
+          CesiumGltf::FeatureIdTextureViewStatus::Valid);
     });
 
     It("constructs valid instance for texture with nonexistent texcoord attribute",
        [this]() {
-         Image& image = model.images.emplace_back();
-         image.cesium.width = image.cesium.height = 1;
-         image.cesium.channels = 1;
-         image.cesium.pixelData.push_back(std::byte(42));
+         CesiumGltf::Image& image = model.images.emplace_back();
+         image.pAsset.emplace();
+         image.pAsset->width = image.pAsset->height = 1;
+         image.pAsset->channels = 1;
+         image.pAsset->pixelData.push_back(std::byte(42));
 
-         Sampler& sampler = model.samplers.emplace_back();
-         sampler.wrapS = Sampler::WrapS::CLAMP_TO_EDGE;
-         sampler.wrapT = Sampler::WrapT::CLAMP_TO_EDGE;
+         CesiumGltf::Sampler& sampler = model.samplers.emplace_back();
+         sampler.wrapS = CesiumGltf::Sampler::WrapS::CLAMP_TO_EDGE;
+         sampler.wrapT = CesiumGltf::Sampler::WrapT::CLAMP_TO_EDGE;
 
          CesiumGltf::Texture& gltfTexture = model.textures.emplace_back();
          gltfTexture.source = 0;
          gltfTexture.sampler = 0;
 
-         FeatureIdTexture texture;
+         CesiumGltf::FeatureIdTexture texture;
          texture.index = 0;
          texture.texCoord = 0;
          texture.channels = {0};
@@ -165,25 +170,26 @@ void FCesiumFeatureIdTextureSpec::Define() {
          TestEqual(
              "FeatureIDTextureViewStatus",
              featureIDTextureView.status(),
-             FeatureIdTextureViewStatus::Valid);
+             CesiumGltf::FeatureIdTextureViewStatus::Valid);
        });
 
     It("constructs valid instance for texture with invalid texcoord accessor",
        [this]() {
-         Image& image = model.images.emplace_back();
-         image.cesium.width = image.cesium.height = 1;
-         image.cesium.channels = 1;
-         image.cesium.pixelData.push_back(std::byte(42));
+         CesiumGltf::Image& image = model.images.emplace_back();
+         image.pAsset.emplace();
+         image.pAsset->width = image.pAsset->height = 1;
+         image.pAsset->channels = 1;
+         image.pAsset->pixelData.push_back(std::byte(42));
 
-         Sampler& sampler = model.samplers.emplace_back();
-         sampler.wrapS = Sampler::WrapS::CLAMP_TO_EDGE;
-         sampler.wrapT = Sampler::WrapT::CLAMP_TO_EDGE;
+         CesiumGltf::Sampler& sampler = model.samplers.emplace_back();
+         sampler.wrapS = CesiumGltf::Sampler::WrapS::CLAMP_TO_EDGE;
+         sampler.wrapT = CesiumGltf::Sampler::WrapT::CLAMP_TO_EDGE;
 
          CesiumGltf::Texture& gltfTexture = model.textures.emplace_back();
          gltfTexture.source = 0;
          gltfTexture.sampler = 0;
 
-         FeatureIdTexture texture;
+         CesiumGltf::FeatureIdTexture texture;
          texture.index = 0;
          texture.texCoord = 0;
          texture.channels = {0};
@@ -206,14 +212,14 @@ void FCesiumFeatureIdTextureSpec::Define() {
          TestEqual(
              "FeatureIDTextureViewStatus",
              featureIDTextureView.status(),
-             FeatureIdTextureViewStatus::Valid);
+             CesiumGltf::FeatureIdTextureViewStatus::Valid);
        });
   });
 
-  Describe("GetFeatureIDForTextureCoordinates", [this]() {
+  Describe("GetFeatureIDForUV", [this]() {
     BeforeEach([this]() {
-      model = Model();
-      Mesh& mesh = model.meshes.emplace_back();
+      model = CesiumGltf::Model();
+      CesiumGltf::Mesh& mesh = model.meshes.emplace_back();
       pPrimitive = &mesh.primitives.emplace_back();
     });
 
@@ -221,7 +227,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
       CesiumGltf::Texture& gltfTexture = model.textures.emplace_back();
       gltfTexture.source = -1;
 
-      FeatureIdTexture texture;
+      CesiumGltf::FeatureIdTexture texture;
       texture.index = 0;
       texture.texCoord = 0;
       texture.channels = {0};
@@ -240,15 +246,16 @@ void FCesiumFeatureIdTextureSpec::Define() {
 
       TestEqual(
           "FeatureID",
-          UCesiumFeatureIdTextureBlueprintLibrary::
-              GetFeatureIDForTextureCoordinates(featureIDTexture, 0, 0),
+          UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDForUV(
+              featureIDTexture,
+              FVector2D::Zero()),
           -1);
     });
 
     It("returns correct value for valid attribute", [this]() {
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
 
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -272,25 +279,80 @@ void FCesiumFeatureIdTextureSpec::Define() {
 
       for (size_t i = 0; i < texCoords.size(); i++) {
         const glm::vec2& texCoord = texCoords[i];
-        int64 featureID = UCesiumFeatureIdTextureBlueprintLibrary::
-            GetFeatureIDForTextureCoordinates(
+        int64 featureID =
+            UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDForUV(
                 featureIDTexture,
-                texCoord[0],
-                texCoord[1]);
+                {texCoord.x, texCoord.y});
         TestEqual("FeatureID", featureID, featureIDs[i]);
+      }
+    });
+
+    It("returns correct value with KHR_texture_transform", [this]() {
+      const std::vector<uint8_t> featureIDs{1, 2, 0, 7};
+      const std::vector<glm::vec2> rawTexCoords{
+          glm::vec2(0, 0),
+          glm::vec2(1, 0),
+          glm::vec2(0, 1),
+          glm::vec2(1, 1)};
+
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+          model,
+          *pPrimitive,
+          featureIDs,
+          4,
+          2,
+          2,
+          rawTexCoords,
+          0,
+          CesiumGltf::Sampler::WrapS::REPEAT,
+          CesiumGltf::Sampler::WrapT::REPEAT);
+
+      assert(featureId.texture != std::nullopt);
+      CesiumGltf::ExtensionKhrTextureTransform& textureTransform =
+          featureId.texture
+              ->addExtension<CesiumGltf::ExtensionKhrTextureTransform>();
+      textureTransform.offset = {0.5, -0.5};
+      textureTransform.rotation = UE_DOUBLE_HALF_PI;
+      textureTransform.scale = {0.5, 0.5};
+
+      FCesiumFeatureIdTexture featureIDTexture(
+          model,
+          *pPrimitive,
+          *featureId.texture,
+          "PropertyTableName");
+
+      TestEqual(
+          "FeatureIDTextureStatus",
+          UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDTextureStatus(
+              featureIDTexture),
+          ECesiumFeatureIdTextureStatus::Valid);
+
+      // (0, 0) -> (0.5, -0.5) -> wraps to (0.5, 0.5)
+      // (1, 0) -> (0.5, -1) -> wraps to (0.5, 0)
+      // (0, 1) -> (1, -0.5) -> wraps to (0, 0.5)
+      // (1, 1) -> (1, -1) -> wraps to (0.0, 0.0)
+      std::vector<uint8_t> expected{7, 2, 0, 1};
+
+      for (size_t i = 0; i < texCoords.size(); i++) {
+        const glm::vec2& texCoord = rawTexCoords[i];
+        int64 featureID =
+            UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDForUV(
+                featureIDTexture,
+                {texCoord.x, texCoord.y});
+        TestEqual("FeatureID", featureID, expected[i]);
       }
     });
   });
 
   Describe("GetFeatureIDForVertex", [this]() {
     BeforeEach([this]() {
-      model = Model();
-      Mesh& mesh = model.meshes.emplace_back();
+      model = CesiumGltf::Model();
+      CesiumGltf::Mesh& mesh = model.meshes.emplace_back();
       pPrimitive = &mesh.primitives.emplace_back();
     });
 
     It("returns -1 for invalid texture", [this]() {
-      FeatureIdTexture texture;
+      CesiumGltf::FeatureIdTexture texture;
       texture.index = -1;
       texture.texCoord = 0;
       texture.channels = {0};
@@ -318,7 +380,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
     It("returns -1 for out-of-bounds index", [this]() {
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
 
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -358,7 +420,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
     It("returns correct value for valid texture", [this]() {
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
 
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -403,8 +465,8 @@ void FCesiumFeatureIdTextureSpec::Define() {
           model,
           *pPrimitive,
           "TEXCOORD_0",
-          AccessorSpec::Type::VEC2,
-          AccessorSpec::ComponentType::FLOAT,
+          CesiumGltf::AccessorSpec::Type::VEC2,
+          CesiumGltf::AccessorSpec::ComponentType::FLOAT,
           std::move(values));
 
       const std::vector<glm::vec2> texCoord1{
@@ -414,7 +476,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
           glm::vec2(0.0, 0.5)};
 
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -449,12 +511,12 @@ void FCesiumFeatureIdTextureSpec::Define() {
 
   Describe("GetFeatureIDFromHit", [this]() {
     BeforeEach([this]() {
-      model = Model();
-      Mesh& mesh = model.meshes.emplace_back();
+      model = CesiumGltf::Model();
+      CesiumGltf::Mesh& mesh = model.meshes.emplace_back();
       pPrimitive = &mesh.primitives.emplace_back();
       pPrimitive->mode = CesiumGltf::MeshPrimitive::Mode::TRIANGLES;
       pPrimitiveComponent = NewObject<UCesiumGltfPrimitiveComponent>();
-      pPrimitiveComponent->pMeshPrimitive = pPrimitive;
+      pPrimitiveComponent->getPrimitiveData().pMeshPrimitive = pPrimitive;
 
       std::vector<glm::vec3> positions{
           glm::vec3(-1, 0, 0),
@@ -469,13 +531,13 @@ void FCesiumFeatureIdTextureSpec::Define() {
           model,
           *pPrimitive,
           "POSITION",
-          AccessorSpec::Type::VEC3,
-          AccessorSpec::ComponentType::FLOAT,
+          CesiumGltf::AccessorSpec::Type::VEC3,
+          CesiumGltf::AccessorSpec::ComponentType::FLOAT,
           positions);
     });
 
     It("returns -1 for invalid texture", [this]() {
-      FeatureIdTexture texture;
+      CesiumGltf::FeatureIdTexture texture;
       texture.index = -1;
       texture.texCoord = 0;
       texture.channels = {0};
@@ -493,7 +555,8 @@ void FCesiumFeatureIdTextureSpec::Define() {
           ECesiumFeatureIdTextureStatus::Valid);
 
       FHitResult Hit;
-      Hit.Location = FVector_NetQuantize::Zero();
+      Hit.Location = FVector_NetQuantize::Zero() *
+                     CesiumPrimitiveData::positionScaleFactor;
       Hit.Component = pPrimitiveComponent;
       Hit.FaceIndex = 0;
 
@@ -521,7 +584,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
           glm::vec2(1, 0)};
 
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -530,12 +593,12 @@ void FCesiumFeatureIdTextureSpec::Define() {
           2,
           texCoords0,
           0);
-
-      pPrimitiveComponent->PositionAccessor =
+      CesiumPrimitiveData& primData = pPrimitiveComponent->getPrimitiveData();
+      primData.PositionAccessor =
           CesiumGltf::AccessorView<FVector3f>(model, positionAccessorIndex);
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+      primData.TexCoordAccessorMap.emplace(
           0,
-          AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
+          CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
               model,
               static_cast<int32_t>(model.accessors.size() - 1)));
 
@@ -552,7 +615,8 @@ void FCesiumFeatureIdTextureSpec::Define() {
           ECesiumFeatureIdTextureStatus::Valid);
 
       FHitResult Hit;
-      Hit.Location = FVector_NetQuantize(0, -1, 0);
+      Hit.Location = FVector_NetQuantize(0, -1, 0) *
+                     CesiumPrimitiveData::positionScaleFactor;
       Hit.FaceIndex = 0;
       Hit.Component = nullptr;
 
@@ -580,7 +644,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
           glm::vec2(1, 0)};
 
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -590,11 +654,12 @@ void FCesiumFeatureIdTextureSpec::Define() {
           texCoords0,
           0);
 
-      pPrimitiveComponent->PositionAccessor =
+      CesiumPrimitiveData& primData = pPrimitiveComponent->getPrimitiveData();
+      primData.PositionAccessor =
           CesiumGltf::AccessorView<FVector3f>(model, positionAccessorIndex);
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+      primData.TexCoordAccessorMap.emplace(
           1,
-          AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
+          CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
               model,
               static_cast<int32_t>(model.accessors.size() - 1)));
 
@@ -611,7 +676,8 @@ void FCesiumFeatureIdTextureSpec::Define() {
           ECesiumFeatureIdTextureStatus::Valid);
 
       FHitResult Hit;
-      Hit.Location = FVector_NetQuantize(0, -1, 0);
+      Hit.Location = FVector_NetQuantize(0, -1, 0) *
+                     CesiumPrimitiveData::positionScaleFactor;
       Hit.FaceIndex = 0;
       Hit.Component = pPrimitiveComponent;
 
@@ -639,7 +705,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
           glm::vec2(1, 0)};
 
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -649,11 +715,12 @@ void FCesiumFeatureIdTextureSpec::Define() {
           texCoords0,
           0);
 
-      pPrimitiveComponent->PositionAccessor =
+      CesiumPrimitiveData& primData = pPrimitiveComponent->getPrimitiveData();
+      primData.PositionAccessor =
           CesiumGltf::AccessorView<FVector3f>(model, positionAccessorIndex);
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+      primData.TexCoordAccessorMap.emplace(
           0,
-          AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
+          CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
               model,
               static_cast<int32_t>(model.accessors.size() - 1)));
 
@@ -680,7 +747,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
       std::array<int64, 3> expected{3, 1, 0};
 
       for (size_t i = 0; i < locations.size(); i++) {
-        Hit.Location = locations[i];
+        Hit.Location = locations[i] * CesiumPrimitiveData::positionScaleFactor;
         int64 featureID =
             UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDFromHit(
                 featureIDTexture,
@@ -705,7 +772,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
           glm::vec2(1, 0)};
 
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -715,11 +782,12 @@ void FCesiumFeatureIdTextureSpec::Define() {
           texCoords0,
           0);
 
-      pPrimitiveComponent->PositionAccessor =
+      CesiumPrimitiveData& primData = pPrimitiveComponent->getPrimitiveData();
+      primData.PositionAccessor =
           CesiumGltf::AccessorView<FVector3f>(model, positionAccessorIndex);
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+      primData.TexCoordAccessorMap.emplace(
           0,
-          AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
+          CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
               model,
               static_cast<int32_t>(model.accessors.size() - 1)));
 
@@ -746,7 +814,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
       std::array<int64, 3> expected{3, 1, 0};
 
       for (size_t i = 0; i < locations.size(); i++) {
-        Hit.Location = locations[i];
+        Hit.Location = locations[i] * CesiumPrimitiveData::positionScaleFactor;
         int64 featureID =
             UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDFromHit(
                 featureIDTexture,
@@ -774,8 +842,8 @@ void FCesiumFeatureIdTextureSpec::Define() {
           model,
           *pPrimitive,
           "TEXCOORD_0",
-          AccessorSpec::Type::VEC2,
-          AccessorSpec::ComponentType::FLOAT,
+          CesiumGltf::AccessorSpec::Type::VEC2,
+          CesiumGltf::AccessorSpec::ComponentType::FLOAT,
           GetValuesAsBytes(texCoords0));
       int32 texCoord0AccessorIndex =
           static_cast<int32_t>(model.accessors.size() - 1);
@@ -789,7 +857,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
           glm::vec2(1, 0),
       };
       const std::vector<uint8_t> featureIDs{0, 3, 1, 2};
-      FeatureId& featureId = AddFeatureIDsAsTextureToModel(
+      CesiumGltf::FeatureId& featureId = AddFeatureIDsAsTextureToModel(
           model,
           *pPrimitive,
           featureIDs,
@@ -805,19 +873,22 @@ void FCesiumFeatureIdTextureSpec::Define() {
           *featureId.texture,
           "PropertyTableName");
 
-      pPrimitiveComponent->PositionAccessor =
+      CesiumPrimitiveData& primData = pPrimitiveComponent->getPrimitiveData();
+      primData.PositionAccessor =
           CesiumGltf::AccessorView<FVector3f>(model, positionAccessorIndex);
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+      primData.TexCoordAccessorMap.emplace(
           0,
-          AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
+          CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
               model,
               texCoord0AccessorIndex));
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+      primData.TexCoordAccessorMap.emplace(
           0,
-          AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(model, 1));
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+          CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
+              model,
+              1));
+      primData.TexCoordAccessorMap.emplace(
           1,
-          AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
+          CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
               model,
               static_cast<int32_t>(model.accessors.size() - 1)));
 
@@ -838,7 +909,7 @@ void FCesiumFeatureIdTextureSpec::Define() {
       std::array<int64, 3> expected{3, 1, 2};
 
       for (size_t i = 0; i < locations.size(); i++) {
-        Hit.Location = locations[i];
+        Hit.Location = locations[i] * CesiumPrimitiveData::positionScaleFactor;
         int64 featureID =
             UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDFromHit(
                 featureIDTexture,

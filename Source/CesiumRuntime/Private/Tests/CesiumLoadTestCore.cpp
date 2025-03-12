@@ -1,4 +1,4 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #if WITH_EDITOR
 
@@ -36,10 +36,12 @@ struct LoadTestContext {
 
 LoadTestContext gLoadTestContext;
 
-DEFINE_LATENT_AUTOMATION_COMMAND_THREE_PARAMETER(
+DEFINE_LATENT_AUTOMATION_COMMAND_FOUR_PARAMETER(
     TimeLoadingCommand,
     FString,
     loggingName,
+    SceneGenerationContext&,
+    creationContext,
     SceneGenerationContext&,
     playContext,
     TestPass&,
@@ -75,31 +77,43 @@ bool TimeLoadingCommand::Update() {
   bool tilesetsloaded = playContext.areTilesetsDoneLoading();
   bool timedOut = pass.elapsedTime >= testTimeout;
 
-  if (tilesetsloaded || timedOut) {
-    pass.endMark = timeMark;
-    UE_LOG(LogCesium, Display, TEXT("-- Load end mark -- %s"), *loggingName);
+  if (timedOut) {
+    UE_LOG(
+        LogCesium,
+        Error,
+        TEXT("TIMED OUT: Loading stopped after %.2f seconds"),
+        pass.elapsedTime);
+    // Command is done
+    pass.testInProgress = false;
+    return true;
+  }
 
-    if (timedOut) {
-      UE_LOG(
-          LogCesium,
-          Error,
-          TEXT("TIMED OUT: Loading stopped after %.2f seconds"),
-          pass.elapsedTime);
-    } else {
+  if (tilesetsloaded) {
+    // Run verify step as part of timing
+    // This is useful for running additional logic after a load, or if the step
+    // exists in the pass solely, timing very specific functionality (like
+    // terrain queries)
+    bool verifyComplete = true;
+    if (pass.verifyStep)
+      verifyComplete =
+          pass.verifyStep(creationContext, playContext, pass.optionalParameter);
+
+    if (verifyComplete) {
+      pass.endMark = FPlatformTime::Seconds();
+      UE_LOG(LogCesium, Display, TEXT("-- Load end mark -- %s"), *loggingName);
+
+      pass.elapsedTime = pass.endMark - pass.startMark;
       UE_LOG(
           LogCesium,
           Display,
-          TEXT("Tileset load completed in %.2f seconds"),
+          TEXT("Pass completed in %.2f seconds"),
           pass.elapsedTime);
+
+      pass.testInProgress = false;
+
+      // Command is done
+      return true;
     }
-
-    if (pass.verifyStep)
-      pass.verifyStep(playContext, pass.optionalParameter);
-
-    pass.testInProgress = false;
-
-    // Command is done
-    return true;
   }
 
   // Let world tick, we'll come back to this command
@@ -163,8 +177,6 @@ bool TestCleanupCommand::Update() {
   else
     defaultReportStep(context.testPasses);
 
-  // Turn on the editor tileset updates so we can see what we loaded
-  gLoadTestContext.creationContext.setSuspendUpdate(false);
   return true;
 }
 
@@ -180,12 +192,6 @@ bool InitForPlayWhenReady::Update() {
   UE_LOG(LogCesium, Display, TEXT("Play in Editor ready..."));
   playContext.initForPlay(creationContext);
   return true;
-}
-
-void clearCacheDb() {
-  std::shared_ptr<CesiumAsync::ICacheDatabase> pCacheDatabase =
-      getCacheDatabase();
-  pCacheDatabase->clearAll();
 }
 
 bool RunLoadTest(
@@ -218,7 +224,6 @@ bool RunLoadTest(
   // Halt tileset updates and reset them
   context.creationContext.setSuspendUpdate(true);
   context.creationContext.refreshTilesets();
-  clearCacheDb();
 
   // Let the editor viewports see the same thing the test will
   context.creationContext.syncWorldCamera();
@@ -253,8 +258,11 @@ bool RunLoadTest(
     // Do our timing capture
     FString loggingName = testName + "-" + pass.name;
 
-    ADD_LATENT_AUTOMATION_COMMAND(
-        TimeLoadingCommand(loggingName, context.playContext, pass));
+    ADD_LATENT_AUTOMATION_COMMAND(TimeLoadingCommand(
+        loggingName,
+        context.creationContext,
+        context.playContext,
+        pass));
 
     ADD_LATENT_AUTOMATION_COMMAND(FWaitLatentCommand(1.0f));
 

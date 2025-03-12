@@ -1,23 +1,25 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
+#include "CesiumPropertyTexture.h"
 #include "CesiumGltf/ExtensionModelExtStructuralMetadata.h"
 #include "CesiumGltf/Model.h"
 #include "CesiumGltfComponent.h"
 #include "CesiumGltfPrimitiveComponent.h"
 #include "CesiumGltfSpecUtility.h"
-#include "CesiumPropertyTexture.h"
 #include "Misc/AutomationTest.h"
 #include <limits>
-
-using namespace CesiumGltf;
 
 BEGIN_DEFINE_SPEC(
     FCesiumPropertyTextureSpec,
     "Cesium.Unit.PropertyTexture",
-    EAutomationTestFlags::ApplicationContextMask |
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext |
+        EAutomationTestFlags::ServerContext |
+        EAutomationTestFlags::CommandletContext |
         EAutomationTestFlags::ProductFilter)
-Model model;
-MeshPrimitive* pPrimitive;
-ExtensionModelExtStructuralMetadata* pExtension;
-PropertyTexture* pPropertyTexture;
+CesiumGltf::Model model;
+CesiumGltf::MeshPrimitive* pPrimitive;
+CesiumGltf::ExtensionModelExtStructuralMetadata* pExtension;
+CesiumGltf::PropertyTexture* pPropertyTexture;
 TObjectPtr<UCesiumGltfComponent> pModelComponent;
 TObjectPtr<UCesiumGltfPrimitiveComponent> pPrimitiveComponent;
 
@@ -29,10 +31,12 @@ const std::vector<FVector2D> texCoords{
 END_DEFINE_SPEC(FCesiumPropertyTextureSpec)
 
 void FCesiumPropertyTextureSpec::Define() {
+  using namespace CesiumGltf;
+
   BeforeEach([this]() {
     model = Model();
     pExtension = &model.addExtension<ExtensionModelExtStructuralMetadata>();
-    pExtension->schema = Schema();
+    pExtension->schema.emplace();
     pPropertyTexture = &pExtension->propertyTextures.emplace_back();
   });
 
@@ -51,7 +55,7 @@ void FCesiumPropertyTextureSpec::Define() {
     });
 
     It("constructs invalid instance for missing schema", [this]() {
-      pExtension->schema = std::nullopt;
+      pExtension->schema.reset();
 
       FCesiumPropertyTexture propertyTexture(model, *pPropertyTexture);
       TestEqual(
@@ -633,10 +637,11 @@ void FCesiumPropertyTextureSpec::Define() {
           pModelComponent,
           FAttachmentTransformRules(EAttachmentRule::KeepRelative, false));
 
-      pPrimitiveComponent->pMeshPrimitive = pPrimitive;
-      pPrimitiveComponent->PositionAccessor =
+      CesiumPrimitiveData& primData = pPrimitiveComponent->getPrimitiveData();
+      primData.pMeshPrimitive = pPrimitive;
+      primData.PositionAccessor =
           CesiumGltf::AccessorView<FVector3f>(model, positionAccessorIndex);
-      pPrimitiveComponent->TexCoordAccessorMap.emplace(
+      primData.TexCoordAccessorMap.emplace(
           0,
           AccessorView<CesiumGltf::AccessorTypes::VEC2<float>>(
               model,
@@ -673,7 +678,8 @@ void FCesiumPropertyTextureSpec::Define() {
       FHitResult Hit;
       Hit.Component = nullptr;
       Hit.FaceIndex = 0;
-      Hit.Location = {0, 0, 0};
+      Hit.Location = FVector_NetQuantize{0, 0, 0} *
+                     CesiumPrimitiveData::positionScaleFactor;
 
       const auto values =
           UCesiumPropertyTextureBlueprintLibrary::GetMetadataValuesFromHit(
@@ -738,7 +744,7 @@ void FCesiumPropertyTextureSpec::Define() {
           FIntPoint(1, 2)};
 
       for (size_t i = 0; i < locations.size(); i++) {
-        Hit.Location = locations[i];
+        Hit.Location = locations[i] * CesiumPrimitiveData::positionScaleFactor;
         const auto values =
             UCesiumPropertyTextureBlueprintLibrary::GetMetadataValuesFromHit(
                 propertyTexture,
@@ -804,7 +810,8 @@ void FCesiumPropertyTextureSpec::Define() {
       FHitResult Hit;
       Hit.Component = pPrimitiveComponent;
       Hit.FaceIndex = 0;
-      Hit.Location = {0, 0, 0};
+      Hit.Location = FVector_NetQuantize{0, 0, 0} *
+                     CesiumPrimitiveData::positionScaleFactor;
 
       const auto values =
           UCesiumPropertyTextureBlueprintLibrary::GetMetadataValuesFromHit(

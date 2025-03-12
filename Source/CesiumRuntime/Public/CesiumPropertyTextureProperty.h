@@ -1,12 +1,15 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
+#include "CesiumMetadataEnum.h"
 #include "CesiumMetadataValue.h"
 #include "GenericPlatform/GenericPlatform.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include <CesiumGltf/KhrTextureTransform.h>
 #include <CesiumGltf/PropertyTexturePropertyView.h>
 #include <any>
+#include <optional>
 #include "CesiumPropertyTextureProperty.generated.h"
 
 /**
@@ -47,11 +50,13 @@ public:
 
   template <typename T, bool Normalized>
   FCesiumPropertyTextureProperty(
-      const CesiumGltf::PropertyTexturePropertyView<T, Normalized>& Property)
+      const CesiumGltf::PropertyTexturePropertyView<T, Normalized>& Property,
+      const TSharedPtr<FCesiumMetadataEnum>& pEnumDefinition = nullptr)
       : _status(ECesiumPropertyTexturePropertyStatus::ErrorInvalidProperty),
         _property(Property),
         _valueType(),
-        _normalized(Normalized) {
+        _normalized(Normalized),
+        _pEnumDefinition(pEnumDefinition) {
     switch (Property.status()) {
     case CesiumGltf::PropertyTexturePropertyViewStatus::Valid:
       _status = ECesiumPropertyTexturePropertyStatus::Valid;
@@ -90,13 +95,15 @@ public:
       return;
     }
 
-    _valueType = TypeToMetadataValueType<T>();
+    _valueType = TypeToMetadataValueType<T>(pEnumDefinition);
     _normalized = Normalized;
   }
 
   const int64 getTexCoordSetIndex() const;
   const CesiumGltf::Sampler* getSampler() const;
-  const CesiumGltf::ImageCesium* getImage() const;
+  const CesiumGltf::ImageAsset* getImage() const;
+  const std::optional<CesiumGltf::KhrTextureTransform>
+  getTextureTransform() const;
 
 private:
   ECesiumPropertyTexturePropertyStatus _status;
@@ -105,6 +112,7 @@ private:
 
   FCesiumMetadataValueType _valueType;
   bool _normalized;
+  TSharedPtr<FCesiumMetadataEnum> _pEnumDefinition;
 
   friend class UCesiumPropertyTexturePropertyBlueprintLibrary;
 };
@@ -118,6 +126,8 @@ public:
   /**
    * Gets the status of the property texture property. If this property texture
    * property is invalid in any way, this will briefly indicate why.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -130,6 +140,8 @@ public:
    * Gets the best-fitting type for the property that is accessible from
    * Blueprints. For the most precise representation of the values possible in
    * Blueprints, you should retrieve it using this type.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -142,6 +154,8 @@ public:
    * Gets the best-fitting Blueprints type for the elements in this property's
    * array values. If the given property does not contain array values, this
    * returns None.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -154,6 +168,8 @@ public:
    * Gets the type of the metadata value as defined in the
    * EXT_structural_metadata extension. Many of these types are not accessible
    * from Blueprints, but can be converted to a Blueprint-accessible type.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -165,6 +181,8 @@ public:
   /**
    * Gets the number of elements in an array of this property. Only
    * applicable when the property is a fixed-length array type.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -179,6 +197,8 @@ public:
    * on the glTF primitive that samples this texture.
    *
    * If the property texture property is invalid, this returns -1.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -203,6 +223,9 @@ public:
    * This returns -1 if the property texture property is invalid, or if the
    * specified texture coordinate set is not present in the component's mesh
    * data.
+   *
+   * @param Component The component to get the texture coordinate set from.
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -216,6 +239,8 @@ public:
    * @brief Get the channels array of this property. This contains the indices
    * of the meaningful texel channels that will be used when sampling the
    * property texture.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -245,6 +270,7 @@ public:
    * property texture property is somehow invalid, the user-defined default
    * value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a Byte.
@@ -280,6 +306,7 @@ public:
    * property texture property is somehow invalid, the user-defined default
    * value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as an Integer.
@@ -317,6 +344,7 @@ public:
    * property texture property is somehow invalid, the user-defined default
    * value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a Float.
@@ -353,6 +381,7 @@ public:
    * property texture property is somehow invalid, the user-defined default
    * value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a Float.
@@ -396,6 +425,7 @@ public:
    * If the property texture property is somehow invalid, the user-defined
    * default value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a FIntPoint.
@@ -407,7 +437,6 @@ public:
   static FIntPoint GetIntPoint(
       UPARAM(ref) const FCesiumPropertyTextureProperty& Property,
       const FVector2D& UV,
-
       const FIntPoint& DefaultValue);
 
   /**
@@ -437,6 +466,7 @@ public:
    * property texture property is somehow invalid, the user-defined default
    * value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a FVector2D.
@@ -448,7 +478,6 @@ public:
   static FVector2D GetVector2D(
       UPARAM(ref) const FCesiumPropertyTextureProperty& Property,
       const FVector2D& UV,
-
       const FVector2D& DefaultValue);
 
   /**
@@ -484,6 +513,7 @@ public:
    * If the property texture property is somehow invalid, the user-defined
    * default value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a FIntVector.
@@ -495,7 +525,6 @@ public:
   static FIntVector GetIntVector(
       UPARAM(ref) const FCesiumPropertyTextureProperty& Property,
       const FVector2D& UV,
-
       const FIntVector& DefaultValue);
 
   /**
@@ -530,6 +559,7 @@ public:
    * If the property texture property is somehow invalid, the user-defined
    * default value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a FVector.
@@ -541,7 +571,6 @@ public:
   static FVector GetVector(
       UPARAM(ref) const FCesiumPropertyTextureProperty& Property,
       const FVector2D& UV,
-
       const FVector& DefaultValue);
 
   /**
@@ -573,6 +602,7 @@ public:
    * property texture property is somehow invalid, the user-defined default
    * value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @param DefaultValue The default value to fall back on.
    * @return The property value as a FVector4.
@@ -584,7 +614,6 @@ public:
   static FVector4 GetVector4(
       UPARAM(ref) const FCesiumPropertyTextureProperty& Property,
       const FVector2D& UV,
-
       const FVector4& DefaultValue);
 
   /**
@@ -599,6 +628,7 @@ public:
    * possible. If the property-defined default value cannot be converted, or
    * does not exist, then the user-defined default value is returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @return The property value as a FCesiumPropertyArray.
    */
@@ -621,6 +651,7 @@ public:
    * empty value will be returned. However, if the property itself specifies a
    * default value, then the property-defined default value will be returned.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @return The property value.
    */
@@ -639,6 +670,7 @@ public:
    * If this property specifies a "no data" value, and the raw value is equal to
    * this "no data" value, the value is returned as-is.
    *
+   * @param Property The property texture property.
    * @param UV The texture coordinates.
    * @return The raw property value.
    */
@@ -654,6 +686,7 @@ public:
    * Whether this property is normalized. Only applicable when this property
    * has an integer component type.
    *
+   * @param Property The property texture property.
    * @return Whether this property is normalized.
    */
   UFUNCTION(
@@ -671,6 +704,7 @@ public:
    * integer component types. If an offset is not defined or applicable, this
    * returns an empty value.
    *
+   * @param Property The property texture property.
    * @return The offset of the property.
    */
   UFUNCTION(
@@ -688,6 +722,7 @@ public:
    * integer component types. If a scale is not defined or applicable, this
    * returns an empty value.
    *
+   * @param Property The property texture property.
    * @return The scale of the property.
    */
   UFUNCTION(
@@ -707,6 +742,7 @@ public:
    * offset, and scale applied. If a minimum value is not defined or
    * applicable, this returns an empty value.
    *
+   * @param Property The property texture property.
    * @return The minimum value of the property.
    */
   UFUNCTION(
@@ -726,6 +762,7 @@ public:
    * offset, and scale applied. If a maximum value is not defined or applicable,
    * this returns an empty value.
    *
+   * @param Property The property texture property.
    * @return The maximum value of the property.
    */
   UFUNCTION(
@@ -744,6 +781,7 @@ public:
    * This is not applicable to boolean properties. If a "no data" value is
    * not defined or applicable, this returns an empty value.
    *
+   * @param Property The property texture property.
    * @return The "no data" value of the property.
    */
   UFUNCTION(
@@ -760,6 +798,7 @@ public:
    *
    * If a default value is not defined, this returns an empty value.
    *
+   * @param Property The property texture property.
    * @return The default value of the property.
    */
   UFUNCTION(
@@ -774,6 +813,8 @@ public:
    * @brief Get the string representing how the metadata is encoded into a
    * pixel color. This is useful to unpack the correct order of the metadata
    * components from the pixel color.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,
@@ -789,6 +830,8 @@ public:
    * @brief Get the component count of this property. Since the metadata is
    * encoded as pixel color, this is also the number of meaningful channels
    * it will use.
+   *
+   * @param Property The property texture property.
    */
   UFUNCTION(
       BlueprintCallable,

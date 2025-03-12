@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumRasterOverlay.h"
 #include "Async/Async.h"
@@ -20,7 +20,11 @@ UCesiumRasterOverlay::UCesiumRasterOverlay()
   // don't need them.
   PrimaryComponentTick.bCanEverTick = false;
 
-  // ...
+  // Allow DestroyComponent to be called from Blueprints by anyone. Without
+  // this, only the Actor (Cesium3DTileset) itself can destroy raster overlays.
+  // That's really annoying because it's fairly common to dynamically add/remove
+  // overlays at runtime.
+  bAllowAnyoneToDestroyMe = true;
 }
 
 #if WITH_EDITOR
@@ -44,6 +48,7 @@ void UCesiumRasterOverlay::AddToTileset() {
   }
 
   CesiumRasterOverlays::RasterOverlayOptions options{};
+  options.ellipsoid = pTileset->getOptions().ellipsoid;
   options.maximumScreenSpaceError = this->MaximumScreenSpaceError;
   options.maximumSimultaneousTileLoads = this->MaximumSimultaneousTileLoads;
   options.maximumTextureSize = this->MaximumTextureSize;
@@ -126,7 +131,9 @@ void UCesiumRasterOverlay::RemoveFromTileset() {
 
 void UCesiumRasterOverlay::Refresh() {
   this->RemoveFromTileset();
-  this->AddToTileset();
+  if (this->IsActive()) {
+    this->AddToTileset();
+  }
 }
 
 double UCesiumRasterOverlay::GetMaximumScreenSpaceError() const {

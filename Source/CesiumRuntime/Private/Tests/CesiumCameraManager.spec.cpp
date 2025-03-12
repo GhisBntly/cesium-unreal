@@ -1,4 +1,4 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumCameraManager.h"
 #include "CesiumTestHelpers.h"
@@ -8,7 +8,9 @@
 BEGIN_DEFINE_SPEC(
     FCesiumCameraManagerSpec,
     "Cesium.Unit.CameraManager",
-    EAutomationTestFlags::ApplicationContextMask |
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext |
+        EAutomationTestFlags::ServerContext |
+        EAutomationTestFlags::CommandletContext |
         EAutomationTestFlags::ProductFilter)
 END_DEFINE_SPEC(FCesiumCameraManagerSpec)
 

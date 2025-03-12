@@ -1,4 +1,4 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #include "CesiumEncodedFeaturesMetadata.h"
 #include "CesiumEncodedMetadataConversions.h"
@@ -13,12 +13,13 @@
 #include "CesiumPropertyTexture.h"
 #include "CesiumRuntime.h"
 #include "Containers/Map.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "PixelFormat.h"
 #include "TextureResource.h"
 #include "UnrealMetadataConversions.h"
+
 #include <CesiumGltf/FeatureIdTextureView.h>
 #include <CesiumUtility/Tracing.h>
-#include <glm/gtx/integer.hpp>
 #include <optional>
 #include <unordered_map>
 
@@ -51,6 +52,20 @@ FString getNameForFeatureIDSet(
     }
   }
 
+  if (type == ECesiumFeatureIdSetType::Instance) {
+    FCesiumFeatureIdAttribute attribute =
+        UCesiumFeatureIdSetBlueprintLibrary::GetAsFeatureIDAttribute(
+            featureIDSet);
+    ECesiumFeatureIdAttributeStatus status =
+        UCesiumFeatureIdAttributeBlueprintLibrary::GetFeatureIDAttributeStatus(
+            attribute);
+    if (status == ECesiumFeatureIdAttributeStatus::Valid) {
+      std::string generatedName = "_FEATURE_INSTANCE_ID_" +
+                                  std::to_string(attribute.getAttributeIndex());
+      return FString(generatedName.c_str());
+    }
+  }
+
   if (type == ECesiumFeatureIdSetType::Texture) {
     std::string generatedName =
         "_FEATURE_ID_TEXTURE_" + std::to_string(FeatureIdTextureCounter);
@@ -60,6 +75,10 @@ FString getNameForFeatureIDSet(
 
   if (type == ECesiumFeatureIdSetType::Implicit) {
     return FString("_IMPLICIT_FEATURE_ID");
+  }
+
+  if (type == ECesiumFeatureIdSetType::InstanceImplicit) {
+    return FString("_IMPLICIT_FEATURE_INSTANCE_ID");
   }
 
   // If for some reason an empty / invalid feature ID set was constructed,
@@ -98,7 +117,7 @@ encodeFeatureIdAttribute(const FCesiumFeatureIdAttribute& attribute) {
 
 std::optional<EncodedFeatureIdSet> encodeFeatureIdTexture(
     const FCesiumFeatureIdTexture& texture,
-    TMap<const CesiumGltf::ImageCesium*, TWeakPtr<LoadedTextureResult>>&
+    TMap<const CesiumGltf::ImageAsset*, TWeakPtr<LoadedTextureResult>>&
         featureIdTextureMap) {
   const ECesiumFeatureIdTextureStatus status =
       UCesiumFeatureIdTextureBlueprintLibrary::GetFeatureIDTextureStatus(
@@ -113,7 +132,7 @@ std::optional<EncodedFeatureIdSet> encodeFeatureIdTexture(
 
   const CesiumGltf::FeatureIdTextureView& featureIdTextureView =
       texture.getFeatureIdTextureView();
-  const CesiumGltf::ImageCesium* pFeatureIdImage =
+  const CesiumGltf::ImageAsset* pFeatureIdImage =
       featureIdTextureView.getImage();
 
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::EncodeFeatureIdTexture)
@@ -124,58 +143,45 @@ std::optional<EncodedFeatureIdSet> encodeFeatureIdTexture(
   encodedFeatureIdTexture.channels = featureIdTextureView.getChannels();
   encodedFeatureIdTexture.textureCoordinateSetIndex =
       featureIdTextureView.getTexCoordSetIndex();
+  encodedFeatureIdTexture.textureTransform =
+      featureIdTextureView.getTextureTransform();
 
   TWeakPtr<LoadedTextureResult>* pMappedUnrealImageIt =
       featureIdTextureMap.Find(pFeatureIdImage);
   if (pMappedUnrealImageIt) {
     encodedFeatureIdTexture.pTexture = pMappedUnrealImageIt->Pin();
   } else {
-    encodedFeatureIdTexture.pTexture = MakeShared<LoadedTextureResult>();
-    encodedFeatureIdTexture.pTexture->sRGB = false;
-    // TODO: upgrade to new texture creation path
-    encodedFeatureIdTexture.pTexture->textureSource = LegacyTextureSource{};
+    TextureAddress addressX = TextureAddress::TA_Wrap;
+    TextureAddress addressY = TextureAddress::TA_Wrap;
+
+    const CesiumGltf::Sampler* pSampler = featureIdTextureView.getSampler();
+    if (pSampler) {
+      addressX = convertGltfWrapSToUnreal(pSampler->wrapS);
+      addressY = convertGltfWrapTToUnreal(pSampler->wrapT);
+    }
+
+    // Copy the image, so that we can keep a copy of it in the glTF.
+    CesiumUtility::IntrusivePointer<CesiumGltf::ImageAsset> pImageCopy =
+        new CesiumGltf::ImageAsset(*pFeatureIdImage);
+    encodedFeatureIdTexture.pTexture =
+        MakeShared<LoadedTextureResult>(std::move(*loadTextureAnyThreadPart(
+            *pImageCopy,
+            addressX,
+            addressY,
+            TextureFilter::TF_Nearest,
+            false,
+            TEXTUREGROUP_8BitData,
+            false,
+            // TODO: currently this is always the case, but doesn't have to be
+            EPixelFormat::PF_R8G8B8A8_UINT)));
     featureIdTextureMap.Emplace(
         pFeatureIdImage,
         encodedFeatureIdTexture.pTexture);
-    encodedFeatureIdTexture.pTexture->pTextureData = createTexturePlatformData(
-        pFeatureIdImage->width,
-        pFeatureIdImage->height,
-        // TODO: currently this is always the case, but doesn't have to be
-        EPixelFormat::PF_R8G8B8A8_UINT);
-
-    encodedFeatureIdTexture.pTexture->addressX = TextureAddress::TA_Clamp;
-    encodedFeatureIdTexture.pTexture->addressY = TextureAddress::TA_Clamp;
-    encodedFeatureIdTexture.pTexture->filter = TextureFilter::TF_Nearest;
-
-    if (!encodedFeatureIdTexture.pTexture->pTextureData) {
-      UE_LOG(
-          LogCesium,
-          Error,
-          TEXT(
-              "Error encoding a feature ID texture. Most likely could not allocate enough texture memory."));
-      return std::nullopt;
-    }
-
-    FTexture2DMipMap* pMip = new FTexture2DMipMap();
-    encodedFeatureIdTexture.pTexture->pTextureData->Mips.Add(pMip);
-    pMip->SizeX = pFeatureIdImage->width;
-    pMip->SizeY = pFeatureIdImage->height;
-    pMip->BulkData.Lock(LOCK_READ_WRITE);
-
-    void* pTextureData =
-        pMip->BulkData.Realloc(pFeatureIdImage->pixelData.size());
-
-    FMemory::Memcpy(
-        pTextureData,
-        pFeatureIdImage->pixelData.data(),
-        pFeatureIdImage->pixelData.size());
-
-    pMip->BulkData.Unlock();
-    pMip->BulkData.SetBulkDataFlags(BULKDATA_SingleUse);
   }
 
   return result;
 }
+
 } // namespace
 
 EncodedPrimitiveFeatures encodePrimitiveFeaturesAnyThreadPart(
@@ -189,7 +195,7 @@ EncodedPrimitiveFeatures encodePrimitiveFeaturesAnyThreadPart(
 
   // Not all feature ID sets are necessarily textures, but reserve the max
   // amount just in case.
-  TMap<const CesiumGltf::ImageCesium*, TWeakPtr<LoadedTextureResult>>
+  TMap<const CesiumGltf::ImageAsset*, TWeakPtr<LoadedTextureResult>>
       featureIdTextureMap;
   featureIdTextureMap.Reserve(featureIDSetDescriptions.Num());
 
@@ -279,9 +285,8 @@ void destroyEncodedPrimitiveFeatures(
     }
 
     auto& encodedFeatureIdTexture = *encodedFeatureIdSet.texture;
-    if (encodedFeatureIdTexture.pTexture->pTexture.IsValid()) {
-      CesiumLifetime::destroy(encodedFeatureIdTexture.pTexture->pTexture.Get());
-      encodedFeatureIdTexture.pTexture->pTexture.Reset();
+    if (encodedFeatureIdTexture.pTexture) {
+      encodedFeatureIdTexture.pTexture->pTexture = nullptr;
     }
   }
 }
@@ -329,43 +334,6 @@ FString getMaterialNameForPropertyTextureProperty(
 }
 
 namespace {
-
-struct EncodedPixelFormat {
-  EPixelFormat format;
-  size_t pixelSize;
-};
-
-// TODO: consider picking better pixel formats when they are available for the
-// current platform.
-EncodedPixelFormat
-getPixelFormat(FCesiumMetadataEncodingDetails encodingDetails) {
-
-  switch (encodingDetails.ComponentType) {
-  case ECesiumEncodedMetadataComponentType::Uint8:
-    switch (encodingDetails.Type) {
-    case ECesiumEncodedMetadataType::Scalar:
-      return {EPixelFormat::PF_R8_UINT, 1};
-    case ECesiumEncodedMetadataType::Vec2:
-    case ECesiumEncodedMetadataType::Vec3:
-    case ECesiumEncodedMetadataType::Vec4:
-      return {EPixelFormat::PF_R8G8B8A8_UINT, 4};
-    default:
-      return {EPixelFormat::PF_Unknown, 0};
-    }
-  case ECesiumEncodedMetadataComponentType::Float:
-    switch (encodingDetails.Type) {
-    case ECesiumEncodedMetadataType::Scalar:
-      return {EPixelFormat::PF_R32_FLOAT, 4};
-    case ECesiumEncodedMetadataType::Vec2:
-    case ECesiumEncodedMetadataType::Vec3:
-    case ECesiumEncodedMetadataType::Vec4:
-      // Note this is ABGR
-      return {EPixelFormat::PF_A32B32G32R32F, 16};
-    }
-  default:
-    return {EPixelFormat::PF_Unknown, 0};
-  }
-}
 
 bool isValidPropertyTablePropertyDescription(
     const FCesiumPropertyTablePropertyDescription& propertyDescription,
@@ -532,7 +500,8 @@ EncodedPropertyTable encodePropertyTableAnyThreadPart(
       continue;
     }
 
-    EncodedPixelFormat encodedFormat = getPixelFormat(encodingDetails);
+    EncodedPixelFormat encodedFormat =
+        getPixelFormat(encodingDetails.Type, encodingDetails.ComponentType);
     if (encodedFormat.format == EPixelFormat::PF_Unknown) {
       UE_LOG(
           LogCesium,
@@ -559,58 +528,39 @@ EncodedPropertyTable encodePropertyTableAnyThreadPart(
               ? floorSqrtFeatureCount
               : (floorSqrtFeatureCount + 1);
 
-      encodedProperty.pTexture = MakeUnique<LoadedTextureResult>();
-      encodedProperty.pTexture->sRGB = false;
-      // TODO: upgrade to new texture creation path.
-      encodedProperty.pTexture->textureSource = LegacyTextureSource{};
-      encodedProperty.pTexture->pTextureData = createTexturePlatformData(
-          textureDimension,
-          textureDimension,
-          encodedFormat.format);
-
-      encodedProperty.pTexture->addressX = TextureAddress::TA_Clamp;
-      encodedProperty.pTexture->addressY = TextureAddress::TA_Clamp;
-      encodedProperty.pTexture->filter = TextureFilter::TF_Nearest;
-
-      if (!encodedProperty.pTexture->pTextureData) {
-        UE_LOG(
-            LogCesium,
-            Error,
-            TEXT(
-                "Error encoding a property table property. Most likely could not allocate enough texture memory."));
-        continue;
-      }
-
-      FTexture2DMipMap* pMip = new FTexture2DMipMap();
-      encodedProperty.pTexture->pTextureData->Mips.Add(pMip);
-      pMip->SizeX = textureDimension;
-      pMip->SizeY = textureDimension;
-
-      pMip->BulkData.Lock(LOCK_READ_WRITE);
-
-      void* pTextureData = pMip->BulkData.Realloc(
-          textureDimension * textureDimension * encodedFormat.pixelSize);
-
-      gsl::span<std::byte> textureData(
-          reinterpret_cast<std::byte*>(pTextureData),
-          static_cast<size_t>(pMip->BulkData.GetBulkDataSize()));
+      CesiumUtility::IntrusivePointer<CesiumGltf::ImageAsset> pImage =
+          new CesiumGltf::ImageAsset();
+      pImage->width = pImage->height = textureDimension;
+      pImage->bytesPerChannel = encodedFormat.bytesPerChannel;
+      pImage->channels = encodedFormat.channels;
+      pImage->pixelData.resize(
+          textureDimension * textureDimension * encodedFormat.bytesPerChannel *
+          encodedFormat.channels);
 
       if (encodingDetails.Conversion ==
           ECesiumEncodedMetadataConversion::ParseColorFromString) {
         CesiumEncodedMetadataParseColorFromString::encode(
             *pDescription,
             property,
-            textureData,
-            encodedFormat.pixelSize);
+            std::span(pImage->pixelData),
+            encodedFormat.bytesPerChannel * encodedFormat.channels);
       } else /* info.Conversion == ECesiumEncodedMetadataConversion::Coerce */ {
         CesiumEncodedMetadataCoerce::encode(
             *pDescription,
             property,
-            textureData,
-            encodedFormat.pixelSize);
+            std::span(pImage->pixelData),
+            encodedFormat.bytesPerChannel * encodedFormat.channels);
       }
-      pMip->BulkData.Unlock();
-      pMip->BulkData.SetBulkDataFlags(BULKDATA_SingleUse);
+
+      encodedProperty.pTexture = loadTextureAnyThreadPart(
+          *pImage,
+          TextureAddress::TA_Clamp,
+          TextureAddress::TA_Clamp,
+          TextureFilter::TF_Nearest,
+          false,
+          TEXTUREGROUP_8BitData,
+          false,
+          encodedFormat.format);
     }
 
     if (pDescription->PropertyDetails.bHasOffset) {
@@ -660,7 +610,7 @@ EncodedPropertyTable encodePropertyTableAnyThreadPart(
 EncodedPropertyTexture encodePropertyTextureAnyThreadPart(
     const FCesiumPropertyTextureDescription& propertyTextureDescription,
     const FCesiumPropertyTexture& propertyTexture,
-    TMap<const CesiumGltf::ImageCesium*, TWeakPtr<LoadedTextureResult>>&
+    TMap<const CesiumGltf::ImageAsset*, TWeakPtr<LoadedTextureResult>>&
         propertyTexturePropertyMap) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::EncodePropertyTexture)
@@ -709,74 +659,39 @@ EncodedPropertyTexture encodePropertyTextureAnyThreadPart(
         encodedProperty.channels[i] = channels[i];
       }
 
-      const CesiumGltf::ImageCesium* pImage = property.getImage();
+      const CesiumGltf::ImageAsset* pImage = property.getImage();
 
       TWeakPtr<LoadedTextureResult>* pMappedUnrealImageIt =
           propertyTexturePropertyMap.Find(pImage);
       if (pMappedUnrealImageIt) {
         encodedProperty.pTexture = pMappedUnrealImageIt->Pin();
       } else {
-        encodedProperty.pTexture = MakeShared<LoadedTextureResult>();
-        // TODO: upgrade to new texture creation path.
-        encodedProperty.pTexture->textureSource = LegacyTextureSource{};
-        propertyTexturePropertyMap.Emplace(pImage, encodedProperty.pTexture);
-        // This assumes that the texture's image only contains one byte per
-        // channel.
-        encodedProperty.pTexture->pTextureData = createTexturePlatformData(
-            pImage->width,
-            pImage->height,
-            EPixelFormat::PF_R8G8B8A8_UINT);
+        TextureAddress addressX = TextureAddress::TA_Wrap;
+        TextureAddress addressY = TextureAddress::TA_Wrap;
 
         const CesiumGltf::Sampler* pSampler = property.getSampler();
-        switch (pSampler->wrapS) {
-        case CesiumGltf::Sampler::WrapS::REPEAT:
-          encodedProperty.pTexture->addressX = TextureAddress::TA_Wrap;
-          break;
-        case CesiumGltf::Sampler::WrapS::MIRRORED_REPEAT:
-          encodedProperty.pTexture->addressX = TextureAddress::TA_Mirror;
-        case CesiumGltf::Sampler::WrapS::CLAMP_TO_EDGE:
-        default:
-          encodedProperty.pTexture->addressX = TextureAddress::TA_Clamp;
+        if (pSampler) {
+          addressX = convertGltfWrapSToUnreal(pSampler->wrapS);
+          addressY = convertGltfWrapTToUnreal(pSampler->wrapT);
         }
 
-        switch (pSampler->wrapT) {
-        case CesiumGltf::Sampler::WrapT::REPEAT:
-          encodedProperty.pTexture->addressY = TextureAddress::TA_Wrap;
-          break;
-        case CesiumGltf::Sampler::WrapT::MIRRORED_REPEAT:
-          encodedProperty.pTexture->addressY = TextureAddress::TA_Mirror;
-        case CesiumGltf::Sampler::WrapT::CLAMP_TO_EDGE:
-        default:
-          encodedProperty.pTexture->addressY = TextureAddress::TA_Clamp;
-        }
-
-        // TODO: account for texture filter
-        encodedProperty.pTexture->filter = TextureFilter::TF_Nearest;
-
-        if (!encodedProperty.pTexture->pTextureData) {
-          UE_LOG(
-              LogCesium,
-              Error,
-              TEXT(
-                  "Error encoding a property texture property. Most likely could not allocate enough texture memory."));
-          continue;
-        }
-
-        FTexture2DMipMap* pMip = new FTexture2DMipMap();
-        encodedProperty.pTexture->pTextureData->Mips.Add(pMip);
-        pMip->SizeX = pImage->width;
-        pMip->SizeY = pImage->height;
-        pMip->BulkData.Lock(LOCK_READ_WRITE);
-
-        void* pTextureData = pMip->BulkData.Realloc(pImage->pixelData.size());
-
-        FMemory::Memcpy(
-            pTextureData,
-            pImage->pixelData.data(),
-            pImage->pixelData.size());
-
-        pMip->BulkData.Unlock();
-        pMip->BulkData.SetBulkDataFlags(BULKDATA_SingleUse);
+        // Copy the image, so that we can keep a copy of it in the glTF.
+        CesiumUtility::IntrusivePointer<CesiumGltf::ImageAsset> pImageCopy =
+            new CesiumGltf::ImageAsset(*pImage);
+        encodedProperty.pTexture =
+            MakeShared<LoadedTextureResult>(std::move(*loadTextureAnyThreadPart(
+                *pImageCopy,
+                addressX,
+                addressY,
+                // TODO: account for texture filter
+                TextureFilter::TF_Nearest,
+                false,
+                TEXTUREGROUP_8BitData,
+                false,
+                // This assumes that the texture's image only contains one byte
+                // per channel.
+                EPixelFormat::PF_R8G8B8A8_UINT)));
+        propertyTexturePropertyMap.Emplace(pImage, encodedProperty.pTexture);
       }
     };
 
@@ -800,6 +715,10 @@ EncodedPropertyTexture encodePropertyTextureAnyThreadPart(
       encodedProperty.defaultValue =
           UCesiumPropertyTexturePropertyBlueprintLibrary::GetDefaultValue(
               property);
+    }
+
+    if (pDescription->bHasKhrTextureTransform) {
+      encodedProperty.textureTransform = property.getTextureTransform();
     }
   }
 
@@ -846,7 +765,7 @@ EncodedModelMetadata encodeModelMetadataAnyThreadPart(
   const TArray<FCesiumPropertyTable>& propertyTables =
       UCesiumModelMetadataBlueprintLibrary::GetPropertyTables(metadata);
   result.propertyTables.Reserve(propertyTables.Num());
-  for (const auto& propertyTable : propertyTables) {
+  for (const FCesiumPropertyTable& propertyTable : propertyTables) {
     const FString propertyTableName = getNameForPropertyTable(propertyTable);
 
     const FCesiumPropertyTableDescription* pExpectedPropertyTable =
@@ -871,13 +790,12 @@ EncodedModelMetadata encodeModelMetadataAnyThreadPart(
       UCesiumModelMetadataBlueprintLibrary::GetPropertyTextures(metadata);
   result.propertyTextures.Reserve(propertyTextures.Num());
 
-  TMap<const CesiumGltf::ImageCesium*, TWeakPtr<LoadedTextureResult>>
+  TMap<const CesiumGltf::ImageAsset*, TWeakPtr<LoadedTextureResult>>
       propertyTexturePropertyMap;
   propertyTexturePropertyMap.Reserve(propertyTextures.Num());
 
-  for (const auto& propertyTexture : propertyTextures) {
-    const FString propertyTextureName =
-        getNameForPropertyTexture(propertyTexture);
+  for (const FCesiumPropertyTexture& propertyTexture : propertyTextures) {
+    FString propertyTextureName = getNameForPropertyTexture(propertyTexture);
 
     const FCesiumPropertyTextureDescription* pExpectedPropertyTexture =
         metadataDescription.PropertyTextures.FindByPredicate(
@@ -960,10 +878,8 @@ void destroyEncodedModelMetadata(EncodedModelMetadata& encodedMetadata) {
   for (auto& propertyTable : encodedMetadata.propertyTables) {
     for (EncodedPropertyTableProperty& encodedProperty :
          propertyTable.properties) {
-      if (encodedProperty.pTexture &&
-          encodedProperty.pTexture->pTexture.IsValid()) {
-        CesiumLifetime::destroy(encodedProperty.pTexture->pTexture.Get());
-        encodedProperty.pTexture->pTexture.Reset();
+      if (encodedProperty.pTexture) {
+        encodedProperty.pTexture->pTexture = nullptr;
       }
     }
   }
@@ -971,10 +887,8 @@ void destroyEncodedModelMetadata(EncodedModelMetadata& encodedMetadata) {
   for (auto& encodedPropertyTextureIt : encodedMetadata.propertyTextures) {
     for (EncodedPropertyTextureProperty& encodedPropertyTextureProperty :
          encodedPropertyTextureIt.properties) {
-      if (encodedPropertyTextureProperty.pTexture->pTexture.IsValid()) {
-        CesiumLifetime::destroy(
-            encodedPropertyTextureProperty.pTexture->pTexture.Get());
-        encodedPropertyTextureProperty.pTexture->pTexture.Reset();
+      if (encodedPropertyTextureProperty.pTexture) {
+        encodedPropertyTextureProperty.pTexture->pTexture = nullptr;
       }
     }
   }
@@ -1004,6 +918,337 @@ FString createHlslSafeName(const FString& rawName) {
   }
 
   return safeName;
+}
+
+// TODO: consider picking better pixel formats when they are available for the
+// current platform.
+EncodedPixelFormat getPixelFormat(
+    ECesiumEncodedMetadataType Type,
+    ECesiumEncodedMetadataComponentType ComponentType) {
+  switch (ComponentType) {
+  case ECesiumEncodedMetadataComponentType::Uint8:
+    switch (Type) {
+    case ECesiumEncodedMetadataType::Scalar:
+      return {EPixelFormat::PF_R8_UINT, 1, 1};
+    case ECesiumEncodedMetadataType::Vec2:
+    case ECesiumEncodedMetadataType::Vec3:
+    case ECesiumEncodedMetadataType::Vec4:
+      return {EPixelFormat::PF_R8G8B8A8_UINT, 1, 4};
+    default:
+      return {EPixelFormat::PF_Unknown, 0, 0};
+    }
+  case ECesiumEncodedMetadataComponentType::Float:
+    switch (Type) {
+    case ECesiumEncodedMetadataType::Scalar:
+      return {EPixelFormat::PF_R32_FLOAT, 4, 1};
+    case ECesiumEncodedMetadataType::Vec2:
+    case ECesiumEncodedMetadataType::Vec3:
+    case ECesiumEncodedMetadataType::Vec4:
+      // Note this is ABGR
+      return {EPixelFormat::PF_A32B32G32R32F, 4, 4};
+    }
+  default:
+    return {EPixelFormat::PF_Unknown, 0, 0};
+  }
+}
+
+bool isSupportedPropertyTextureProperty(
+    const FCesiumMetadataPropertyDetails& PropertyDetails) {
+  if (PropertyDetails.bIsArray &&
+      PropertyDetails.Type != ECesiumMetadataType::Scalar) {
+    // Only scalar arrays are supported.
+    return false;
+  }
+
+  uint32 byteSize = GetMetadataTypeByteSize(
+      PropertyDetails.Type,
+      PropertyDetails.ComponentType);
+  if (PropertyDetails.bIsArray) {
+    byteSize *= PropertyDetails.ArraySize;
+  }
+
+  return byteSize > 0 && byteSize <= 4;
+}
+
+void SetPropertyParameterValue(
+    UMaterialInstanceDynamic* pMaterial,
+    EMaterialParameterAssociation association,
+    int32 index,
+    const FString& name,
+    ECesiumEncodedMetadataType type,
+    const FCesiumMetadataValue& value,
+    float defaultValue) {
+  if (type == ECesiumEncodedMetadataType::Scalar) {
+    pMaterial->SetScalarParameterValueByInfo(
+        FMaterialParameterInfo(FName(name), association, index),
+        UCesiumMetadataValueBlueprintLibrary::GetFloat(value, defaultValue));
+  } else if (
+      type == ECesiumEncodedMetadataType::Vec2 ||
+      type == ECesiumEncodedMetadataType::Vec3 ||
+      type == ECesiumEncodedMetadataType::Vec4) {
+    FVector4 vector4Value = UCesiumMetadataValueBlueprintLibrary::GetVector4(
+        value,
+        FVector4(defaultValue, defaultValue, defaultValue, defaultValue));
+
+    pMaterial->SetVectorParameterValueByInfo(
+        FMaterialParameterInfo(FName(name), association, index),
+        FLinearColor(
+            static_cast<float>(vector4Value.X),
+            static_cast<float>(vector4Value.Y),
+            static_cast<float>(vector4Value.Z),
+            static_cast<float>(vector4Value.W)));
+  }
+}
+
+void SetFeatureIdTextureParameterValues(
+    UMaterialInstanceDynamic* pMaterial,
+    EMaterialParameterAssociation association,
+    int32 index,
+    const FString& name,
+    const EncodedFeatureIdTexture& encodedFeatureIdTexture) {
+  pMaterial->SetTextureParameterValueByInfo(
+      FMaterialParameterInfo(
+          FName(name + MaterialTextureSuffix),
+          association,
+          index),
+      encodedFeatureIdTexture.pTexture->pTexture->getUnrealTexture());
+
+  size_t numChannels = encodedFeatureIdTexture.channels.size();
+  pMaterial->SetScalarParameterValueByInfo(
+      FMaterialParameterInfo(
+          FName(name + MaterialNumChannelsSuffix),
+          association,
+          index),
+      static_cast<float>(numChannels));
+
+  std::vector<float> channelsAsFloats{0.0f, 0.0f, 0.0f, 0.0f};
+  for (size_t i = 0; i < numChannels; i++) {
+    channelsAsFloats[i] =
+        static_cast<float>(encodedFeatureIdTexture.channels[i]);
+  }
+
+  FLinearColor channels{
+      channelsAsFloats[0],
+      channelsAsFloats[1],
+      channelsAsFloats[2],
+      channelsAsFloats[3],
+  };
+
+  pMaterial->SetVectorParameterValueByInfo(
+      FMaterialParameterInfo(
+          FName(name + MaterialChannelsSuffix),
+          association,
+          index),
+      channels);
+
+  if (!encodedFeatureIdTexture.textureTransform) {
+    return;
+  }
+
+  glm::dvec2 scale = encodedFeatureIdTexture.textureTransform->scale();
+  glm::dvec2 offset = encodedFeatureIdTexture.textureTransform->offset();
+
+  pMaterial->SetVectorParameterValueByInfo(
+      FMaterialParameterInfo(
+          FName(name + MaterialTextureScaleOffsetSuffix),
+          association,
+          index),
+      FLinearColor(scale[0], scale[1], offset[0], offset[1]));
+
+  glm::dvec2 rotation =
+      encodedFeatureIdTexture.textureTransform->rotationSineCosine();
+  pMaterial->SetVectorParameterValueByInfo(
+      FMaterialParameterInfo(
+          FName(name + MaterialTextureRotationSuffix),
+          association,
+          index),
+      FLinearColor(rotation[0], rotation[1], 0.0f, 1.0f));
+}
+
+void SetPropertyTableParameterValues(
+    UMaterialInstanceDynamic* pMaterial,
+    EMaterialParameterAssociation association,
+    int32 index,
+    const EncodedPropertyTable& encodedPropertyTable) {
+  for (const EncodedPropertyTableProperty& encodedProperty :
+       encodedPropertyTable.properties) {
+    FString fullPropertyName = getMaterialNameForPropertyTableProperty(
+        encodedPropertyTable.name,
+        encodedProperty.name);
+
+    if (encodedProperty.pTexture) {
+      pMaterial->SetTextureParameterValueByInfo(
+          FMaterialParameterInfo(FName(fullPropertyName), association, index),
+          encodedProperty.pTexture->pTexture->getUnrealTexture());
+    }
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(
+            encodedProperty.offset)) {
+      FString parameterName = fullPropertyName + MaterialPropertyOffsetSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.offset,
+          0.0f);
+    }
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(encodedProperty.scale)) {
+      FString parameterName = fullPropertyName + MaterialPropertyScaleSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.scale,
+          1.0f);
+    }
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(
+            encodedProperty.noData)) {
+      FString parameterName = fullPropertyName + MaterialPropertyNoDataSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.noData,
+          0.0f);
+    }
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(
+            encodedProperty.defaultValue)) {
+      FString parameterName =
+          fullPropertyName + MaterialPropertyDefaultValueSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.defaultValue,
+          0.0f);
+
+      FString hasValueName = fullPropertyName + MaterialPropertyHasValueSuffix;
+      pMaterial->SetScalarParameterValueByInfo(
+          FMaterialParameterInfo(FName(hasValueName), association, index),
+          encodedProperty.pTexture ? 1.0 : 0.0);
+    }
+  }
+}
+
+void SetPropertyTextureParameterValues(
+    UMaterialInstanceDynamic* pMaterial,
+    EMaterialParameterAssociation association,
+    int32 index,
+    const EncodedPropertyTexture& encodedPropertyTexture) {
+  for (const EncodedPropertyTextureProperty& encodedProperty :
+       encodedPropertyTexture.properties) {
+    FString fullPropertyName = getMaterialNameForPropertyTextureProperty(
+        encodedPropertyTexture.name,
+        encodedProperty.name);
+
+    if (encodedProperty.pTexture) {
+      pMaterial->SetTextureParameterValueByInfo(
+          FMaterialParameterInfo(FName(fullPropertyName), association, index),
+          encodedProperty.pTexture->pTexture->getUnrealTexture());
+    }
+
+    pMaterial->SetVectorParameterValueByInfo(
+        FMaterialParameterInfo(
+            FName(fullPropertyName + MaterialChannelsSuffix),
+            association,
+            index),
+        FLinearColor(
+            encodedProperty.channels[0],
+            encodedProperty.channels[1],
+            encodedProperty.channels[2],
+            encodedProperty.channels[3]));
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(
+            encodedProperty.offset)) {
+      FString parameterName = fullPropertyName + MaterialPropertyOffsetSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.offset,
+          0.0f);
+    }
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(encodedProperty.scale)) {
+      FString parameterName = fullPropertyName + MaterialPropertyScaleSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.scale,
+          1.0f);
+    }
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(
+            encodedProperty.noData)) {
+      FString parameterName = fullPropertyName + MaterialPropertyNoDataSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.noData,
+          0.0f);
+    }
+
+    if (!UCesiumMetadataValueBlueprintLibrary::IsEmpty(
+            encodedProperty.defaultValue)) {
+      FString parameterName =
+          fullPropertyName + MaterialPropertyDefaultValueSuffix;
+      SetPropertyParameterValue(
+          pMaterial,
+          association,
+          index,
+          parameterName,
+          encodedProperty.type,
+          encodedProperty.defaultValue,
+          0.0f);
+
+      FString hasValueName = fullPropertyName + MaterialPropertyHasValueSuffix;
+      pMaterial->SetScalarParameterValueByInfo(
+          FMaterialParameterInfo(FName(hasValueName), association, index),
+          encodedProperty.pTexture ? 1.0 : 0.0);
+    }
+
+    if (!encodedProperty.textureTransform) {
+      continue;
+    }
+
+    glm::dvec2 scale = encodedProperty.textureTransform->scale();
+    glm::dvec2 offset = encodedProperty.textureTransform->offset();
+
+    pMaterial->SetVectorParameterValueByInfo(
+        FMaterialParameterInfo(
+            FName(fullPropertyName + MaterialTextureScaleOffsetSuffix),
+            association,
+            index),
+        FLinearColor(scale[0], scale[1], offset[0], offset[1]));
+
+    glm::dvec2 rotation =
+        encodedProperty.textureTransform->rotationSineCosine();
+    pMaterial->SetVectorParameterValueByInfo(
+        FMaterialParameterInfo(
+            FName(fullPropertyName + MaterialTextureRotationSuffix),
+            association,
+            index),
+        FLinearColor(rotation[0], rotation[1], 0.0f, 1.0f));
+  }
 }
 
 } // namespace CesiumEncodedFeaturesMetadata

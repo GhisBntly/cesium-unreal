@@ -1,14 +1,18 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
 #include "CesiumGltf/PropertyTypeTraits.h"
+#include "CesiumMetadataEnum.h"
 #include "CesiumMetadataValueType.h"
 #include "CesiumPropertyArray.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "UObject/ObjectMacros.h"
+
+#include <CesiumGltf/PropertyTypeTraits.h>
 #include <glm/glm.hpp>
 #include <optional>
+#include <swl/variant.hpp>
 
 #include "CesiumMetadataValue.generated.h"
 
@@ -22,8 +26,8 @@ struct CESIUMRUNTIME_API FCesiumMetadataValue {
 private:
 #pragma region ValueType declaration
   template <typename T> using ArrayView = CesiumGltf::PropertyArrayView<T>;
-  using ValueType = std::variant<
-      std::monostate,
+  using ValueType = swl::variant<
+      swl::monostate,
       int8_t,
       uint8_t,
       int16_t,
@@ -174,7 +178,27 @@ public:
   /**
    * Constructs an empty metadata value with unknown type.
    */
-  FCesiumMetadataValue() : _value(std::monostate{}), _valueType() {}
+  FCesiumMetadataValue()
+      : _value(swl::monostate{}),
+        _valueType(),
+        _storage(),
+        _pEnumDefinition() {}
+
+  /**
+   * Constructs a metadata value with the given input.
+   *
+   * @param Value The value to be stored in this struct.
+   * @param pEnumDefinition The enum definition for this metadata value, or
+   * nullptr if not an enum.
+   */
+  template <typename T>
+  explicit FCesiumMetadataValue(
+      const T& Value,
+      const TSharedPtr<FCesiumMetadataEnum>& pEnumDefinition)
+      : _value(Value),
+        _valueType(TypeToMetadataValueType<T>(pEnumDefinition)),
+        _storage(),
+        _pEnumDefinition(pEnumDefinition) {}
 
   /**
    * Constructs a metadata value with the given input.
@@ -182,45 +206,64 @@ public:
    * @param Value The value to be stored in this struct.
    */
   template <typename T>
-  explicit FCesiumMetadataValue(const T& Value) : _value(Value), _valueType() {
-    ECesiumMetadataType type;
-    ECesiumMetadataComponentType componentType;
-    bool isArray;
-    if constexpr (CesiumGltf::IsMetadataArray<T>::value) {
-      using ArrayType = typename CesiumGltf::MetadataArrayType<T>::type;
-      type =
-          ECesiumMetadataType(CesiumGltf::TypeToPropertyType<ArrayType>::value);
-      componentType = ECesiumMetadataComponentType(
-          CesiumGltf::TypeToPropertyType<ArrayType>::component);
-      isArray = true;
-    } else {
-      type = ECesiumMetadataType(CesiumGltf::TypeToPropertyType<T>::value);
-      componentType = ECesiumMetadataComponentType(
-          CesiumGltf::TypeToPropertyType<T>::component);
-      isArray = false;
-    }
-    _valueType = {type, componentType, isArray};
+  explicit FCesiumMetadataValue(const T& Value)
+      : FCesiumMetadataValue(
+            std::move(Value),
+            TSharedPtr<FCesiumMetadataEnum>(nullptr)) {}
+
+  template <typename ArrayType>
+  explicit FCesiumMetadataValue(
+      const CesiumGltf::PropertyArrayCopy<ArrayType>& Copy,
+      const TSharedPtr<FCesiumMetadataEnum>& pEnumDefinition = nullptr)
+      : FCesiumMetadataValue(
+            CesiumGltf::PropertyArrayCopy<ArrayType>(Copy),
+            pEnumDefinition) {}
+
+  template <typename ArrayType>
+  explicit FCesiumMetadataValue(
+      CesiumGltf::PropertyArrayCopy<ArrayType>&& Copy,
+      const TSharedPtr<FCesiumMetadataEnum>& pEnumDefinition = nullptr)
+      : _value(),
+        _valueType(
+            TypeToMetadataValueType<CesiumGltf::PropertyArrayView<ArrayType>>(
+                pEnumDefinition)),
+        _storage(),
+        _pEnumDefinition(pEnumDefinition) {
+    this->_value = std::move(Copy).toViewAndExternalBuffer(this->_storage);
   }
 
   /**
    * Constructs a metadata value with the given optional input.
    *
    * @param MaybeValue The optional value to be stored in this struct.
+   * @param pEnumDefinition The enum definition for this metadata value, or
+   * nullptr if not an enum.
    */
   template <typename T>
-  explicit FCesiumMetadataValue(const std::optional<T>& MaybeValue)
-      : _value(std::monostate{}), _valueType() {
+  explicit FCesiumMetadataValue(
+      const std::optional<T>& MaybeValue,
+      const TSharedPtr<FCesiumMetadataEnum>& pEnumDefinition = nullptr)
+      : _value(), _valueType(), _storage(), _pEnumDefinition(pEnumDefinition) {
     if (!MaybeValue) {
       return;
     }
 
-    _value = *MaybeValue;
-    _valueType = TypeToMetadataValueType<T>();
+    FCesiumMetadataValue temp(*MaybeValue);
+    this->_value = std::move(temp._value);
+    this->_valueType = std::move(temp._valueType);
+    this->_storage = std::move(temp._storage);
   }
+
+  FCesiumMetadataValue(FCesiumMetadataValue&& rhs);
+  FCesiumMetadataValue& operator=(FCesiumMetadataValue&& rhs);
+  FCesiumMetadataValue(const FCesiumMetadataValue& rhs);
+  FCesiumMetadataValue& operator=(const FCesiumMetadataValue& rhs);
 
 private:
   ValueType _value;
   FCesiumMetadataValueType _valueType;
+  std::vector<std::byte> _storage;
+  TSharedPtr<FCesiumMetadataEnum> _pEnumDefinition;
 
   friend class UCesiumMetadataValueBlueprintLibrary;
 };
@@ -313,6 +356,7 @@ public:
    *
    * All other types return the default value.
    *
+   * @param value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a Boolean.
    * @return The value as a Boolean.
@@ -342,6 +386,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a Byte.
    * @return The value as a Byte.
@@ -373,6 +418,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to an Integer.
    * @return The value as an Integer.
@@ -404,6 +450,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to an Integer64.
    * @return The value as an Integer64.
@@ -465,6 +512,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a Float.
    * @return The value as a Float.
@@ -494,6 +542,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a Float64.
    * @return The value as a Float64.
@@ -528,6 +577,7 @@ public:
    * any of the relevant components cannot be represented as a 32-bit signed,
    * the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FIntPoint.
    * @return The value as a FIntPoint.
@@ -560,6 +610,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FIntPoint.
    * @return The value as a FIntPoint.
@@ -597,6 +648,7 @@ public:
    * any of the relevant components cannot be represented as a 32-bit signed
    * integer, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FIntVector.
    * @return The value as a FIntVector.
@@ -635,6 +687,7 @@ public:
    * any of the relevant components cannot be represented as a single-precision
    * float, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FVector3f.
    * @return The value as a FVector3f.
@@ -670,6 +723,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FVector.
    * @return The value as a FVector.
@@ -707,6 +761,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FVector4.
    * @return The value as a FVector4.
@@ -745,6 +800,7 @@ public:
    *
    * In all other cases, the default value is returned.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FMatrix.
    * @return The value as a FMatrix.
@@ -775,6 +831,7 @@ public:
    *
    * Array properties return the default value.
    *
+   * @param Value The metadata value to retrieve.
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to a FString.
    * @return The value as a FString.
@@ -791,6 +848,7 @@ public:
    * Attempts to retrieve the value as a FCesiumPropertyArray. If the property
    * is not an array type, this returns an empty array.
    *
+   * @param Value The metadata value to retrieve.
    * @return The value as a FCesiumPropertyArray.
    */
   UFUNCTION(
@@ -807,6 +865,7 @@ public:
    * matches the property's specified "no data" value, it will return an empty
    * FCesiumMetadataValue.
    *
+   * @param Value The metadata value to retrieve.
    * @return Whether the value is empty.
    */
   UFUNCTION(

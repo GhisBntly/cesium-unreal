@@ -99,7 +99,9 @@ CesiumGltf::FeatureId& AddFeatureIDsAsTextureToModel(
     const int32_t imageWidth,
     const int32_t imageHeight,
     const std::vector<glm::vec2>& texCoords,
-    const int64_t texcoordSetIndex);
+    const int64_t texcoordSetIndex,
+    const int32_t samplerWrapS = CesiumGltf::Sampler::WrapS::CLAMP_TO_EDGE,
+    const int32_t samplerWrapT = CesiumGltf::Sampler::WrapT::CLAMP_TO_EDGE);
 
 /**
  * @brief Adds the given values to the given model as a property table property
@@ -198,15 +200,16 @@ CesiumGltf::PropertyTextureProperty& AddPropertyTexturePropertyToModel(
   classProperty.componentType = componentType;
 
   CesiumGltf::Image& image = model.images.emplace_back();
-  image.cesium.width = 2;
-  image.cesium.height = 2;
-  image.cesium.channels = sizeof(T);
-  image.cesium.bytesPerChannel = 1;
-  image.cesium.pixelData.resize(values.size() * sizeof(T));
+  image.pAsset.emplace();
+  image.pAsset->width = 2;
+  image.pAsset->height = 2;
+  image.pAsset->channels = sizeof(T);
+  image.pAsset->bytesPerChannel = 1;
+  image.pAsset->pixelData.resize(values.size() * sizeof(T));
   std::memcpy(
-      image.cesium.pixelData.data(),
+      image.pAsset->pixelData.data(),
       values.data(),
-      image.cesium.pixelData.size());
+      image.pAsset->pixelData.size());
 
   CesiumGltf::Sampler& sampler = model.samplers.emplace_back();
   sampler.wrapS = CesiumGltf::Sampler::WrapS::CLAMP_TO_EDGE;

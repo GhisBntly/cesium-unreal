@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
@@ -18,7 +18,7 @@
  * A spline-based polygon actor used to rasterize 2D polygons on top of
  * Cesium 3D Tileset actors.
  */
-UCLASS(ClassGroup = (Cesium), meta = (BlueprintSpawnableComponent))
+UCLASS(ClassGroup = Cesium, meta = (BlueprintSpawnableComponent))
 class CESIUMRUNTIME_API ACesiumCartographicPolygon : public AActor {
 
   GENERATED_BODY()

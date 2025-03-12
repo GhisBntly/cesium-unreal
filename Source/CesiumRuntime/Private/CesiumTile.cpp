@@ -1,7 +1,8 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #include "CesiumTile.h"
 #include "CalcBounds.h"
 #include "CesiumTransforms.h"
-#include "Components/PrimitiveComponent.h"
 #include "VecMath.h"
 
 bool UCesiumTile::TileBoundsOverlapsPrimitive(

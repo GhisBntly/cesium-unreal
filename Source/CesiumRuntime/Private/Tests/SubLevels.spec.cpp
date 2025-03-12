@@ -1,3 +1,5 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #if WITH_EDITOR
 
 #include "CesiumGeoreference.h"
@@ -16,12 +18,9 @@
 BEGIN_DEFINE_SPEC(
     FSubLevelsSpec,
     "Cesium.Unit.SubLevels",
-    // Disable these tests, as some of them fail because they depend on the execution of
-    // UCesiumSubLevelSwitcherComponent::_updateSubLevelStateEditor(), which is called by
-    // CesiumEditorSubLevelMutex::OnMarkRenderStateDirty(),
-    // which is not called in ITwinForUnreal because module CesiumEditor is not included.
-    EAutomationTestFlags::Disabled |
-    EAutomationTestFlags::ApplicationContextMask |
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext |
+        EAutomationTestFlags::ServerContext |
+        EAutomationTestFlags::CommandletContext |
         EAutomationTestFlags::ProductFilter)
 
 TObjectPtr<UWorld> pWorld;

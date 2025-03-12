@@ -1,8 +1,11 @@
-// Copyright 2020-2023 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
+#include "CesiumMetadataUtilityBlueprintLibrary.h"
+
+#include "UObject/ObjectMacros.h"
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
-#include "CesiumMetadataUtilityBlueprintLibrary.h"
 #include "CesiumFeatureIdTexture.h"
 #include "CesiumGltfComponent.h"
 #include "CesiumGltfPrimitiveComponent.h"
@@ -18,7 +21,7 @@ UCesiumMetadataUtilityBlueprintLibrary::GetPrimitiveMetadata(
     return EmptyMetadataPrimitive;
   }
 
-  return pGltfComponent->Metadata_DEPRECATED;
+  return pGltfComponent->getPrimitiveData().Metadata_DEPRECATED;
 }
 
 TMap<FString, FCesiumMetadataValue>
@@ -31,13 +34,14 @@ UCesiumMetadataUtilityBlueprintLibrary::GetMetadataValuesForFace(
     return TMap<FString, FCesiumMetadataValue>();
   }
 
+  const CesiumPrimitiveData& primData = pGltfComponent->getPrimitiveData();
   const UCesiumGltfComponent* pModel =
       Cast<UCesiumGltfComponent>(pGltfComponent->GetOuter());
   if (!IsValid(pModel)) {
     return TMap<FString, FCesiumMetadataValue>();
   }
 
-  const FCesiumPrimitiveFeatures& features = pGltfComponent->Features;
+  const FCesiumPrimitiveFeatures& features = primData.Features;
   const TArray<FCesiumFeatureIdSet>& featureIDSets =
       UCesiumPrimitiveFeaturesBlueprintLibrary::GetFeatureIDSetsOfType(
           features,
@@ -47,7 +51,7 @@ UCesiumMetadataUtilityBlueprintLibrary::GetMetadataValuesForFace(
   }
 
   const FCesiumModelMetadata& modelMetadata = pModel->Metadata;
-  const FCesiumPrimitiveMetadata& primitiveMetadata = pGltfComponent->Metadata;
+  const FCesiumPrimitiveMetadata& primitiveMetadata = primData.Metadata;
 
   // For now, only considers the first feature ID set
   const FCesiumFeatureIdSet& featureIDSet = featureIDSets[0];
@@ -99,7 +103,7 @@ int64 UCesiumMetadataUtilityBlueprintLibrary::GetFeatureIDFromFaceID(
     UPARAM(ref) const FCesiumMetadataPrimitive& Primitive,
     UPARAM(ref) const FCesiumFeatureIdAttribute& FeatureIDAttribute,
     int64 FaceID) {
-  return UCesiumFeatureIdAttributeBlueprintLibrary::GetFeatureIDForVertex(
+  return UCesiumFeatureIdAttributeBlueprintLibrary::GetFeatureID(
       FeatureIDAttribute,
       UCesiumMetadataPrimitiveBlueprintLibrary::GetFirstVertexIDFromFaceID(
           Primitive,

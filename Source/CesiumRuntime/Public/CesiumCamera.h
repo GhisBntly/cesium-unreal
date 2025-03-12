@@ -1,4 +1,4 @@
-// Copyright 2020-2021 CesiumGS, Inc. and Contributors
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
 
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "CesiumCamera.generated.h"
 
 /**
- * @brief A camera description that {@link Cesium3DTileset}s can use to decide
+ * @brief A camera description that {@link ACesium3DTileset}s can use to decide
  * what tiles need to be loaded to sufficiently cover the camera view.
  */
 USTRUCT(BlueprintType)

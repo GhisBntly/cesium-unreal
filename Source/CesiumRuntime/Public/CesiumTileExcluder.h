@@ -1,5 +1,8 @@
+// Copyright 2020-2024 CesiumGS, Inc. and Contributors
+
 #pragma once
 #include "CesiumTile.h"
+#include "Components/ActorComponent.h"
 #include "CoreMinimal.h"
 #include "CesiumTileExcluder.generated.h"
 
