@@ -1,6 +1,6 @@
 [submodule "extern/cesium-native"]
 	path = extern/cesium-native
-	url = https://bentleycs@dev.azure.com/bentleycs/e-onsoftware/_git/cesium-native
+	url = https://github.com/GhisBntly/cesium-native.git
 [submodule "extern/MikkTSpace"]
 	path = extern/MikkTSpace
 	url = https://github.com/mmikk/MikkTSpace.git
