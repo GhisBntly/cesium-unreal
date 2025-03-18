@@ -182,16 +182,4 @@ public:
       int64 FaceIndex,
       int64 FeatureIDSetIndex = 0);
   PRAGMA_ENABLE_DEPRECATION_WARNINGS
-
-
-  /**
-   * Retrieve a FITwinCesiumPropertyTableProperty by name.
-   * If the specified feature ID set does not exist or if the property table
-   * does not contain a property with that name, this returns nullptr.
-   */
-  static const FITwinCesiumPropertyTableProperty* FindValidProperty(
-      const FITwinCesiumPrimitiveFeatures& Features,
-      const FITwinCesiumModelMetadata& Metadata,
-      const FString& PropertyName,
-      int64 FeatureIDSetIndex = 0);
 };
