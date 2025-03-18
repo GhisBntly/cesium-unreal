@@ -975,6 +975,8 @@ FName createSafeName(
             }
         }
     };
+
+    static PrimModeLogHelper UnsupportedPrimitiveLogger;
 } // namespace
 
 template <class TIndexAccessor>
@@ -996,8 +998,7 @@ static void loadPrimitive(
       primitive.mode != MeshPrimitive::Mode::TRIANGLE_STRIP &&
       primitive.mode != MeshPrimitive::Mode::POINTS) {
     // TODO: add support for other primitive types.
-    static PrimModeLogHelper primLogger;
-    primLogger.OnUnsupportedMode(primitive.mode);
+    UnsupportedPrimitiveLogger.OnUnsupportedMode(primitive.mode);
     return;
   }
 
