@@ -384,7 +384,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           FITwinCesiumMetadataValue value(std::numeric_limits<uint64_t>::max() - 1);
           TestEqual<uint64_t>(
               "uint64_t",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               std::numeric_limits<uint64_t>::max() - 1);
@@ -392,7 +392,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           value = FITwinCesiumMetadataValue(std::numeric_limits<int64_t>::max() - 1);
           TestEqual<uint64_t>(
               "uint64_t",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               static_cast<uint64_t>(std::numeric_limits<int64_t>::max() - 1));
@@ -400,7 +400,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           value = FITwinCesiumMetadataValue(static_cast<int16_t>(12345));
           TestEqual<uint64_t>(
               "smaller signed integer",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               static_cast<uint64_t>(12345));
@@ -408,7 +408,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           value = FITwinCesiumMetadataValue(static_cast<uint8_t>(255));
           TestEqual<uint64_t>(
               "smaller unsigned integer",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               static_cast<uint64_t>(255));
@@ -418,7 +418,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           FITwinCesiumMetadataValue value(true);
           TestEqual<uint64_t>(
               "value",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               static_cast<uint64_t>(1));
@@ -428,7 +428,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           FITwinCesiumMetadataValue value(1234.56f);
           TestEqual<uint64_t>(
               "float",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               static_cast<uint64_t>(1234));
@@ -438,7 +438,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           FITwinCesiumMetadataValue value(std::string_view("1234"));
           TestEqual<uint64_t>(
               "value",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               static_cast<uint64_t>(1234));
@@ -449,7 +449,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           FITwinCesiumMetadataValue value(-5);
           TestEqual<uint64_t>(
               "negative integer",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               defaultValue);
@@ -457,7 +457,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           value = FITwinCesiumMetadataValue(-59.62f);
           TestEqual<uint64_t>(
               "negative floating-point number",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               defaultValue);
@@ -465,7 +465,7 @@ void FITwinCesiumMetadataValueSpec::Define() {
           value = FITwinCesiumMetadataValue(std::numeric_limits<float>::max());
           TestEqual<uint64_t>(
               "positive floating-point number",
-              UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
+              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
                   value,
                   defaultValue),
               defaultValue);

@@ -98,8 +98,8 @@ int64 UITwinCesiumMetadataValueBlueprintLibrary::GetInteger64(
       Value._value);
 }
 
-uint64 UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
-    UPARAM(ref) const FITwinCesiumMetadataValue& Value,
+uint64 FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+    const FITwinCesiumMetadataValue& Value,
     uint64 DefaultValue) {
   return std::visit(
       [DefaultValue](auto value) -> uint64 {
@@ -109,10 +109,6 @@ uint64 UITwinCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
       },
       Value._value);
 }
-
-static uint64 GetUnsignedInteger64(
-    UPARAM(ref) const FITwinCesiumMetadataValue& Value,
-    uint64 DefaultValue);
 
 float UITwinCesiumMetadataValueBlueprintLibrary::GetFloat(
     UPARAM(ref) const FITwinCesiumMetadataValue& Value,
