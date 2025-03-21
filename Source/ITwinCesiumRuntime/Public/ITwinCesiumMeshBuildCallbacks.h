@@ -40,6 +40,8 @@ public:
 	ICesiumMeshBuildCallbacks();
 	virtual ~ICesiumMeshBuildCallbacks();
 
+	/// TODO_GCO: All could be accessed from the UITwinCesiumGltfPrimitiveComponent (or its Outer
+	/// UITwinCesiumGltfComponent, in the case of Metadata), except that both classes are Module-private.
 	struct FITwinCesiumMeshData
 	{
 		const CesiumGltf::MeshPrimitive* pMeshPrimitive;
@@ -53,9 +55,9 @@ public:
 	*/
 	virtual void OnMeshConstructed(
 		Cesium3DTilesSelection::Tile& Tile,
-		const TWeakObjectPtr<UStaticMeshComponent>& MeshComponent,
-		const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
-		const FITwinCesiumMeshData& CesiumMeshData) = 0;
+		UStaticMeshComponent& MeshComponent,
+		UMaterialInstanceDynamic& pMaterial,
+		FITwinCesiumMeshData const& CesiumMeshData) = 0;
 
 	/**
 	* Called at the end of all static mesh components' construction for a given tile.
@@ -89,12 +91,14 @@ public:
 
 	/**
 	* Creates a material instance for the given primitive.
+	* pMeshPrimitive, Metadata and Features could be found inside MeshComponent if it could be passed as
+	*	UITwinCesiumGltfPrimitiveComponent, but the class is Module-private (see similar situation with
+	*	FITwinCesiumMeshData above).
 	*/
-	virtual UMaterialInstanceDynamic* CreateMaterial_GameThread(
-		CesiumGltf::MeshPrimitive const* pMeshPrimitive,
-		UMaterialInterface*& pBaseMaterial,
-		UObject* InOuter,
-		FName const& Name);
+	virtual UMaterialInstanceDynamic* CreateMaterial_GameThread(Cesium3DTilesSelection::Tile const& Tile,
+		UStaticMeshComponent const& MeshComponent, CesiumGltf::MeshPrimitive const* pMeshPrimitive,
+		UMaterialInterface*& pBaseMaterial, FITwinCesiumModelMetadata const& Metadata,
+		FITwinCesiumPrimitiveFeatures const& Features, UObject* InOuter, FName const& Name);
 
 	/**
 	* Tune the Unreal material instance, depending on the glTF material definition.

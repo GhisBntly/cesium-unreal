@@ -2863,8 +2863,12 @@ static void loadPrimitiveGameThreadPart(
   {
       // Possibility to override the material for this primitive
       pMaterial = MeshBuildCallbacks->CreateMaterial_GameThread(
+          tile,
+          *pMesh,
           loadResult.pMeshPrimitive,
           pBaseMaterial,
+          pGltf->Metadata,
+          loadResult.Features,// not yet std::move'd to pMesh->Features
           nullptr,
           ImportedSlotName);
   }
@@ -3055,8 +3059,8 @@ static void loadPrimitiveGameThreadPart(
   {
       MeshBuildCallbacks->OnMeshConstructed(
           tile,
-          pMesh,
-          pMaterial,
+          *pMesh,
+          *pMaterial,
           {
               pMesh->pMeshPrimitive,
               pGltf->Metadata,
