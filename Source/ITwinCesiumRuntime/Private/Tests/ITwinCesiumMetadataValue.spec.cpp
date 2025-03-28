@@ -377,101 +377,6 @@ void FITwinCesiumMetadataValueSpec::Define() {
        });
   });
 
-  Describe("GetUnsignedInteger64", [this]() {
-      const uint64_t defaultValue = static_cast<uint64_t>(0);
-
-      It("gets from in-range integers", [this, defaultValue]() {
-          FITwinCesiumMetadataValue value(std::numeric_limits<uint64_t>::max() - 1);
-          TestEqual<uint64_t>(
-              "uint64_t",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              std::numeric_limits<uint64_t>::max() - 1);
-
-          value = FITwinCesiumMetadataValue(std::numeric_limits<int64_t>::max() - 1);
-          TestEqual<uint64_t>(
-              "uint64_t",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              static_cast<uint64_t>(std::numeric_limits<int64_t>::max() - 1));
-
-          value = FITwinCesiumMetadataValue(static_cast<int16_t>(12345));
-          TestEqual<uint64_t>(
-              "smaller signed integer",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              static_cast<uint64_t>(12345));
-
-          value = FITwinCesiumMetadataValue(static_cast<uint8_t>(255));
-          TestEqual<uint64_t>(
-              "smaller unsigned integer",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              static_cast<uint64_t>(255));
-      });
-
-      It("gets from boolean", [this, defaultValue]() {
-          FITwinCesiumMetadataValue value(true);
-          TestEqual<uint64_t>(
-              "value",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              static_cast<uint64_t>(1));
-      });
-
-      It("gets from in-range floating point number", [this, defaultValue]() {
-          FITwinCesiumMetadataValue value(1234.56f);
-          TestEqual<uint64_t>(
-              "float",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              static_cast<uint64_t>(1234));
-      });
-
-      It("gets from string", [this, defaultValue]() {
-          FITwinCesiumMetadataValue value(std::string_view("1234"));
-          TestEqual<uint64_t>(
-              "value",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              static_cast<uint64_t>(1234));
-      });
-
-      It("returns default value for out-of-range numbers",
-          [this, defaultValue]() {
-          FITwinCesiumMetadataValue value(-5);
-          TestEqual<uint64_t>(
-              "negative integer",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              defaultValue);
-
-          value = FITwinCesiumMetadataValue(-59.62f);
-          TestEqual<uint64_t>(
-              "negative floating-point number",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              defaultValue);
-
-          value = FITwinCesiumMetadataValue(std::numeric_limits<float>::max());
-          TestEqual<uint64_t>(
-              "positive floating-point number",
-              FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-                  value,
-                  defaultValue),
-              defaultValue);
-      });
-  });
-
   Describe("GetFloat", [this]() {
     It("gets from in-range floating point number", [this]() {
       FITwinCesiumMetadataValue value(1234.56f);
@@ -1328,5 +1233,101 @@ void FITwinCesiumMetadataValueSpec::Define() {
       TestTrue("has array value", pString != nullptr);
       TestEqual("array value as string", *pString, FString());
     });
+  });
+
+  Describe("GetUnsignedInteger64", [this]() {
+    const uint64_t defaultValue = static_cast<uint64_t>(0);
+
+    It("gets from in-range integers", [this, defaultValue]() {
+      FITwinCesiumMetadataValue value(std::numeric_limits<uint64_t>::max() - 1);
+      TestEqual<uint64_t>(
+          "uint64_t",
+          ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+              value,
+              defaultValue),
+          std::numeric_limits<uint64_t>::max() - 1);
+
+      value =
+          FITwinCesiumMetadataValue(std::numeric_limits<int64_t>::max() - 1);
+      TestEqual<uint64_t>(
+          "int64_t",
+          ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+              value,
+              defaultValue),
+          static_cast<uint64_t>(std::numeric_limits<int64_t>::max() - 1));
+
+      value = FITwinCesiumMetadataValue(static_cast<int16_t>(12345));
+      TestEqual<uint64_t>(
+          "smaller signed integer",
+          ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+              value,
+              defaultValue),
+          static_cast<uint64_t>(12345));
+
+      value = FITwinCesiumMetadataValue(static_cast<uint8_t>(255));
+      TestEqual<uint64_t>(
+          "smaller unsigned integer",
+          ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+              value,
+              defaultValue),
+          static_cast<uint64_t>(255));
+    });
+
+    It("gets from boolean", [this, defaultValue]() {
+      FITwinCesiumMetadataValue value(true);
+      TestEqual<uint64_t>(
+          "value",
+          ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+              value,
+              defaultValue),
+          static_cast<uint64_t>(1));
+    });
+
+    It("gets from in-range floating point number", [this, defaultValue]() {
+      FITwinCesiumMetadataValue value(1234.56f);
+      TestEqual<uint64_t>(
+          "float",
+          ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+              value,
+              defaultValue),
+          static_cast<uint64_t>(1234));
+    });
+
+    It("gets from string", [this, defaultValue]() {
+      FITwinCesiumMetadataValue value(std::string_view("1234"));
+      TestEqual<uint64_t>(
+          "value",
+          ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+              value,
+              defaultValue),
+          static_cast<uint64_t>(1234));
+    });
+
+    It("returns default value for out-of-range numbers",
+       [this, defaultValue]() {
+         FITwinCesiumMetadataValue value(-5);
+         TestEqual<uint64_t>(
+             "negative integer",
+             ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+                 value,
+                 defaultValue),
+             defaultValue);
+
+         value = FITwinCesiumMetadataValue(-59.62f);
+         TestEqual<uint64_t>(
+             "negative floating-point number",
+             ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+                 value,
+                 defaultValue),
+             defaultValue);
+
+         value = FITwinCesiumMetadataValue(std::numeric_limits<float>::max());
+         TestEqual<uint64_t>(
+             "positive floating-point number",
+             ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+                 value,
+                 defaultValue),
+             defaultValue);
+       });
   });
 }

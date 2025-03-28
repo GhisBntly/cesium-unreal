@@ -98,18 +98,6 @@ int64 UITwinCesiumMetadataValueBlueprintLibrary::GetInteger64(
       Value._value);
 }
 
-uint64 FITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
-    const FITwinCesiumMetadataValue& Value,
-    uint64 DefaultValue) {
-  return std::visit(
-      [DefaultValue](auto value) -> uint64 {
-        return CesiumGltf::MetadataConversions<uint64_t, decltype(value)>::convert(
-                   value)
-            .value_or(DefaultValue);
-      },
-      Value._value);
-}
-
 float UITwinCesiumMetadataValueBlueprintLibrary::GetFloat(
     UPARAM(ref) const FITwinCesiumMetadataValue& Value,
     float DefaultValue) {
@@ -301,4 +289,17 @@ TMap<FString, FString> UITwinCesiumMetadataValueBlueprintLibrary::GetValuesAsStr
   }
 
   return strings;
+}
+
+
+uint64 ITwinCesiumMetadataValueAccess::GetUnsignedInteger64(
+    const FITwinCesiumMetadataValue& Value,
+    uint64 DefaultValue) {
+    return std::visit(
+        [DefaultValue](auto value) -> uint64 {
+        return CesiumGltf::MetadataConversions<uint64_t, decltype(value)>::convert(
+            value)
+            .value_or(DefaultValue);
+    },
+        Value._value);
 }

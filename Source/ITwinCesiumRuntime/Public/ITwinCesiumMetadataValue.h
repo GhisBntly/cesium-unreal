@@ -223,7 +223,7 @@ private:
   FITwinCesiumMetadataValueType _valueType;
 
   friend class UITwinCesiumMetadataValueBlueprintLibrary;
-  friend class FITwinCesiumMetadataValueAccess;
+  friend class ITwinCesiumMetadataValueAccess;
 };
 
 UCLASS()
@@ -802,12 +802,14 @@ public:
   GetValuesAsStrings(const TMap<FString, FITwinCesiumMetadataValue>& Values);
 };
 
-
-/// Grants access to metadata value types not currently supported in blueprint.
-/// Can be useful in C++ code.
-/// Should be moved to UITwinCesiumMetadataValueBlueprintLibrary if those types
-/// become compatible with blueprints in the future.
-class ITWINCESIUMRUNTIME_API FITwinCesiumMetadataValueAccess {
+/**
+ * Grants access to metadata value types that are not currently supported in
+ * Blueprints. This can be useful in C++ code.
+ *
+ * These should be moved to UCesiumMetadataValueBlueprintLibrary if those types
+ * become compatible with Blueprints in the future.
+ */
+class ITWINCESIUMRUNTIME_API ITwinCesiumMetadataValueAccess {
 
 public:
   /**
