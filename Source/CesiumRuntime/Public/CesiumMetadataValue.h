@@ -485,7 +485,7 @@ public:
    *
    * @param DefaultValue The default value to use if the given value cannot
    * be converted to an uint64.
-   * @return The value as an Integer64.
+   * @return The value as an unsigned 64-bit integer.
    */
   UFUNCTION(
       Category = "Cesium|Metadata|Value")

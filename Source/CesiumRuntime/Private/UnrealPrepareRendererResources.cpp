@@ -11,6 +11,7 @@
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumGeospatial/Ellipsoid.h>
 #include <glm/mat4x4.hpp>
+#include <CesiumMeshBuildCallbacks.h>
 
 UnrealPrepareRendererResources::UnrealPrepareRendererResources(
     ACesium3DTileset* pActor)

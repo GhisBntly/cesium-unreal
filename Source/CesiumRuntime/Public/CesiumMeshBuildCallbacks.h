@@ -40,12 +40,12 @@ public:
 	ICesiumMeshBuildCallbacks();
 	virtual ~ICesiumMeshBuildCallbacks();
 
-	struct FITwinCesiumMeshData
+	struct FCesiumMeshData
 	{
 		const CesiumGltf::MeshPrimitive* pMeshPrimitive;
-		const FITwinCesiumModelMetadata& Metadata;
-		const FITwinCesiumPrimitiveFeatures& Features;
-		FITwinCesiumToUnrealTexCoordMap& GltfToUnrealTexCoordMap;
+		const FCesiumModelMetadata& Metadata;
+		const FCesiumPrimitiveFeatures& Features;
+		FCesiumToUnrealTexCoordMap& GltfToUnrealTexCoordMap;
 	};
 
 	/**
@@ -55,7 +55,7 @@ public:
 		Cesium3DTilesSelection::Tile& Tile,
 		const TWeakObjectPtr<UStaticMeshComponent>& MeshComponent,
 		const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
-		const FITwinCesiumMeshData& CesiumMeshData) = 0;
+		const FCesiumMeshData& CesiumMeshData) = 0;
 
 	/**
 	* Called at the end of all static mesh components' construction for a given tile.
@@ -63,7 +63,7 @@ public:
 	virtual void OnTileConstructed(const Cesium3DTilesSelection::Tile& Tile) = 0;
 
 	/**
-	* Called when changing the visibility of any UITwinCesiumGltfComponent, ie usually several times per
+	* Called when changing the visibility of any UCesiumGltfComponent, ie usually several times per
 	* tile (when the tileset selection leads to showing or hiding a whole tile).
 	*/
 	virtual void OnVisibilityChanged(const Cesium3DTilesSelection::TileID& TileID, bool visible) = 0;

@@ -1066,7 +1066,7 @@ static void loadPrimitiveFeaturesMetadata(
           std::nullopt,
           { &primitive, pModelResult->Metadata, primitiveResult.Features, gltfToUnrealTexCoordMap },
           duplicateVertices,
-          StaticMeshBuildVertices,
+          vertices,
           indices);
       bHasBakedMetaDataInUVs = uvIndexOpt.has_value();
   }
@@ -1135,7 +1135,7 @@ FName createSafeName(
 // Log only once per unsupported primitive mode
 struct PrimModeLogHelper
 {
-    std::array<std::atomic_bool, (size_t)MeshPrimitive::Mode::TRIANGLE_FAN + 1> alreadyLogged_;
+    std::array<std::atomic_bool, (size_t)CesiumGltf::MeshPrimitive::Mode::TRIANGLE_FAN + 1> alreadyLogged_;
 
     PrimModeLogHelper()
         : alreadyLogged_{ {
@@ -1155,7 +1155,7 @@ struct PrimModeLogHelper
         }
         if (bLog) {
             UE_LOG(
-                LogITwinCesium,
+                LogCesium,
                 Warning,
                 TEXT("Primitive mode %d is not supported"),
                 primMode);
@@ -3164,16 +3164,16 @@ static void loadPrimitiveGameThreadPart(
 #endif
 
   UMaterialInstanceDynamic* pMaterial;
+  TSharedPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks =
+    loadResult.MeshBuildCallbacks.Pin();
   {
     TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::SetupMaterial)
 
-    TSharedPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks =
-        loadResult.MeshBuildCallbacks.Pin();
     if (MeshBuildCallbacks)
     {
         // Possibility to override the material for this primitive
         pMaterial = MeshBuildCallbacks->CreateMaterial_GameThread(
-            loadResult.pMeshPrimitive,
+            &meshPrimitive,
             pBaseMaterial,
             nullptr,
             ImportedSlotName);
@@ -3389,10 +3389,10 @@ static void loadPrimitiveGameThreadPart(
           pMesh,
           pMaterial,
           {
-              pMesh->pMeshPrimitive,
+              &meshPrimitive,
               pGltf->Metadata,
-              pMesh->Features,
-              pMesh->GltfToUnrealTexCoordMap
+              primData.Features,
+              primData.GltfToUnrealTexCoordMap
           });
   }
 }
@@ -3461,7 +3461,7 @@ UCesiumGltfComponent::CreateOffGameThread(
     encodeMetadataGameThreadPart(*Gltf->EncodedMetadata_DEPRECATED);
   }
 
-  LoadGltfResult::LoadPrimitiveResult* pAnyPrimResult = nullptr;
+  LoadGltfResult::LoadedPrimitiveResult* pAnyPrimResult = nullptr;
   for (LoadedNodeResult& node : pReal->loadModelResult.nodeResults) {
     if (node.meshResult) {
       for (LoadedPrimitiveResult& primitive :

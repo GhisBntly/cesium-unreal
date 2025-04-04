@@ -131,16 +131,14 @@ int64 UCesiumMetadataValueBlueprintLibrary::GetInteger64(
 uint64 UCesiumMetadataValueBlueprintLibrary::GetUnsignedInteger64(
     UPARAM(ref) const FCesiumMetadataValue& Value,
     uint64 DefaultValue) {
-  return std::visit(
+  return swl::visit(
       [DefaultValue](auto value) -> uint64 {
         return CesiumGltf::MetadataConversions<uint64_t, decltype(value)>::convert(
+                   value)
+            .value_or(DefaultValue);
       },
       Value._value);
 }
-
-static uint64 GetUnsignedInteger64(
-    UPARAM(ref) const FCesiumMetadataValue& Value,
-    uint64 DefaultValue);
 
 float UCesiumMetadataValueBlueprintLibrary::GetFloat(
     UPARAM(ref) const FCesiumMetadataValue& Value,

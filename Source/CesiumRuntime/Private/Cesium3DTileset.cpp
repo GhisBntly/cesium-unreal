@@ -990,6 +990,7 @@ void ACesium3DTileset::LoadTileset() {
        this->EnableOcclusionCulling && this->BoundingVolumePoolComponent)
           ? this->BoundingVolumePoolComponent->getPool()
           : nullptr,
+       Cesium3DTilesSelection::TilesetSharedAssetSystem::getDefault(),
        _gltfTuner};
 
   this->_startTime = std::chrono::high_resolution_clock::now();
@@ -2312,7 +2313,7 @@ void ACesium3DTileset::SetGltfTuner(const std::shared_ptr<Cesium3DTilesSelection
 	_gltfTuner = tuner;
 }
 
-bool AITwinCesium3DTileset::NeedGltfTuning(const Cesium3DTilesSelection::Tile& tile) const
+bool ACesium3DTileset::NeedGltfTuning(const Cesium3DTilesSelection::Tile& tile) const
 {
     if (_gltfTuner && ensure(IsInGameThread()))
     {
