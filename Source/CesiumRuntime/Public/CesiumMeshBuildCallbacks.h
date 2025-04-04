@@ -53,9 +53,9 @@ public:
 	*/
 	virtual void OnMeshConstructed(
 		Cesium3DTilesSelection::Tile& Tile,
-		const TWeakObjectPtr<UStaticMeshComponent>& MeshComponent,
-		const TWeakObjectPtr<UMaterialInstanceDynamic>& pMaterial,
-		const FCesiumMeshData& CesiumMeshData) = 0;
+		UStaticMeshComponent& MeshComponent,
+		UMaterialInstanceDynamic& pMaterial,
+		FCesiumMeshData const& CesiumMeshData) = 0;
 
 	/**
 	* Called at the end of all static mesh components' construction for a given tile.

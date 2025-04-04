@@ -1163,6 +1163,8 @@ struct PrimModeLogHelper
     }
 };
 
+    static PrimModeLogHelper UnsupportedPrimitiveLogger;
+
 // This matrix converts from right-handed Z-up to Unreal
 // left-handed Z-up by flipping the Y axis. It effectively undoes the Y-axis
 // flipping that we did when creating the mesh in the first place. This is
@@ -3386,8 +3388,8 @@ static void loadPrimitiveGameThreadPart(
   {
       MeshBuildCallbacks->OnMeshConstructed(
           tile,
-          pMesh,
-          pMaterial,
+          *pMesh,
+          *pMaterial,
           {
               &meshPrimitive,
               pGltf->Metadata,

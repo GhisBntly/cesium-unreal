@@ -2319,7 +2319,7 @@ bool ACesium3DTileset::NeedGltfTuning(const Cesium3DTilesSelection::Tile& tile) 
     {
         auto* renderContent = tile.getContent().getRenderContent();
         if (renderContent &&
-            renderContent->tuneVersion < _gltfTuner->currentVersion)
+            renderContent->getModel()._tuneVersion < _gltfTuner->getCurrentVersion())
         {
             return true;
         }
