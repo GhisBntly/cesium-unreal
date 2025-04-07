@@ -266,6 +266,7 @@ private:
   TSharedPtr<FCesiumMetadataEnum> _pEnumDefinition;
 
   friend class UCesiumMetadataValueBlueprintLibrary;
+  friend class FCesiumMetadataValueAccess;
 };
 
 UCLASS()
@@ -867,7 +868,7 @@ public:
  * These should be moved to UCesiumMetadataValueBlueprintLibrary if those types
  * become compatible with Blueprints in the future.
  */
-class CESIUMRUNTIME_API CesiumMetadataValueAccess {
+class CESIUMRUNTIME_API FCesiumMetadataValueAccess {
 
 public:
   /**

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Cesium3DTilesSelection/BoundingVolume.h"
+#include "CesiumCustomVisibilitiesMeshComponent.h"
 #include "CesiumPrimitive.h"
 #include "CesiumPrimitiveFeatures.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -25,7 +26,7 @@ struct MeshPrimitive;
  * from triangles.
  */
 UCLASS()
-class UCesiumGltfPrimitiveComponent : public UStaticMeshComponent,
+class UCesiumGltfPrimitiveComponent : public UCesiumCustomVisibilitiesMeshComponent,
                                       public ICesiumPrimitive {
   GENERATED_BODY()
 

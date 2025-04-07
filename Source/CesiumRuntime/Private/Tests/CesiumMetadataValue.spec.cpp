@@ -1274,7 +1274,7 @@ void FCesiumMetadataValueSpec::Define() {
       FCesiumMetadataValue value(std::numeric_limits<uint64_t>::max() - 1);
       TestEqual<uint64_t>(
           "uint64_t",
-          CesiumMetadataValueAccess::GetUnsignedInteger64(
+          FCesiumMetadataValueAccess::GetUnsignedInteger64(
               value,
               defaultValue),
           std::numeric_limits<uint64_t>::max() - 1);
@@ -1283,7 +1283,7 @@ void FCesiumMetadataValueSpec::Define() {
           FCesiumMetadataValue(std::numeric_limits<int64_t>::max() - 1);
       TestEqual<uint64_t>(
           "int64_t",
-          CesiumMetadataValueAccess::GetUnsignedInteger64(
+          FCesiumMetadataValueAccess::GetUnsignedInteger64(
               value,
               defaultValue),
           static_cast<uint64_t>(std::numeric_limits<int64_t>::max() - 1));
@@ -1291,7 +1291,7 @@ void FCesiumMetadataValueSpec::Define() {
       value = FCesiumMetadataValue(static_cast<int16_t>(12345));
       TestEqual<uint64_t>(
           "smaller signed integer",
-          CesiumMetadataValueAccess::GetUnsignedInteger64(
+          FCesiumMetadataValueAccess::GetUnsignedInteger64(
               value,
               defaultValue),
           static_cast<uint64_t>(12345));
@@ -1299,7 +1299,7 @@ void FCesiumMetadataValueSpec::Define() {
       value = FCesiumMetadataValue(static_cast<uint8_t>(255));
       TestEqual<uint64_t>(
           "smaller unsigned integer",
-          CesiumMetadataValueAccess::GetUnsignedInteger64(
+          FCesiumMetadataValueAccess::GetUnsignedInteger64(
               value,
               defaultValue),
           static_cast<uint64_t>(255));
@@ -1309,7 +1309,7 @@ void FCesiumMetadataValueSpec::Define() {
       FCesiumMetadataValue value(true);
       TestEqual<uint64_t>(
           "value",
-          CesiumMetadataValueAccess::GetUnsignedInteger64(
+          FCesiumMetadataValueAccess::GetUnsignedInteger64(
               value,
               defaultValue),
           static_cast<uint64_t>(1));
@@ -1319,7 +1319,7 @@ void FCesiumMetadataValueSpec::Define() {
       FCesiumMetadataValue value(1234.56f);
       TestEqual<uint64_t>(
           "float",
-          CesiumMetadataValueAccess::GetUnsignedInteger64(
+          FCesiumMetadataValueAccess::GetUnsignedInteger64(
               value,
               defaultValue),
           static_cast<uint64_t>(1234));
@@ -1329,7 +1329,7 @@ void FCesiumMetadataValueSpec::Define() {
       FCesiumMetadataValue value(std::string_view("1234"));
       TestEqual<uint64_t>(
           "value",
-          CesiumMetadataValueAccess::GetUnsignedInteger64(
+          FCesiumMetadataValueAccess::GetUnsignedInteger64(
               value,
               defaultValue),
           static_cast<uint64_t>(1234));
@@ -1340,7 +1340,7 @@ void FCesiumMetadataValueSpec::Define() {
          FCesiumMetadataValue value(-5);
          TestEqual<uint64_t>(
              "negative integer",
-             CesiumMetadataValueAccess::GetUnsignedInteger64(
+             FCesiumMetadataValueAccess::GetUnsignedInteger64(
                  value,
                  defaultValue),
              defaultValue);
@@ -1348,7 +1348,7 @@ void FCesiumMetadataValueSpec::Define() {
          value = FCesiumMetadataValue(-59.62f);
          TestEqual<uint64_t>(
              "negative floating-point number",
-             CesiumMetadataValueAccess::GetUnsignedInteger64(
+             FCesiumMetadataValueAccess::GetUnsignedInteger64(
                  value,
                  defaultValue),
              defaultValue);
@@ -1356,7 +1356,7 @@ void FCesiumMetadataValueSpec::Define() {
          value = FCesiumMetadataValue(std::numeric_limits<float>::max());
          TestEqual<uint64_t>(
              "positive floating-point number",
-             CesiumMetadataValueAccess::GetUnsignedInteger64(
+             FCesiumMetadataValueAccess::GetUnsignedInteger64(
                  value,
                  defaultValue),
              defaultValue);

@@ -1163,7 +1163,7 @@ struct PrimModeLogHelper
     }
 };
 
-    static PrimModeLogHelper UnsupportedPrimitiveLogger;
+static PrimModeLogHelper UnsupportedPrimitiveLogger;
 
 // This matrix converts from right-handed Z-up to Unreal
 // left-handed Z-up by flipping the Y axis. It effectively undoes the Y-axis
@@ -1250,8 +1250,7 @@ static void loadPrimitive(
       primitive.mode != CesiumGltf::MeshPrimitive::Mode::TRIANGLE_STRIP &&
       primitive.mode != CesiumGltf::MeshPrimitive::Mode::POINTS) {
     // TODO: add support for other primitive types.
-    static PrimModeLogHelper primLogger;
-    primLogger.OnUnsupportedMode(primitive.mode);
+    UnsupportedPrimitiveLogger.OnUnsupportedMode(primitive.mode);
     return;
   }
 
@@ -3175,8 +3174,12 @@ static void loadPrimitiveGameThreadPart(
     {
         // Possibility to override the material for this primitive
         pMaterial = MeshBuildCallbacks->CreateMaterial_GameThread(
+            tile,
+            *pMesh,
             &meshPrimitive,
             pBaseMaterial,
+            pGltf->Metadata,
+            loadResult.Features,// not yet std::move'd to pMesh->Features
             nullptr,
             ImportedSlotName);
     }

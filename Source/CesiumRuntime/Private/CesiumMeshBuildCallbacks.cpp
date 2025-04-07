@@ -19,10 +19,11 @@ ICesiumMeshBuildCallbacks::~ICesiumMeshBuildCallbacks() {
 }
 
 UMaterialInstanceDynamic* ICesiumMeshBuildCallbacks::CreateMaterial_GameThread(
-    CesiumGltf::MeshPrimitive const* /*pMeshPrimitive*/,
-    UMaterialInterface*& pBaseMaterial,
-    UObject* InOuter,
-    FName const& Name) {
+    Cesium3DTilesSelection::Tile const& Tile, UStaticMeshComponent const& MeshComponent,
+    CesiumGltf::MeshPrimitive const* pMeshPrimitive, UMaterialInterface*& pBaseMaterial,
+    FCesiumModelMetadata const& Metadata, FCesiumPrimitiveFeatures const& Features,
+    UObject* InOuter, FName const& Name)
+{
     // Default implementation: just create a new instance
     return UMaterialInstanceDynamic::Create(pBaseMaterial, InOuter, Name);
 }
