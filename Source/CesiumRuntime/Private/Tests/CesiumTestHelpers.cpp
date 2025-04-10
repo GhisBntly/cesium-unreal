@@ -72,6 +72,7 @@ FName getUniqueTag(UActorComponent* pComponent) {
 namespace {
 size_t timesAllowingEditorTick = 0;
 bool originalEditorTickState = true;
+const auto RealtimeOverrideName = FText::FromString(TEXT("CesiumTest"));
 } // namespace
 #endif
 
@@ -82,6 +83,11 @@ void pushAllowTickInEditor() {
         GetMutableDefault<UEditorPerformanceSettings>();
     originalEditorTickState = pSettings->bThrottleCPUWhenNotForeground;
     pSettings->bThrottleCPUWhenNotForeground = false;
+    // This is needed for machines with no physical display device attached,
+    // eg. machines running automated builds.
+    // Without this, AActor::Tick() is not called.
+    for (auto* const Viewport : GEditor->GetAllViewportClients())
+      Viewport->AddRealtimeOverride(true, RealtimeOverrideName);
   }
 
   ++timesAllowingEditorTick;
@@ -95,6 +101,8 @@ void popAllowTickInEditor() {
     UEditorPerformanceSettings* pSettings =
         GetMutableDefault<UEditorPerformanceSettings>();
     pSettings->bThrottleCPUWhenNotForeground = originalEditorTickState;
+    for (auto* const Viewport : GEditor->GetAllViewportClients())
+      Viewport->RemoveRealtimeOverride(RealtimeOverrideName);
   }
 #endif
 }
