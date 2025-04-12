@@ -70,6 +70,7 @@ public:
         alwaysIncludeTangents(other.alwaysIncludeTangents),
         createPhysicsMeshes(other.createPhysicsMeshes),
         ignoreKhrMaterialsUnlit(other.ignoreKhrMaterialsUnlit),
+        MeshBuildCallbacks(other.MeshBuildCallbacks),
         tileLoadResult(std::move(other.tileLoadResult)) {
     pModel = std::get_if<CesiumGltf::Model>(&this->tileLoadResult.contentKind);
   }
