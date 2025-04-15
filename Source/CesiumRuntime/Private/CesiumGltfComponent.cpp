@@ -1132,39 +1132,6 @@ FName createSafeName(
   return FName(combined.c_str());
 }
 
-// Log only once per unsupported primitive mode
-struct PrimModeLogHelper
-{
-    std::array<std::atomic_bool, (size_t)CesiumGltf::MeshPrimitive::Mode::TRIANGLE_FAN + 1> alreadyLogged_;
-
-    PrimModeLogHelper()
-        : alreadyLogged_{ {
-            {false},{false},{false},{false},{false},{false},{false}
-            } }
-    {
-    }
-
-    inline void OnUnsupportedMode(int32_t primMode) {
-        bool bLog = false;
-        if (primMode < 0 || primMode >= (int32_t)alreadyLogged_.size()) {
-            ensureMsgf(false, TEXT("Unknown primitive mode %d!"), primMode);
-            bLog = true;
-        }
-        else if (!alreadyLogged_[(size_t)primMode].exchange(true)) {
-            bLog = true;
-        }
-        if (bLog) {
-            UE_LOG(
-                LogCesium,
-                Warning,
-                TEXT("Primitive mode %d is not supported"),
-                primMode);
-        }
-    }
-};
-
-static PrimModeLogHelper UnsupportedPrimitiveLogger;
-
 // This matrix converts from right-handed Z-up to Unreal
 // left-handed Z-up by flipping the Y axis. It effectively undoes the Y-axis
 // flipping that we did when creating the mesh in the first place. This is
@@ -1226,6 +1193,37 @@ std::string getPrimitiveName(
   }
   return name;
 }
+
+/// Helper used to log only once per unsupported primitive mode.
+struct PrimitiveModeLogger {
+  std::array<
+      std::atomic_bool,
+      (size_t)CesiumGltf::MeshPrimitive::Mode::TRIANGLE_FAN + 1>
+      alreadyLogged;
+
+  PrimitiveModeLogger()
+      : alreadyLogged{
+            {{false}, {false}, {false}, {false}, {false}, {false}, {false}}} {}
+
+  inline void OnUnsupportedMode(int32_t primMode) {
+    bool bPrintLog = false;
+    if (primMode < 0 || primMode >= (int32_t)alreadyLogged.size()) {
+      ensureMsgf(false, TEXT("Unknown primitive mode %d!"), primMode);
+      bPrintLog = true;
+    } else if (!alreadyLogged[(size_t)primMode].exchange(true)) {
+      bPrintLog = true;
+    }
+    if (bPrintLog) {
+      UE_LOG(
+          LogCesium,
+          Warning,
+          TEXT("Primitive mode %d is not supported"),
+          primMode);
+    }
+  }
+};
+static PrimitiveModeLogger UnsupportedPrimitiveLogger;
+
 } // namespace
 
 template <class TIndexAccessor>
