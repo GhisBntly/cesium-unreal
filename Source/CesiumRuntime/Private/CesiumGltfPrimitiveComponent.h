@@ -45,6 +45,8 @@ public:
   CesiumPrimitiveData& getPrimitiveData() override;
   const CesiumPrimitiveData& getPrimitiveData() const override;
 
+  virtual void OnCreatePhysicsState() override;
+
 private:
   CesiumPrimitiveData _cesiumData;
 };
