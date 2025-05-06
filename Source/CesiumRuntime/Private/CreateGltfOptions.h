@@ -12,7 +12,7 @@
 
 #include <Cesium3DTilesSelection/TileLoadResult.h>
 
-class ICesiumMeshBuildCallbacks;
+class CesiumMeshBuildCallbacks;
 
 /**
  * Various settings and options for loading a glTF model from a 3D Tileset.
@@ -53,7 +53,13 @@ struct CreateModelOptions {
    * for the model as it loads.
    */
   bool ignoreKhrMaterialsUnlit = false;
-  TWeakPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks = nullptr;
+
+  /** Whether to configure the Unreal mesh buffers to allow access from CPU. If
+   * this is false, the buffers can be freed from CPU memory at any time after
+   * they have been moved to GPU memory. */
+  bool allowMeshBuffersCPUAccess = false;
+
+  TWeakPtr<CesiumMeshBuildCallbacks> MeshBuildCallbacks = nullptr;
 
   Cesium3DTilesSelection::TileLoadResult tileLoadResult;
 
@@ -70,6 +76,7 @@ public:
         alwaysIncludeTangents(other.alwaysIncludeTangents),
         createPhysicsMeshes(other.createPhysicsMeshes),
         ignoreKhrMaterialsUnlit(other.ignoreKhrMaterialsUnlit),
+        allowMeshBuffersCPUAccess(other.allowMeshBuffersCPUAccess),
         MeshBuildCallbacks(other.MeshBuildCallbacks),
         tileLoadResult(std::move(other.tileLoadResult)) {
     pModel = std::get_if<CesiumGltf::Model>(&this->tileLoadResult.contentKind);

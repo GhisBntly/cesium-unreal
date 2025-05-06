@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Cesium3DTilesSelection/BoundingVolume.h"
-#include "CesiumCustomVisibilitiesMeshComponent.h"
 #include "CesiumPrimitive.h"
 #include "CesiumPrimitiveFeatures.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -26,7 +25,7 @@ struct MeshPrimitive;
  * from triangles.
  */
 UCLASS()
-class UCesiumGltfPrimitiveComponent : public UCesiumCustomVisibilitiesMeshComponent,
+class UCesiumGltfPrimitiveComponent : public UStaticMeshComponent,
                                       public ICesiumPrimitive {
   GENERATED_BODY()
 
@@ -42,8 +41,17 @@ public:
   void
   UpdateTransformFromCesium(const glm::dmat4& CesiumToUnrealTransform) override;
 
+  // from ICesiumLoadedTileBase
+  const FCesiumModelMetadata& GetModelMetadata() const override;
+  Cesium3DTilesSelection::TileID const& GetTileID() const override;
+  int32 GetVersion() const override;
+  // from ICesiumPrimitive
   CesiumPrimitiveData& getPrimitiveData() override;
   const CesiumPrimitiveData& getPrimitiveData() const override;
+  // from ICesiumLoadedTilePrimitive
+  UStaticMeshComponent& GetMeshComponent() override;
+  std::optional<uint32_t>
+  FindTexCoordIndexForGltfAttribute(int32_t accessorIndex) const override;
 
   virtual void OnCreatePhysicsState() override;
 
@@ -71,8 +79,17 @@ public:
   void
   UpdateTransformFromCesium(const glm::dmat4& CesiumToUnrealTransform) override;
 
+  // from ICesiumLoadedTileBase
+  const FCesiumModelMetadata& GetModelMetadata() const override;
+  Cesium3DTilesSelection::TileID const& GetTileID() const override;
+  int32 GetVersion() const override;
+  // from ICesiumPrimitive
   CesiumPrimitiveData& getPrimitiveData() override;
   const CesiumPrimitiveData& getPrimitiveData() const override;
+  // from ICesiumLoadedTilePrimitive
+  UStaticMeshComponent& GetMeshComponent() override;
+  std::optional<uint32_t>
+  FindTexCoordIndexForGltfAttribute(int32_t accessorIndex) const override;
 
   TSharedPtr<FCesiumPrimitiveFeatures> pInstanceFeatures;
 

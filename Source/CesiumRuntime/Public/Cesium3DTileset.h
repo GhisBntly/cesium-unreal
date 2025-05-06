@@ -37,7 +37,7 @@ class ACesiumCameraManager;
 class UCesiumBoundingVolumePoolComponent;
 class CesiumViewExtension;
 struct FCesiumCamera;
-class ICesiumMeshBuildCallbacks;
+class CesiumMeshBuildCallbacks;
 
 namespace Cesium3DTilesSelection {
 class Tileset;
@@ -322,7 +322,8 @@ public:
   FString UserCredit;
 
   /**
-   * If true, the user credit text will always have the highest priority (thus will be on the left).
+   * If true, the user credit text will always have the highest priority (thus
+   * will be on the left).
    */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cesium")
   bool bHighPriorityUserCredit = false;
@@ -352,6 +353,19 @@ public:
    */
   UFUNCTION(BlueprintCallable, Category = "Cesium")
   void InvalidateResolvedCameraManager();
+
+  /**
+   * Whether to configure the Unreal mesh buffers to allow access from CPU. If
+   * this is false, the buffers can be freed from CPU memory at any time after
+   * they have been moved to GPU memory: set to true if you need to access these
+   * buffers for your game logic.
+   */
+  UPROPERTY(
+      EditAnywhere,
+      BlueprintGetter = GetAllowMeshBuffersCPUAccess,
+      BlueprintSetter = SetAllowMeshBuffersCPUAccess,
+      Category = "Cesium")
+  bool bAllowMeshBuffersCPUAccess = false;
 
   /**
    * The maximum number of pixels of error when rendering this tileset.
@@ -1080,6 +1094,14 @@ public:
   UFUNCTION(BlueprintSetter, Category = "Cesium")
   void SetMaximumScreenSpaceError(double InMaximumScreenSpaceError);
 
+  UFUNCTION(BlueprintGetter, Category = "Cesium")
+  bool GetAllowMeshBuffersCPUAccess() const {
+    return bAllowMeshBuffersCPUAccess;
+  }
+
+  UFUNCTION(BlueprintSetter, Category = "Cesium")
+  void SetAllowMeshBuffersCPUAccess(bool bMeshBuffersCPUAccess);
+
   UFUNCTION(BlueprintGetter, Category = "Cesium|Tile Culling|Experimental")
   bool GetEnableOcclusionCulling() const;
 
@@ -1273,8 +1295,8 @@ public:
   /**
    * Get the attached mesh construction callback, if any.
    */
-  const TWeakPtr<ICesiumMeshBuildCallbacks>& GetMeshBuildCallbacks() const {
-      return this->_meshBuildCallbacks;
+  const TWeakPtr<CesiumMeshBuildCallbacks>& GetMeshBuildCallbacks() const {
+    return this->_meshBuildCallbacks;
   }
 
   /**
@@ -1282,14 +1304,15 @@ public:
    * Can be used to be notified when a mesh component is created from a Cesium
    * primitive.
    */
-  void SetMeshBuildCallbacks(const TWeakPtr<ICesiumMeshBuildCallbacks>& Callbacks);
+  void
+  SetMeshBuildCallbacks(const TWeakPtr<CesiumMeshBuildCallbacks>& Callbacks);
 
   //! Sets the optional glTF model tuner.
-  void SetGltfTuner(const std::shared_ptr<Cesium3DTilesSelection::GltfTuner>& tuner);
+  void
+  SetGltfTuner(const std::shared_ptr<Cesium3DTilesSelection::GltfTuner>& tuner);
 
   //! Returns whether some Gltf tuning is to be achieved.
   bool NeedGltfTuning(const Cesium3DTilesSelection::Tile& tile) const;
-
 
 private:
   /**
@@ -1406,7 +1429,7 @@ private:
 
   // optional callback - when it is set, it will be called whenever a static
   // mesh component is created from a cesium primitive.
-  TWeakPtr<ICesiumMeshBuildCallbacks> _meshBuildCallbacks;
+  TWeakPtr<CesiumMeshBuildCallbacks> _meshBuildCallbacks;
   std::shared_ptr<Cesium3DTilesSelection::GltfTuner> _gltfTuner;
 
   friend class UnrealPrepareRendererResources;

@@ -10,29 +10,25 @@
 
 #include <Materials/MaterialInstanceDynamic.h>
 
-ICesiumMeshBuildCallbacks::ICesiumMeshBuildCallbacks() {
+CesiumMeshBuildCallbacks::CesiumMeshBuildCallbacks() {}
 
+CesiumMeshBuildCallbacks::~CesiumMeshBuildCallbacks() {}
+
+UMaterialInstanceDynamic* CesiumMeshBuildCallbacks::CreateMaterial(
+    ICesiumLoadedTilePrimitive& TilePrim,
+    UMaterialInterface*& InOut_pChosenBaseMaterial,
+    UObject* InOuter,
+    FName const& Name) {
+  // Default implementation: just create a new instance
+  return UMaterialInstanceDynamic::Create(
+      InOut_pChosenBaseMaterial,
+      InOuter,
+      Name);
 }
 
-ICesiumMeshBuildCallbacks::~ICesiumMeshBuildCallbacks() {
-
-}
-
-UMaterialInstanceDynamic* ICesiumMeshBuildCallbacks::CreateMaterial_GameThread(
-    Cesium3DTilesSelection::Tile const& Tile, UStaticMeshComponent const& MeshComponent,
-    CesiumGltf::MeshPrimitive const* pMeshPrimitive, UMaterialInterface*& pBaseMaterial,
-    FCesiumModelMetadata const& Metadata, FCesiumPrimitiveFeatures const& Features,
-    UObject* InOuter, FName const& Name)
-{
-    // Default implementation: just create a new instance
-    return UMaterialInstanceDynamic::Create(pBaseMaterial, InOuter, Name);
-}
-
-void ICesiumMeshBuildCallbacks::TuneMaterial(
+void CesiumMeshBuildCallbacks::CustomizeGltfMaterial(
     CesiumGltf::Material const& /*glTFmaterial*/,
     CesiumGltf::MaterialPBRMetallicRoughness const& /*pbr*/,
     UMaterialInstanceDynamic* /*pMaterial*/,
     EMaterialParameterAssociation /*association*/,
-    int32 /*index*/) const {
-
-}
+    int32 /*index*/) const {}

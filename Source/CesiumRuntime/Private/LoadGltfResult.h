@@ -28,7 +28,7 @@
 #include <unordered_map>
 #include <vector>
 
-class ICesiumMeshBuildCallbacks;
+class CesiumMeshBuildCallbacks;
 
 namespace LoadGltfResult {
 /**
@@ -159,7 +159,7 @@ struct LoadedPrimitiveResult {
    * Unreal, to let you update your own structures based on the cesium
    * primitive just loaded.
    */
-  TWeakPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks;
+  TWeakPtr<CesiumMeshBuildCallbacks> MeshBuildCallbacks;
 #pragma endregion
 };
 

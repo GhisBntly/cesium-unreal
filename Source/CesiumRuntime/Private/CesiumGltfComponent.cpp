@@ -647,8 +647,7 @@ static void updateTextureCoordinatesForFeaturesMetadata(
     const CesiumEncodedFeaturesMetadata::EncodedModelMetadata&
         encodedModelMetadata,
     TMap<FString, uint32_t>& featuresMetadataTexcoordParameters,
-    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap,
-    bool& bHasBakedMetaDataInUVs) {
+    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(
       Cesium::UpdateTextureCoordinatesForFeaturesMetadata)
@@ -756,7 +755,6 @@ static void updateTextureCoordinatesForFeaturesMetadata(
           }
         }
       }
-      bHasBakedMetaDataInUVs = true;
     } else if (encodedFeatureIDSet.texture) {
       const CesiumEncodedFeaturesMetadata::EncodedFeatureIdTexture&
           encodedFeatureIDTexture = *encodedFeatureIDSet.texture;
@@ -812,8 +810,7 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
         encodedPrimitiveMetadata,
     const TArray<FCesiumFeatureIdAttribute>& featureIdAttributes,
     TMap<FString, uint32_t>& metadataTextureCoordinateParameters,
-    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap,
-    bool& bHasBakedMetaDataInUVs) {
+    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::UpdateTextureCoordinatesForMetadata)
 
@@ -918,7 +915,6 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
           }
         }
       }
-      bHasBakedMetaDataInUVs = true;
     }
   }
 }
@@ -1005,8 +1001,6 @@ static void loadPrimitiveFeaturesMetadata(
   const FCesiumFeaturesMetadataDescription* pFeaturesMetadataDescription =
       pModelOptions->pFeaturesMetadataDescription;
 
-  bool bHasBakedMetaDataInUVs = false;
-
   // Check for deprecated metadata description
   const FMetadataDescription* pMetadataDescription_DEPRECATED =
       pModelOptions->pEncodedMetadataDescription_DEPRECATED;
@@ -1037,8 +1031,7 @@ static void loadPrimitiveFeaturesMetadata(
         primitiveResult.EncodedMetadata,
         pModelResult->EncodedMetadata,
         primitiveResult.FeaturesMetadataTexCoordParameters,
-        gltfToUnrealTexCoordMap,
-        bHasBakedMetaDataInUVs);
+        gltfToUnrealTexCoordMap);
   } else if (pMetadataDescription_DEPRECATED) {
     primitiveResult.EncodedMetadata_DEPRECATED =
         CesiumEncodedMetadataUtility::encodeMetadataPrimitiveAnyThreadPart(
@@ -1056,21 +1049,8 @@ static void loadPrimitiveFeaturesMetadata(
         UCesiumMetadataPrimitiveBlueprintLibrary::GetFeatureIdAttributes(
             primitiveResult.Metadata_DEPRECATED),
         primitiveResult.FeaturesMetadataTexCoordParameters,
-        gltfToUnrealTexCoordMap,
-        bHasBakedMetaDataInUVs);
+        gltfToUnrealTexCoordMap);
   }
-
-  if (!bHasBakedMetaDataInUVs && primitiveResult.MeshBuildCallbacks.IsValid())
-  {
-      auto const uvIndexOpt = primitiveResult.MeshBuildCallbacks.Pin()->BakeFeatureIDsInVertexUVs(
-          std::nullopt,
-          { &primitive, pModelResult->Metadata, primitiveResult.Features, gltfToUnrealTexCoordMap },
-          duplicateVertices,
-          vertices,
-          indices);
-      bHasBakedMetaDataInUVs = uvIndexOpt.has_value();
-  }
-
   PRAGMA_ENABLE_DEPRECATION_WARNINGS
 }
 #pragma endregion
@@ -1693,10 +1673,11 @@ static void loadPrimitive(
     computeTangentSpace(StaticMeshBuildVertices);
   }
 
-  // For iTwin scene mapping mechanism (used both for Synchro 4D schedules and selection highlight), we
-  // need to access vertex data from the CPU (in packaged game, if we don't set this flag, the data can
-  // become inaccessible at any time...)
-  const bool bNeedsCPUAccess = true;
+  // For iTwin scene mapping mechanism (used both for Synchro 4D schedules and
+  // selection highlight), we need to access vertex data from the CPU (in
+  // packaged game, if we don't set this flag, the data can become inaccessible
+  // at any time...)
+  const bool& bNeedsCPUAccess = options.pMeshOptions->pNodeOptions->pModelOptions->allowMeshBuffersCPUAccess;
 
   {
     TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::InitBuffers)
@@ -1775,7 +1756,7 @@ static void loadPrimitive(
   {
     TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::SetIndices)
     if (bNeedsCPUAccess) {
-        LODResources.IndexBuffer.TrySetAllowCPUAccess(true);
+      LODResources.IndexBuffer.TrySetAllowCPUAccess(true);
     }
     LODResources.IndexBuffer.SetIndices(
         indices,
@@ -2369,7 +2350,7 @@ loadModelAnyThreadPart(
   return CesiumGltfTextures::createInWorkerThread(asyncSystem, *options.pModel)
       .thenInWorkerThread(
           [transform, ellipsoid, options = std::move(options)]() mutable
-          -> UCesiumGltfComponent::CreateOffGameThreadResult {
+              -> UCesiumGltfComponent::CreateOffGameThreadResult {
             auto pHalf = MakeUnique<HalfConstructedReal>();
 
             loadModelMetadata(pHalf->loadModelResult, options);
@@ -2482,7 +2463,7 @@ static void SetGltfParameterValues(
     UMaterialInstanceDynamic* pMaterial,
     EMaterialParameterAssociation association,
     int32 index,
-    ICesiumMeshBuildCallbacks const* materialTuner) {
+    CesiumMeshBuildCallbacks const* meshBuildCallbacks) {
   for (auto& textureCoordinateSet : loadResult.textureCoordinateParameters) {
     pMaterial->SetScalarParameterValueByInfo(
         FMaterialParameterInfo(
@@ -2703,8 +2684,8 @@ static void SetGltfParameterValues(
   }
 
   // Extra material customizations
-  if (materialTuner) {
-      materialTuner->TuneMaterial(material, pbr, pMaterial, association, index);
+  if (meshBuildCallbacks) {
+    meshBuildCallbacks->CustomizeGltfMaterial(material, pbr, pMaterial, association, index);
   }
 }
 
@@ -3027,7 +3008,7 @@ static void loadPrimitiveGameThreadPart(
     UCesiumGltfComponent* pGltf,
     LoadedPrimitiveResult& loadResult,
     const glm::dmat4x4& cesiumToUnrealTransform,
-    Cesium3DTilesSelection::Tile& tile,
+    Cesium3DTilesSelection::Tile const& tile,
     bool createNavCollision,
     ACesium3DTileset* pTilesetActor,
     const std::vector<FTransform>& instanceTransforms,
@@ -3146,47 +3127,47 @@ static void loadPrimitiveGameThreadPart(
 
 #if PLATFORM_MAC
   // TODO: figure out why water material crashes mac
-  UMaterialInterface* pBaseMaterial =
-      is_in_blend_mode(loadResult)
-          ? pGltf->BaseMaterialWithTranslucency
-          : pGltf->BaseMaterial;
+  UMaterialInterface* pBaseMaterial = is_in_blend_mode(loadResult)
+                                          ? pGltf->BaseMaterialWithTranslucency
+                                          : pGltf->BaseMaterial;
 #else
   UMaterialInterface* pBaseMaterial;
   if (loadResult.onlyWater || !loadResult.onlyLand) {
     pBaseMaterial = pGltf->BaseMaterialWithWater;
   } else {
-    pBaseMaterial =
-        is_in_blend_mode(loadResult)
-            ? pGltf->BaseMaterialWithTranslucency
-            : pGltf->BaseMaterial;
+    pBaseMaterial = is_in_blend_mode(loadResult)
+                        ? pGltf->BaseMaterialWithTranslucency
+                        : pGltf->BaseMaterial;
   }
 #endif
 
-  UMaterialInstanceDynamic* pMaterial;
-  TSharedPtr<ICesiumMeshBuildCallbacks> MeshBuildCallbacks =
-    loadResult.MeshBuildCallbacks.Pin();
+  // Move this right now: CreateMaterial may need them!
+  // "Safe" even though loadResult is still used later, because the methods used
+  // during material setup (SetGltfParameterValues, etc.) below do not use these
+  // members.
+  primData.Features = std::move(loadResult.Features);
+  primData.Metadata = std::move(loadResult.Metadata);
+
+  UMaterialInstanceDynamic* pMaterial = nullptr;
+  TSharedPtr<CesiumMeshBuildCallbacks> MeshBuildCallbacks =
+      loadResult.MeshBuildCallbacks.Pin();
   {
     TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::SetupMaterial)
-
-    if (MeshBuildCallbacks)
-    {
-        // Possibility to override the material for this primitive
-        pMaterial = MeshBuildCallbacks->CreateMaterial_GameThread(
-            tile,
-            *pMesh,
-            &meshPrimitive,
-            pBaseMaterial,
-            pGltf->Metadata,
-            loadResult.Features,// not yet std::move'd to pMesh->Features
-            nullptr,
-            ImportedSlotName);
+    ensure(pBaseMaterial);
+    if (MeshBuildCallbacks) {
+      // Possibility to override the material for this primitive
+      pMaterial = MeshBuildCallbacks->CreateMaterial(
+          *pCesiumPrimitive,
+          pBaseMaterial,
+          nullptr,
+          ImportedSlotName);
     }
-    else
-    {
-        pMaterial = UMaterialInstanceDynamic::Create(
-            pBaseMaterial,
-            nullptr,
-            ImportedSlotName);
+    ensure(pBaseMaterial);
+    if (!pMaterial) {
+      pMaterial = UMaterialInstanceDynamic::Create(
+          pBaseMaterial,
+          nullptr,
+          ImportedSlotName);
     }
 
     pMaterial->SetFlags(
@@ -3302,9 +3283,6 @@ static void loadPrimitiveGameThreadPart(
     }
   }
 
-  primData.Features = std::move(loadResult.Features);
-  primData.Metadata = std::move(loadResult.Metadata);
-
   primData.EncodedFeatures = std::move(loadResult.EncodedFeatures);
   primData.EncodedMetadata = std::move(loadResult.EncodedMetadata);
 
@@ -3382,21 +3360,12 @@ static void loadPrimitiveGameThreadPart(
   }
 
   // Call the observer callback (if any) once all is done
-  // If some tuning is about to be performed, postpone the mesh construction callback, as the present
-  // mesh will be replaced by the tuned model afterwards.
-  // (see also cesium-native changes to avoid building the UE mesh in this case)
-  if (MeshBuildCallbacks && !pTilesetActor->NeedGltfTuning(tile))
-  {
-      MeshBuildCallbacks->OnMeshConstructed(
-          tile,
-          *pMesh,
-          *pMaterial,
-          {
-              &meshPrimitive,
-              pGltf->Metadata,
-              primData.Features,
-              primData.GltfToUnrealTexCoordMap
-          });
+  // If some tuning is about to be performed, postpone the mesh construction
+  // callback, as the present mesh will be replaced by the tuned model
+  // afterwards. (see also cesium-native changes to avoid building the UE mesh
+  // in this case - is it waterproof?)
+  if (MeshBuildCallbacks && !pTilesetActor->NeedGltfTuning(tile)) {
+    MeshBuildCallbacks->OnMeshConstructed(*pGltf, *pCesiumPrimitive);
   }
 }
 
@@ -3436,6 +3405,7 @@ UCesiumGltfComponent::CreateOffGameThread(
   // }
 
   UCesiumGltfComponent* Gltf = NewObject<UCesiumGltfComponent>(pTilesetActor);
+  Gltf->pTile = &tile;
   Gltf->SetMobility(pTilesetActor->GetRootComponent()->Mobility);
   Gltf->SetFlags(RF_Transient | RF_DuplicateTransient | RF_TextExportTransient);
 
@@ -3484,12 +3454,13 @@ UCesiumGltfComponent::CreateOffGameThread(
     }
   }
 
-  if (pAnyPrimResult && pAnyPrimResult->MeshBuildCallbacks.IsValid() && !pTilesetActor->NeedGltfTuning(tile))
-  {
-    pAnyPrimResult->MeshBuildCallbacks.Pin()->OnTileConstructed(tile);
-    Gltf->ITwinVisibilityChanged =
-      [MeshBuildCallbacks = pAnyPrimResult->MeshBuildCallbacks, TileId = tile.getTileID()] (bool visible)
-        {
+  if (pAnyPrimResult && pAnyPrimResult->MeshBuildCallbacks.IsValid() &&
+      !pTilesetActor->NeedGltfTuning(tile)) {
+    pAnyPrimResult->MeshBuildCallbacks.Pin()->OnTileConstructed(
+        tile.getTileID());
+    Gltf->VisibilityChangedObserver =
+        [MeshBuildCallbacks = pAnyPrimResult->MeshBuildCallbacks,
+         TileId = tile.getTileID()](bool visible) {
           if (MeshBuildCallbacks.IsValid())
             MeshBuildCallbacks.Pin()->OnVisibilityChanged(TileId, visible);
         };
@@ -3500,10 +3471,10 @@ UCesiumGltfComponent::CreateOffGameThread(
   return Gltf;
 }
 
-void UCesiumGltfComponent::OnVisibilityChanged()
-{
+void UCesiumGltfComponent::OnVisibilityChanged() {
   USceneComponent::OnVisibilityChanged();
-  if (ITwinVisibilityChanged) ITwinVisibilityChanged(GetVisibleFlag());
+  if (VisibilityChangedObserver)
+    VisibilityChangedObserver(GetVisibleFlag());
 }
 
 UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
@@ -3522,8 +3493,7 @@ UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
           BaseMaterialWithWater(TEXT(
               "/ITwinForUnreal/Materials/Instances/MI_CesiumThreeOverlaysAndClippingAndWater.MI_CesiumThreeOverlaysAndClippingAndWater")),
           Transparent1x1(
-              TEXT("/ITwinForUnreal/Textures/transparent1x1.transparent1x1")) {
-    }
+              TEXT("/ITwinForUnreal/Textures/transparent1x1.transparent1x1")) {}
   };
   static FConstructorStatics ConstructorStatics;
 
@@ -3534,6 +3504,27 @@ UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
   this->Transparent1x1 = ConstructorStatics.Transparent1x1.Object;
 
   PrimaryComponentTick.bCanEverTick = false;
+}
+
+const FCesiumModelMetadata& UCesiumGltfComponent::GetModelMetadata() const {
+  return Metadata;
+}
+
+const Cesium3DTilesSelection::TileID& UCesiumGltfComponent::GetTileID() const {
+  return pTile->getTileID();
+}
+
+int32 UCesiumGltfComponent::GetVersion() const {
+  if (pTile && pTile->getContent().getRenderContent()) {
+    return pTile->getContent().getRenderContent()->getModel()._tuneVersion;
+  }
+  return -1;
+}
+
+void UCesiumGltfComponent::SetRenderReady(bool bToggle) {
+  if (pTile) {
+    pTile->setRenderEngineReadiness(bToggle);
+  }
 }
 
 void UCesiumGltfComponent::UpdateTransformFromCesium(
