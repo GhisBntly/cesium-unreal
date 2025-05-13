@@ -730,6 +730,11 @@ static void updateTextureCoordinatesForFeaturesMetadata(
           UCesiumFeatureIdSetBlueprintLibrary::GetAsFeatureIDAttribute(
               featureIDSet);
 
+      const int64 nullFeatureID = encodedFeatureIDSet.nullFeatureId.value_or(-1);
+      const TMeshVector2 uvForNullFeatureID = TMeshVector2(
+          static_cast<float>(nullFeatureID > -1 ? nullFeatureID : 0),
+          0.0f);
+
       // Each feature ID corresponds to a vertex, so the vertex count is just
       // the length of the attribute.
       int64 vertexCount = UCesiumFeatureIdAttributeBlueprintLibrary::GetCount(
@@ -748,7 +753,7 @@ static void updateTextureCoordinatesForFeaturesMetadata(
                     vertexIndex));
             vertex.UVs[textureCoordinateIndex] = TMeshVector2(featureId, 0.0f);
           } else {
-            vertex.UVs[textureCoordinateIndex] = TMeshVector2(0.0f, 0.0f);
+            vertex.UVs[textureCoordinateIndex] = uvForNullFeatureID;
           }
         }
       } else {
@@ -761,7 +766,7 @@ static void updateTextureCoordinatesForFeaturesMetadata(
                     i));
             vertex.UVs[textureCoordinateIndex] = TMeshVector2(featureId, 0.0f);
           } else {
-            vertex.UVs[textureCoordinateIndex] = TMeshVector2(0.0f, 0.0f);
+            vertex.UVs[textureCoordinateIndex] = uvForNullFeatureID;
           }
         }
       }
