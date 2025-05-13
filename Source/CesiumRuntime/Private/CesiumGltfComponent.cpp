@@ -647,8 +647,7 @@ static void updateTextureCoordinatesForFeaturesMetadata(
     const CesiumEncodedFeaturesMetadata::EncodedModelMetadata&
         encodedModelMetadata,
     TMap<FString, uint32_t>& featuresMetadataTexcoordParameters,
-    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap,
-    bool& bHasBakedMetaDataInUVs) {
+    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(
       Cesium::UpdateTextureCoordinatesForFeaturesMetadata)
@@ -770,7 +769,6 @@ static void updateTextureCoordinatesForFeaturesMetadata(
           }
         }
       }
-      bHasBakedMetaDataInUVs = true;
     } else if (encodedFeatureIDSet.texture) {
       const CesiumEncodedFeaturesMetadata::EncodedFeatureIdTexture&
           encodedFeatureIDTexture = *encodedFeatureIDSet.texture;
@@ -832,8 +830,7 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
         encodedPrimitiveMetadata,
     const TArray<FCesiumFeatureIdAttribute>& featureIdAttributes,
     TMap<FString, uint32_t>& metadataTextureCoordinateParameters,
-    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap,
-    bool& bHasBakedMetaDataInUVs) {
+    std::unordered_map<int32_t, uint32_t>& gltfToUnrealTexCoordMap) {
 
   TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::UpdateTextureCoordinatesForMetadata)
 
@@ -938,7 +935,6 @@ static void updateTextureCoordinatesForMetadata_DEPRECATED(
           }
         }
       }
-      bHasBakedMetaDataInUVs = true;
     }
   }
 }
@@ -1025,8 +1021,6 @@ static void loadPrimitiveFeaturesMetadata(
   const FCesiumFeaturesMetadataDescription* pFeaturesMetadataDescription =
       pModelOptions->pFeaturesMetadataDescription;
 
-  bool bHasBakedMetaDataInUVs = false;
-
   // Check for deprecated metadata description
   const FMetadataDescription* pMetadataDescription_DEPRECATED =
       pModelOptions->pEncodedMetadataDescription_DEPRECATED;
@@ -1057,8 +1051,7 @@ static void loadPrimitiveFeaturesMetadata(
         primitiveResult.EncodedMetadata,
         pModelResult->EncodedMetadata,
         primitiveResult.FeaturesMetadataTexCoordParameters,
-        gltfToUnrealTexCoordMap,
-        bHasBakedMetaDataInUVs);
+        gltfToUnrealTexCoordMap);
   } else if (pMetadataDescription_DEPRECATED) {
     primitiveResult.EncodedMetadata_DEPRECATED =
         CesiumEncodedMetadataUtility::encodeMetadataPrimitiveAnyThreadPart(
@@ -1076,19 +1069,7 @@ static void loadPrimitiveFeaturesMetadata(
         UCesiumMetadataPrimitiveBlueprintLibrary::GetFeatureIdAttributes(
             primitiveResult.Metadata_DEPRECATED),
         primitiveResult.FeaturesMetadataTexCoordParameters,
-        gltfToUnrealTexCoordMap,
-        bHasBakedMetaDataInUVs);
-  }
-
-  if (!bHasBakedMetaDataInUVs && primitiveResult.MeshBuildCallbacks.IsValid())
-  {
-      auto const uvIndexOpt = primitiveResult.MeshBuildCallbacks.Pin()->BakeFeatureIDsInVertexUVs(
-          std::nullopt,
-          { &primitive, pModelResult->Metadata, primitiveResult.Features, gltfToUnrealTexCoordMap },
-          duplicateVertices,
-          vertices,
-          indices);
-      bHasBakedMetaDataInUVs = uvIndexOpt.has_value();
+        gltfToUnrealTexCoordMap);
   }
 
   PRAGMA_ENABLE_DEPRECATION_WARNINGS

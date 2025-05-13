@@ -78,18 +78,6 @@ public:
 		USceneComponent* TileGltfComponent) = 0;
 
 	/**
-	* Bakes feature IDs in next free slot of vertex UVs, if the primitive actually contains the attribute
-	* '_FEATURE_ID_0' dedicated to such features. Feature IDs will be filled in the first component of those
-	* UVs (ie. the 'u' component).
-	* Returns the UV slot actually filled, if any.
-	*/
-	virtual std::optional<uint32> BakeFeatureIDsInVertexUVs(std::optional<uint32> featuresAccessorIndex,
-		FCesiumMeshData const& CesiumMeshData,
-		bool duplicateVertices,
-		TArray<FStaticMeshBuildVertex>& vertices,
-		TArray<uint32> const& indices) const = 0;
-
-	/**
 	* Creates a material instance for the given primitive.
 	* pMeshPrimitive, Metadata and Features could be found inside MeshComponent if it could be passed as
 	*	UITwinCesiumGltfPrimitiveComponent, but the class is Module-private (see similar situation with
