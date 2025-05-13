@@ -148,6 +148,4 @@ public:
 private:
   UPROPERTY()
   UTexture2D* Transparent1x1 = nullptr;
-
-  TFunction<void(bool /*visible*/)> VisibilityChangedObserver;
 };

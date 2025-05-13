@@ -163,20 +163,10 @@ UStaticMeshComponent& UCesiumGltfPrimitiveComponent::GetMeshComponent() {
   return *this;
 }
 
-const FCesiumModelMetadata&
-UCesiumGltfPrimitiveComponent::GetModelMetadata() const {
+ICesiumLoadedTile& UCesiumGltfPrimitiveComponent::GetLoadedTile() {
   // Not GetAttachParent(): not yet attached (eg. when calling
-  // CesiumMeshBuildCallbacks::CreateMaterial)
-  return Cast<ICesiumLoadedTileBase>(GetOuter())->GetModelMetadata();
-}
-
-const Cesium3DTilesSelection::TileID&
-UCesiumGltfPrimitiveComponent::GetTileID() const {
-  return Cast<ICesiumLoadedTileBase>(GetOuter())->GetTileID();
-}
-
-int32 UCesiumGltfPrimitiveComponent::GetVersion() const {
-  return Cast<ICesiumLoadedTileBase>(GetOuter())->GetVersion();
+  // ICesium3DTilesetLifecycleEventReceiver::CreateMaterial)
+  return *Cast<ICesiumLoadedTile>(GetOuter());
 }
 
 std::optional<uint32_t>
@@ -203,18 +193,10 @@ UStaticMeshComponent& UCesiumGltfInstancedComponent::GetMeshComponent() {
   return *this;
 }
 
-const FCesiumModelMetadata&
-UCesiumGltfInstancedComponent::GetModelMetadata() const {
-  return Cast<ICesiumLoadedTileBase>(GetOuter())->GetModelMetadata();
-}
-
-const Cesium3DTilesSelection::TileID&
-UCesiumGltfInstancedComponent::GetTileID() const {
-  return Cast<ICesiumLoadedTileBase>(GetOuter())->GetTileID();
-}
-
-int32 UCesiumGltfInstancedComponent::GetVersion() const {
-  return Cast<ICesiumLoadedTileBase>(GetOuter())->GetVersion();
+ICesiumLoadedTile& UCesiumGltfInstancedComponent::GetLoadedTile() {
+  // Not GetAttachParent(): not yet attached (eg. when calling
+  // ICesium3DTilesetLifecycleEventReceiver::CreateMaterial)
+  return *Cast<ICesiumLoadedTile>(GetOuter());
 }
 
 std::optional<uint32_t>
