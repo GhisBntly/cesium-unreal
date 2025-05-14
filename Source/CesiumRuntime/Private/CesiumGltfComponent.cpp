@@ -710,7 +710,16 @@ static void updateTextureCoordinatesForFeaturesMetadata(
       int32_t accessor = primitive.attributes.at(attributeName);
 
       uint32_t textureCoordinateIndex = gltfToUnrealTexCoordMap.size();
-      gltfToUnrealTexCoordMap[accessor] = textureCoordinateIndex;
+
+      // If the same attribute is referenced several times, only fill one UV
+      // layer with the latter (any UV layer duplicated here would be lost at
+      // the end when we transfer them to Unreal buffers).
+      auto insertedAccessor =
+          gltfToUnrealTexCoordMap.try_emplace(accessor, textureCoordinateIndex);
+      if (!insertedAccessor.second) {
+        continue;
+      }
+
       featuresMetadataTexcoordParameters.Emplace(
           SafeName,
           textureCoordinateIndex);
@@ -720,6 +729,11 @@ static void updateTextureCoordinatesForFeaturesMetadata(
       const FCesiumFeatureIdAttribute& featureIDAttribute =
           UCesiumFeatureIdSetBlueprintLibrary::GetAsFeatureIDAttribute(
               featureIDSet);
+
+      const int64 nullFeatureID = encodedFeatureIDSet.nullFeatureId.value_or(-1);
+      const TMeshVector2 uvForNullFeatureID = TMeshVector2(
+          static_cast<float>(nullFeatureID > -1 ? nullFeatureID : 0),
+          0.0f);
 
       // Each feature ID corresponds to a vertex, so the vertex count is just
       // the length of the attribute.
@@ -739,7 +753,7 @@ static void updateTextureCoordinatesForFeaturesMetadata(
                     vertexIndex));
             vertex.UVs[textureCoordinateIndex] = TMeshVector2(featureId, 0.0f);
           } else {
-            vertex.UVs[textureCoordinateIndex] = TMeshVector2(0.0f, 0.0f);
+            vertex.UVs[textureCoordinateIndex] = uvForNullFeatureID;
           }
         }
       } else {
@@ -752,7 +766,7 @@ static void updateTextureCoordinatesForFeaturesMetadata(
                     i));
             vertex.UVs[textureCoordinateIndex] = TMeshVector2(featureId, 0.0f);
           } else {
-            vertex.UVs[textureCoordinateIndex] = TMeshVector2(0.0f, 0.0f);
+            vertex.UVs[textureCoordinateIndex] = uvForNullFeatureID;
           }
         }
       }
@@ -777,7 +791,13 @@ static void updateTextureCoordinatesForFeaturesMetadata(
       // becomes possible to access the vertex ID through an Unreal material
       // node, this can be removed.
       uint32_t textureCoordinateIndex = gltfToUnrealTexCoordMap.size();
-      gltfToUnrealTexCoordMap[-1] = textureCoordinateIndex;
+      // Same remark as for feature ID attributes above: we can only store one
+      // UV layer here.
+      auto insertedAccessor =
+          gltfToUnrealTexCoordMap.try_emplace(-1, textureCoordinateIndex);
+      if (!insertedAccessor.second) {
+        continue;
+      }
       featuresMetadataTexcoordParameters.Emplace(
           SafeName,
           textureCoordinateIndex);
