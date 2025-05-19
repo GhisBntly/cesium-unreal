@@ -3478,7 +3478,8 @@ UCesiumGltfComponent::CreateOffGameThread(
       }
     }
   }
-  pTilesetActor->GetLifecycleEventReceiver()->OnTileConstructed(*Gltf);
+  if (auto* Receiver = pTilesetActor->GetLifecycleEventReceiver())
+    Receiver->OnTileConstructed(*Gltf);
 
   Gltf->SetVisibility(false, true);
   Gltf->SetCollisionEnabled(ECollisionEnabled::NoCollision);
