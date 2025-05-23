@@ -2320,21 +2320,7 @@ void ACesium3DTileset::SetLifecycleEventReceiver(
   this->_lifecycleEventReceiver = InEventReceiver;
 }
 
-void ACesium3DTileset::SetGltfTuner(const std::shared_ptr<Cesium3DTilesSelection::GltfTuner>& tuner)
-{
+void ACesium3DTileset::SetGltfTuner(
+    const std::shared_ptr<Cesium3DTilesSelection::GltfTuner>& tuner) {
 	_gltfTuner = tuner;
-}
-
-bool ACesium3DTileset::NeedGltfTuning(const Cesium3DTilesSelection::Tile& tile) const
-{
-    if (_gltfTuner && ensure(IsInGameThread()))
-    {
-        auto* renderContent = tile.getContent().getRenderContent();
-        if (renderContent &&
-            renderContent->getModel()._tuneVersion < _gltfTuner->getCurrentVersion())
-        {
-            return true;
-        }
-    }
-    return false;
 }

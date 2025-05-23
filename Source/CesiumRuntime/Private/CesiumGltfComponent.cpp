@@ -3386,7 +3386,6 @@ static void loadPrimitiveGameThreadPart(
 
   // Call the observer callback (if any) once all is done
   if (pLifecycleEventReceiver) {
-    ensure(!pTilesetActor->NeedGltfTuning(tile));
     pLifecycleEventReceiver->OnTileMeshPrimitiveConstructed(*pCesiumPrimitive);
   }
 }

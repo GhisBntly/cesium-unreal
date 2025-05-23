@@ -1305,12 +1305,13 @@ public:
   void SetLifecycleEventReceiver(
       ICesium3DTilesetLifecycleEventReceiver* InEventReceiver);
 
-  //! Sets the optional glTF model tuner.
+  /**
+   * Sets the glTF model tuner, an optional extension class that can edit
+   * each tile's glTF model after it has been loaded, before it can be
+   * displayed.
+   */
   void
   SetGltfTuner(const std::shared_ptr<Cesium3DTilesSelection::GltfTuner>& tuner);
-
-  //! Returns whether some Gltf tuning is to be achieved.
-  bool NeedGltfTuning(const Cesium3DTilesSelection::Tile& tile) const;
 
 private:
   /**
