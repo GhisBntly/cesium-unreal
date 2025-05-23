@@ -61,7 +61,7 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_NAME}-${CMAK
 # Always define NDEBUG, since Unreal does in debug anyway.
 # We don't want any mismatches, especially with class member ordering.
 # But still let debug builds force assertions.
-add_compile_definitions(NDEBUG $<$<CONFIG:Debug>:CESIUM_FORCE_ASSERTIONS>)
+add_compile_definitions(NDEBUG $<$<CONFIG:Debug>:CESIUM_FORCE_ASSERTIONS> $<$<CONFIG:UnrealDebug>:CESIUM_FORCE_ASSERTIONS>)
 
 # On Mac and Linux, Unreal uses -fvisibility-ms-compat.
 # On Android, it uses -fvisibility=hidden
