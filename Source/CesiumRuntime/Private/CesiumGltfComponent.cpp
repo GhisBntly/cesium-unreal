@@ -3514,6 +3514,13 @@ UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
   PrimaryComponentTick.bCanEverTick = false;
 }
 
+std::optional<int32> UCesiumGltfComponent::GetGltfModelVersion() const {
+  if (pTile)
+    if (auto RenderContent = pTile->getContent().getRenderContent())
+      return RenderContent->getModel().version;
+  return std::nullopt;
+}
+
 const FCesiumModelMetadata& UCesiumGltfComponent::GetModelMetadata() const {
   return Metadata;
 }
@@ -3524,13 +3531,6 @@ const Cesium3DTilesSelection::Tile& UCesiumGltfComponent::GetTile() const {
 
 ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {
   return *Cast<ACesium3DTileset>(GetOuter());
-}
-
-int32 UCesiumGltfComponent::GetTuningVersion() const {
-  if (pTile && pTile->getContent().getRenderContent()) {
-    return pTile->getContent().getRenderContent()->getModel()._tuningVersion;
-  }
-  return -1;
 }
 
 void UCesiumGltfComponent::SetRenderReady(bool bToggle) {

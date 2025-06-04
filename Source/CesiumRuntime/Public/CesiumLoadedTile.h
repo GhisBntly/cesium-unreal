@@ -21,11 +21,11 @@ class UCesiumLoadedTile : public UInterface {
 class ICesiumLoadedTile {
   GENERATED_BODY()
 public:
+  virtual std::optional<int32> GetGltfModelVersion() const = 0;
   virtual const Cesium3DTilesSelection::Tile& GetTile() const = 0;
   virtual ACesium3DTileset& GetTilesetActor() = 0;
   virtual const FCesiumModelMetadata& GetModelMetadata() const = 0;
   virtual void SetRenderReady(bool bToggle) = 0;
-  virtual int32 GetTuningVersion() const = 0;
 };
 
 UINTERFACE()
