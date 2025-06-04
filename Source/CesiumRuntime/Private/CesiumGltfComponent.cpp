@@ -2473,7 +2473,6 @@ bool applyTexture(
 #pragma region Material Parameter setters
 
 static void SetGltfParameterValues(
-    ICesiumPrimitive& TilePrim,
     CesiumGltf::Model& model,
     LoadedPrimitiveResult& loadResult,
     const CesiumGltf::Material& material,
@@ -3188,7 +3187,6 @@ static void loadPrimitiveGameThreadPart(
     pMaterial->SetFlags(
         RF_Transient | RF_DuplicateTransient | RF_TextExportTransient);
     SetGltfParameterValues(
-        *pCesiumPrimitive,
         model,
         loadResult,
         material,
@@ -3236,7 +3234,6 @@ static void loadPrimitiveGameThreadPart(
 
     if (pCesiumData) {
       SetGltfParameterValues(
-          *pCesiumPrimitive,
           model,
           loadResult,
           material,
@@ -3483,7 +3480,7 @@ UCesiumGltfComponent::CreateOffGameThread(
 void UCesiumGltfComponent::OnVisibilityChanged() {
   USceneComponent::OnVisibilityChanged();
   auto* pLifecycleEventReceiver =
-      Cast<ACesium3DTileset>(GetOuter())->GetLifecycleEventReceiver();
+      GetTilesetActor().GetLifecycleEventReceiver();
   if (pLifecycleEventReceiver)
     pLifecycleEventReceiver->OnVisibilityChanged(*this, GetVisibleFlag());
 }
@@ -3521,13 +3518,17 @@ const FCesiumModelMetadata& UCesiumGltfComponent::GetModelMetadata() const {
   return Metadata;
 }
 
-const Cesium3DTilesSelection::TileID& UCesiumGltfComponent::GetTileID() const {
-  return pTile->getTileID();
+const Cesium3DTilesSelection::Tile& UCesiumGltfComponent::GetTile() const {
+  return *pTile;
 }
 
-int32 UCesiumGltfComponent::GetVersion() const {
+ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {
+  return *Cast<ACesium3DTileset>(GetOuter());
+}
+
+int32 UCesiumGltfComponent::GetTuningVersion() const {
   if (pTile && pTile->getContent().getRenderContent()) {
-    return pTile->getContent().getRenderContent()->getModel()._tuneVersion;
+    return pTile->getContent().getRenderContent()->getModel()._tuningVersion;
   }
   return -1;
 }

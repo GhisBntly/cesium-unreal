@@ -13,7 +13,6 @@
 #include "CoreMinimal.h"
 #include "CustomDepthParameters.h"
 #include "Interfaces/IHttpRequest.h"
-#include "Templates/Function.h"
 #include <CesiumAsync/SharedFuture.h>
 #include <glm/mat4x4.hpp>
 #include <memory>
@@ -139,8 +138,9 @@ public:
 
   // from ICesiumLoadedTile
   const FCesiumModelMetadata& GetModelMetadata() const override;
-  const Cesium3DTilesSelection::TileID& GetTileID() const override;
-  int32 GetVersion() const override;
+  const Cesium3DTilesSelection::Tile& GetTile() const override;
+  ACesium3DTileset& GetTilesetActor() override;
+  int32 GetTuningVersion() const override;
   void SetRenderReady(bool bToggle) override;
 
   void UpdateFade(float fadePercentage, bool fadingIn);
