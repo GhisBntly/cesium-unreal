@@ -6,6 +6,7 @@
 #include "Camera/CameraTypes.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Cesium3DTilesSelection/EllipsoidTilesetLoader.h"
+#include "Cesium3DTilesSelection/GltfModifier.h"
 #include "Cesium3DTilesSelection/Tile.h"
 #include "Cesium3DTilesSelection/TilesetLoadFailureDetails.h"
 #include "Cesium3DTilesSelection/TilesetOptions.h"
@@ -995,7 +996,10 @@ void ACesium3DTileset::LoadTileset() {
            ->EnableExperimentalOcclusionCullingFeature &&
        this->EnableOcclusionCulling && this->BoundingVolumePoolComponent)
           ? this->BoundingVolumePoolComponent->getPool()
-          : nullptr};
+          : nullptr,
+      {},
+      _gltfModifier
+  };
 
   this->_startTime = std::chrono::high_resolution_clock::now();
 
@@ -2332,4 +2336,9 @@ void ACesium3DTileset::RuntimeSettingsChanged(
 void ACesium3DTileset::SetLifecycleEventReceiver(
     ICesium3DTilesetLifecycleEventReceiver* InEventReceiver) {
   this->_lifecycleEventReceiver = InEventReceiver;
+}
+
+void ACesium3DTileset::SetGltfModifier(
+    const std::shared_ptr<Cesium3DTilesSelection::GltfModifier>& InModifier) {
+  _gltfModifier = InModifier;
 }

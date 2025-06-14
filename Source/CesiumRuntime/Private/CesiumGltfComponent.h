@@ -143,6 +143,9 @@ public:
   FVector GetGltfToUnrealLocalVertexPositionScaleFactor() const override;
   void SetRenderReady(bool bToggle) override;
 
+  // from ICesiumLoadedTile
+  std::optional<int32> GetGltfModelVersion() const override;
+
   void UpdateFade(float fadePercentage, bool fadingIn);
 
 private:
