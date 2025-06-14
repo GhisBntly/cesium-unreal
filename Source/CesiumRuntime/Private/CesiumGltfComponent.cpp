@@ -3595,6 +3595,13 @@ UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
   PrimaryComponentTick.bCanEverTick = false;
 }
 
+std::optional<int32> UCesiumGltfComponent::GetGltfModelVersion() const {
+  if (pTile)
+    if (auto RenderContent = pTile->getContent().getRenderContent())
+      return RenderContent->getModel().version;
+  return std::nullopt;
+}
+
 const FCesiumModelMetadata& UCesiumGltfComponent::GetModelMetadata() const {
   return Metadata;
 }

@@ -49,4 +49,5 @@ public:
   virtual const CesiumGltf::MeshPrimitive* GetMeshPrimitive() const = 0;
   virtual std::optional<uint32_t>
   FindTexCoordIndexForGltfAttribute(int32_t accessorIndex) const = 0;
+  virtual std::optional<int32> GetGltfModelVersion() const = 0;
 };
