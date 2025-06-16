@@ -144,8 +144,12 @@ ACesiumCreditSystem::GetDefaultCreditSystem(const UObject* WorldContextObject) {
     spawnParameters.OverrideLevel = world->PersistentLevel;
     UCesiumCreditSystemBPLoader* bpLoader =
       GEngine->GetEngineSubsystem<UCesiumCreditSystemBPLoader>();
+    if (!bpLoader)
+      return nullptr;
     UClass* CesiumCreditSystemBP =
         Cast<UClass>(bpLoader->CesiumCreditSystemBP.LoadSynchronous());
+    if (!CesiumCreditSystemBP)
+      return nullptr;
     pCreditSystem = world->SpawnActor<ACesiumCreditSystem>(
         CesiumCreditSystemBP,
         spawnParameters);
