@@ -4,7 +4,6 @@
 
 #include "Cesium3DTilesSelection/Tile.h"
 #include "Cesium3DTileset.h"
-#include "CesiumEncodedFeaturesMetadata.h"
 #include "CesiumEncodedMetadataUtility.h"
 #include "CesiumLoadedTile.h"
 #include "CesiumModelMetadata.h"
@@ -12,7 +11,9 @@
 #include "Components/SceneComponent.h"
 #include "CoreMinimal.h"
 #include "CustomDepthParameters.h"
+#include "EncodedFeaturesMetadata.h"
 #include "Interfaces/IHttpRequest.h"
+#include "Templates/Function.h"
 #include <CesiumAsync/SharedFuture.h>
 #include <glm/mat4x4.hpp>
 #include <memory>
@@ -108,7 +109,7 @@ public:
   Cesium3DTilesSelection::Tile* pTile = nullptr;
 
   FCesiumModelMetadata Metadata{};
-  CesiumEncodedFeaturesMetadata::EncodedModelMetadata EncodedMetadata{};
+  EncodedFeaturesMetadata::EncodedModelMetadata EncodedMetadata{};
 
   PRAGMA_DISABLE_DEPRECATION_WARNINGS
   std::optional<CesiumEncodedMetadataUtility::EncodedMetadata>

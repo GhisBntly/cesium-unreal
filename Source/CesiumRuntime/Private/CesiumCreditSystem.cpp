@@ -5,6 +5,7 @@
 #include "CesiumCreditSystemBPLoader.h"
 #include "CesiumRuntime.h"
 #include "CesiumUtility/CreditSystem.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "ScreenCreditsWidget.h"
@@ -143,7 +144,7 @@ ACesiumCreditSystem::GetDefaultCreditSystem(const UObject* WorldContextObject) {
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     spawnParameters.OverrideLevel = world->PersistentLevel;
     UCesiumCreditSystemBPLoader* bpLoader =
-      GEngine->GetEngineSubsystem<UCesiumCreditSystemBPLoader>();
+        GEngine->GetEngineSubsystem<UCesiumCreditSystemBPLoader>();
     if (!bpLoader)
       return nullptr;
     UClass* CesiumCreditSystemBP =
@@ -329,13 +330,14 @@ void ACesiumCreditSystem::Tick(float DeltaTime) {
     return;
   }
 
+  const CesiumUtility::CreditsSnapshot& credits = _pCreditSystem->getSnapshot();
+
   const std::vector<CesiumUtility::Credit>& creditsToShowThisFrame =
-      _pCreditSystem->getCreditsToShowThisFrame();
+      credits.currentCredits;
 
   // if the credit list has changed, we want to reformat the credits
-  CreditsUpdated =
-      creditsToShowThisFrame.size() != _lastCreditsCount ||
-      _pCreditSystem->getCreditsToNoLongerShowThisFrame().size() > 0;
+  CreditsUpdated = creditsToShowThisFrame.size() != _lastCreditsCount ||
+                   credits.removedCredits.size() > 0;
 
   if (CreditsUpdated) {
     FString OnScreenCredits;
@@ -381,7 +383,6 @@ void ACesiumCreditSystem::Tick(float DeltaTime) {
 
     CreditsWidget->SetCredits(Credits, OnScreenCredits);
   }
-  _pCreditSystem->startNextFrame();
 }
 
 namespace {

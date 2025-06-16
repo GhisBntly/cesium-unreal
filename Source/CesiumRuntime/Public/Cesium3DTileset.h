@@ -1273,6 +1273,15 @@ public:
    */
   void UpdateTransformFromCesium();
 
+  /**
+   * Sets the glTF modifier, an optional extension class that can edit
+   * each tile's glTF model after it has been loaded, before it can be
+   * displayed. Can only be called in the same engine tick after the tileset
+   * actor was spawned, or {@link RefreshTileset} was called.
+   */
+  void SetGltfModifier(
+      const std::shared_ptr<Cesium3DTilesSelection::GltfModifier>& InModifier);
+
   /** Gets the optional receiver of events related to tile components' lifecycle
    */
   ICesium3DTilesetLifecycleEventReceiver* GetLifecycleEventReceiver() {
@@ -1284,14 +1293,6 @@ public:
    * or about to unload, etc. */
   void SetLifecycleEventReceiver(
       ICesium3DTilesetLifecycleEventReceiver* InEventReceiver);
-
-  /**
-   * Sets the glTF modifier, an optional extension class that can edit
-   * each tile's glTF model after it has been loaded, before it can be
-   * displayed.
-   */
-  void SetGltfModifier(
-      const std::shared_ptr<Cesium3DTilesSelection::GltfModifier>& InModifier);
 
 private:
   /**
@@ -1325,8 +1326,8 @@ private:
    *
    * @param tiles The tiles
    */
-  void
-  showTilesToRender(const std::vector<Cesium3DTilesSelection::Tile*>& tiles);
+  void showTilesToRender(const std::vector<CesiumUtility::IntrusivePointer<
+                             Cesium3DTilesSelection::Tile>>& tiles);
 
   /**
    * Will be called after the tileset is loaded or spawned, to register
@@ -1402,7 +1403,8 @@ private:
   // If we find a way to clear the wrong occlusion information in the
   // Unreal Engine, then this field may be removed, and the
   // tilesToHideThisFrame may be hidden immediately.
-  std::vector<Cesium3DTilesSelection::Tile*> _tilesToHideNextFrame;
+  std::vector<CesiumUtility::IntrusivePointer<Cesium3DTilesSelection::Tile>>
+      _tilesToHideNextFrame;
 
   int32 _tilesetsBeingDestroyed;
 
