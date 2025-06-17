@@ -138,13 +138,12 @@ public:
   virtual void OnVisibilityChanged() override;
 
   // from ICesiumLoadedTile
+  const CesiumGltf::Model* GetGltfModel() const override;
   const FCesiumModelMetadata& GetModelMetadata() const override;
   const Cesium3DTilesSelection::TileID& GetTileID() const override;
+  ACesium3DTileset& GetTilesetActor() override;
   FVector GetGltfToUnrealLocalVertexPositionScaleFactor() const override;
   void SetRenderReady(bool bToggle) override;
-
-  // from ICesiumLoadedTile
-  std::optional<int32> GetGltfModelVersion() const override;
 
   void UpdateFade(float fadePercentage, bool fadingIn);
 
