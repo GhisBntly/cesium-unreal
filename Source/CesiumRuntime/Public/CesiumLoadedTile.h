@@ -14,6 +14,9 @@
 
 class ACesium3DTileset;
 class UStaticMeshComponent;
+namespace CesiumGltf {
+struct Model;
+}
 
 UINTERFACE()
 class UCesiumLoadedTile : public UInterface {
