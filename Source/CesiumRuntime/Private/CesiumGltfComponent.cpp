@@ -3593,19 +3593,19 @@ UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
   PrimaryComponentTick.bCanEverTick = false;
 }
 
-std::optional<int32> UCesiumGltfComponent::GetGltfModelVersion() const {
+const CesiumGltf::Model* UCesiumGltfComponent::GetGltfModel() const {
   if (pTile)
     if (auto RenderContent = pTile->getContent().getRenderContent())
-      return RenderContent->getModel().version;
-  return std::nullopt;
+      return &RenderContent->getModel();
+  return nullptr;
 }
 
 const FCesiumModelMetadata& UCesiumGltfComponent::GetModelMetadata() const {
   return Metadata;
 }
 
-const Cesium3DTilesSelection::Tile& UCesiumGltfComponent::GetTile() const {
-  return *pTile;
+const Cesium3DTilesSelection::TileID& UCesiumGltfComponent::GetTileID() const {
+  return pTile->getTileID();
 }
 
 ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {

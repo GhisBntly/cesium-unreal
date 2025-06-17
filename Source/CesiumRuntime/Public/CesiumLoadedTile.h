@@ -14,6 +14,9 @@
 
 class ACesium3DTileset;
 class UStaticMeshComponent;
+namespace CesiumGltf {
+struct Model;
+}
 
 UINTERFACE()
 class UCesiumLoadedTile : public UInterface {
@@ -22,13 +25,15 @@ class UCesiumLoadedTile : public UInterface {
 class ICesiumLoadedTile {
   GENERATED_BODY()
 public:
-  virtual std::optional<int32> GetGltfModelVersion() const = 0;
+  /** Get the tile identifier: this is informational only, as there is no
+   * guarantee of unicity */
+  virtual const Cesium3DTilesSelection::TileID& GetTileID() const = 0;
+  virtual const CesiumGltf::Model* GetGltfModel() const = 0;
   /** Scaling factor to be applied (component-wise multiplication) to glTF
-   * vertices of this tile's models to obtain the values represented in their
+   * vertices of this tile's model to obtain the values represented in their
    * matching mesh component (see @{link
    * UCesiumLoadedTilePrimitive::GetMeshComponent). */
   virtual FVector GetGltfToUnrealLocalVertexPositionScaleFactor() const = 0;
-  virtual const Cesium3DTilesSelection::Tile& GetTile() const = 0;
   virtual ACesium3DTileset& GetTilesetActor() = 0;
   virtual const FCesiumModelMetadata& GetModelMetadata() const = 0;
   virtual void SetRenderReady(bool bToggle) = 0;
