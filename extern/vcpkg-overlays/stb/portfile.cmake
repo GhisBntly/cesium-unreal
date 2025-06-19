@@ -6,8 +6,27 @@ vcpkg_from_github(
     HEAD_REF master
 )
 
-# Exclude because of 1 Critical- & 4 High-severity CVEs in Mend: we don't use it anyway
+# Exclude everything that's not used, in particular stb_vorbis.c because of one Critical-
+# and 4 High-severity CVEs in Mend (stb_herringbone_wang_tile and stb_include also have
+# Medium-severity CVEs)
+file(REMOVE "${SOURCE_PATH}/stb_connected_components.h")
+file(REMOVE "${SOURCE_PATH}/stb_c_lexer.h")
+file(REMOVE "${SOURCE_PATH}/stb_divide.h")
+file(REMOVE "${SOURCE_PATH}/stb_ds.h")
+file(REMOVE "${SOURCE_PATH}/stb_dxt.h")
+file(REMOVE "${SOURCE_PATH}/stb_easy_font.h")
+file(REMOVE "${SOURCE_PATH}/stb_herringbone_wang_tile.h")
+file(REMOVE "${SOURCE_PATH}/stb_hexwave.h")
+file(REMOVE "${SOURCE_PATH}/stb_include.h")
+file(REMOVE "${SOURCE_PATH}/stb_leakcheck.h")
+file(REMOVE "${SOURCE_PATH}/stb_perlin.h")
+file(REMOVE "${SOURCE_PATH}/stb_rect_pack.h")
+file(REMOVE "${SOURCE_PATH}/stb_sprintf.h")
+file(REMOVE "${SOURCE_PATH}/stb_textedit.h")
+file(REMOVE "${SOURCE_PATH}/stb_tilemap_editor.h")
+file(REMOVE "${SOURCE_PATH}/stb_truetype.h")
 file(REMOVE "${SOURCE_PATH}/stb_vorbis.c")
+file(REMOVE "${SOURCE_PATH}/stb_voxel_render.h")
 
 file(GLOB HEADER_FILES "${SOURCE_PATH}/*.h")
 file(COPY ${HEADER_FILES} DESTINATION "${CURRENT_PACKAGES_DIR}/include")
