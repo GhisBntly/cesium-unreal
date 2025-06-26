@@ -278,16 +278,20 @@ ACesiumCreditSystem* ACesium3DTileset::ResolveCreditSystem() {
   if (IsValid(this->ResolvedCreditSystem)) {
     return this->ResolvedCreditSystem;
   }
+  this->ResolvedCreditSystem = nullptr;
 
   if (IsValid(this->CreditSystem.Get())) {
     this->ResolvedCreditSystem = this->CreditSystem.Get();
   } else {
+    this->CreditSystem.Reset();
     this->ResolvedCreditSystem =
         ACesiumCreditSystem::GetDefaultCreditSystem(this);
   }
 
   // Refresh the tileset so it uses the new credit system.
-  this->RefreshTileset();
+  // Don't when resolving failed, avoiding endless loop
+  if (this->ResolvedCreditSystem)
+    this->RefreshTileset();
 
   return this->ResolvedCreditSystem;
 }
