@@ -1245,11 +1245,22 @@ static void loadPrimitive(
   CesiumGltf::MeshPrimitive& primitive =
       mesh.primitives[options.primitiveIndex];
 
+  if (!options.pMeshOptions->pNodeOptions->pModelOptions->showPointGeometries &&
+      primitive.mode == CesiumGltf::MeshPrimitive::Mode::POINTS) {
+    return;
+  }
+  if (!options.pMeshOptions->pNodeOptions->pModelOptions->showLineGeometries &&
+      (primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINES ||
+       primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINE_LOOP ||
+       primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINE_STRIP)) {
+    return;
+  }
+
   if (primitive.mode != CesiumGltf::MeshPrimitive::Mode::TRIANGLES &&
       primitive.mode != CesiumGltf::MeshPrimitive::Mode::TRIANGLE_STRIP &&
       primitive.mode != CesiumGltf::MeshPrimitive::Mode::LINES &&
       primitive.mode != CesiumGltf::MeshPrimitive::Mode::POINTS) {
-    // TODO: add support for other primitive types.
+    // TODO: add support for LINE_LOOP, LINE_STRIP and TRIANGLE_FAN.
     UnsupportedPrimitiveLogger.OnUnsupportedMode(primitive.mode);
     return;
   }
