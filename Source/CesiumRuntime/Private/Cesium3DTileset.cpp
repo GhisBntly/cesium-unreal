@@ -1999,6 +1999,10 @@ void ACesium3DTileset::Tick(float DeltaTime) {
   if (this->SuspendUpdate) {
     return;
   }
+  // IsHidden means actor is hidden *in game*, not in Editor
+  if (this->IsHidden() && GetWorld()->IsGameWorld()) {
+    return;
+  }
 
   if (!this->_pTileset) {
     LoadTileset();
