@@ -59,6 +59,8 @@
 
 FCesium3DTilesetLoadFailure OnCesium3DTilesetLoadFailure{};
 
+/*static*/ bool ACesium3DTileset::AllowCaptureMovieMode = true;
+
 #if WITH_EDITOR
 #include "Editor.h"
 #include "EditorViewportClient.h"
@@ -584,7 +586,7 @@ void ACesium3DTileset::PlayMovieSequencer() {
   this->_beforeMovieLoadingDescendantLimit = this->LoadingDescendantLimit;
   this->_beforeMovieUseLodTransitions = this->UseLodTransitions;
 
-  this->_captureMovieMode = true;
+  this->_captureMovieMode = ACesium3DTileset::AllowCaptureMovieMode;
   this->PreloadAncestors = false;
   this->PreloadSiblings = false;
   this->LoadingDescendantLimit = 10000;
