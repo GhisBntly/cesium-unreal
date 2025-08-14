@@ -1294,6 +1294,10 @@ public:
   void SetLifecycleEventReceiver(
       ICesium3DTilesetLifecycleEventReceiver* InEventReceiver);
 
+  // AdvViz: Quick hack to avoid using updateViewOffline during movie clip
+  // previewing
+  static bool AllowCaptureMovieMode;
+
 private:
   /**
    * The event handler for ACesiumGeoreference::OnEllipsoidChanged.

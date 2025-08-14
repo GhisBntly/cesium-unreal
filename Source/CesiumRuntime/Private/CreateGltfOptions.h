@@ -46,6 +46,16 @@ struct CreateModelOptions {
   bool createPhysicsMeshes = true;
 
   /**
+   * Whether to create the meshes for the model's point geometries.
+   */
+  bool showPointGeometries = true;
+
+  /**
+   * Whether to create the meshes for the model's line geometries.
+   */
+  bool showLineGeometries = true;
+
+  /**
    * Whether to ignore the KHR_materials_unlit extension in the model. If this
    * is true and the extension is present, then flat normals will be generated
    * for the model as it loads.
@@ -66,6 +76,8 @@ public:
             other.pEncodedMetadataDescription_DEPRECATED),
         alwaysIncludeTangents(other.alwaysIncludeTangents),
         createPhysicsMeshes(other.createPhysicsMeshes),
+        showPointGeometries(other.showPointGeometries),
+        showLineGeometries(other.showLineGeometries),
         ignoreKhrMaterialsUnlit(other.ignoreKhrMaterialsUnlit),
         tileLoadResult(std::move(other.tileLoadResult)) {
     pModel = std::get_if<CesiumGltf::Model>(&this->tileLoadResult.contentKind);

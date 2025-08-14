@@ -1386,14 +1386,20 @@ static void loadPrimitive(
   CesiumGltf::MeshPrimitive& primitive =
       mesh.primitives[options.primitiveIndex];
 
-  switch (primitive.mode) {
-  case CesiumGltf::MeshPrimitive::Mode::POINTS:
-  case CesiumGltf::MeshPrimitive::Mode::TRIANGLES:
-  case CesiumGltf::MeshPrimitive::Mode::TRIANGLE_STRIP:
-  case CesiumGltf::MeshPrimitive::Mode::TRIANGLE_FAN:
-    break;
-  default:
-    // TODO: add support for other primitive types.
+  if (!options.pMeshOptions->pNodeOptions->pModelOptions->showPointGeometries &&
+      primitive.mode == CesiumGltf::MeshPrimitive::Mode::POINTS) {
+    return;
+  }
+  if (!options.pMeshOptions->pNodeOptions->pModelOptions->showLineGeometries &&
+      (primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINES ||
+       primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINE_LOOP ||
+       primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINE_STRIP)) {
+    return;
+  }
+
+  if (primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINE_LOOP ||
+      primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINE_STRIP) {
+    // TODO: add support for those
     UnsupportedPrimitiveLogger.OnUnsupportedMode(primitive.mode);
     return;
   }
@@ -1558,6 +1564,7 @@ static void loadPrimitive(
   }
 
   TArray<uint32> indices = getIndices(indicesView, primitive.mode);
+      primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINES ||
 
   // If we don't have normals, the gltf spec prescribes that the client
   // implementation must generate flat normals, which requires duplicating
@@ -1568,8 +1575,10 @@ static void loadPrimitive(
   bool needToGenerateFlatNormals = normalsAreRequired && !hasNormals;
   bool needToGenerateTangents = needsTangents && !hasTangents;
   bool duplicateVertices = needToGenerateFlatNormals || needToGenerateTangents;
-  duplicateVertices = duplicateVertices &&
-                      primitive.mode != CesiumGltf::MeshPrimitive::Mode::POINTS;
+  duplicateVertices =
+      duplicateVertices &&
+      primitive.mode != CesiumGltf::MeshPrimitive::Mode::POINTS &&
+      primitive.mode != CesiumGltf::MeshPrimitive::Mode::LINES;
 
   uint32 numVertices =
       duplicateVertices ? uint32(indices.Num()) : uint32(positionView.size());
@@ -1789,7 +1798,8 @@ static void loadPrimitive(
   section.MinVertexIndex = 0;
   section.MaxVertexIndex = numVertices - 1;
   section.bEnableCollision =
-      primitive.mode != CesiumGltf::MeshPrimitive::Mode::POINTS;
+      primitive.mode != CesiumGltf::MeshPrimitive::Mode::POINTS &&
+      primitive.mode != CesiumGltf::MeshPrimitive::Mode::LINES;
   section.bCastShadow = true;
   section.MaterialIndex = 0;
 
@@ -1830,7 +1840,7 @@ static void loadPrimitive(
 
   primitiveResult.transform = transform * yInvertMatrix * scaleMatrix;
 
-  if (primitive.mode != CesiumGltf::MeshPrimitive::Mode::POINTS &&
+  if (section.bEnableCollision &&
       options.pMeshOptions->pNodeOptions->pModelOptions->createPhysicsMeshes) {
     if (numVertices != 0 && indices.Num() != 0) {
       TRACE_CPUPROFILER_EVENT_SCOPE(Cesium::ChaosCook)
@@ -3070,9 +3080,12 @@ static void loadPrimitiveGameThreadPart(
 
   UStaticMeshComponent* pMesh = nullptr;
   ICesiumPrimitive* pCesiumPrimitive = nullptr;
-  if (meshPrimitive.mode == CesiumGltf::MeshPrimitive::Mode::POINTS) {
+  if (meshPrimitive.mode == CesiumGltf::MeshPrimitive::Mode::POINTS ||
+      meshPrimitive.mode == CesiumGltf::MeshPrimitive::Mode::LINES) {
     UCesiumGltfPointsComponent* pPointMesh =
         NewObject<UCesiumGltfPointsComponent>(pGltf, componentName);
+    pPointMesh->bLinesList =
+        (meshPrimitive.mode == CesiumGltf::MeshPrimitive::Mode::LINES);
     pPointMesh->UsesAdditiveRefinement =
         tile.getRefine() == Cesium3DTilesSelection::TileRefine::Add;
     pPointMesh->GeometricError = static_cast<float>(tile.getGeometricError());
