@@ -750,12 +750,7 @@ static void computeFlatNormals(FStaticMeshVertexBuffers& vertices) {
 }
 
 template <typename TIndex>
-#if ENGINE_VERSION_5_4_OR_HIGHER
-static Chaos::FTriangleMeshImplicitObjectPtr
-#else
-static TSharedPtr<Chaos::FTriangleMeshImplicitObject, ESPMode::ThreadSafe>
-#endif
-BuildChaosTriangleMeshes(
+static Chaos::FTriangleMeshImplicitObjectPtr BuildChaosTriangleMeshes(
     const FPositionVertexBuffer& vertexBuffer,
     const TArray<uint32>& indices);
 
@@ -1121,7 +1116,7 @@ static void loadPrimitiveFeaturesMetadata(
       pFeatures ? FCesiumPrimitiveFeatures(model, primitive, *pFeatures)
                 : FCesiumPrimitiveFeatures();
   primitiveResult.Metadata =
-      pMetadata ? FCesiumPrimitiveMetadata(primitive, *pMetadata)
+      pMetadata ? FCesiumPrimitiveMetadata(model, primitive, *pMetadata)
                 : FCesiumPrimitiveMetadata();
 
   PRAGMA_DISABLE_DEPRECATION_WARNINGS
@@ -2516,7 +2511,6 @@ static void SetGltfParameterValues(
     CesiumGltf::Model& model,
     LoadedPrimitiveResult& loadResult,
     const CesiumGltf::Material& material,
-    const CesiumGltf::MaterialPBRMetallicRoughness& pbr,
     UMaterialInstanceDynamic* pMaterial,
     EMaterialParameterAssociation association,
     int32 index) {
@@ -2528,7 +2522,9 @@ static void SetGltfParameterValues(
             index),
         static_cast<float>(textureCoordinateSet.second));
   }
-
+  const CesiumGltf::MaterialPBRMetallicRoughness& pbr =
+      material.pbrMetallicRoughness ? material.pbrMetallicRoughness.value()
+                                    : defaultPbrMetallicRoughness;
   if (pbr.baseColorFactor.size() > 3) {
     pMaterial->SetVectorParameterValueByInfo(
         FMaterialParameterInfo("baseColorFactor", association, index),
@@ -3170,11 +3166,6 @@ static void loadPrimitiveGameThreadPart(
   const CesiumGltf::Material& material =
       loadResult.materialIndex != -1 ? model.materials[loadResult.materialIndex]
                                      : defaultMaterial;
-
-  const CesiumGltf::MaterialPBRMetallicRoughness& pbr =
-      material.pbrMetallicRoughness ? material.pbrMetallicRoughness.value()
-                                    : defaultPbrMetallicRoughness;
-
   const FName ImportedSlotName(
       *(TEXT("CesiumMaterial") + FString::FromInt(nextMaterialId++)));
 
@@ -3230,15 +3221,15 @@ static void loadPrimitiveGameThreadPart(
           *pCesiumPrimitive,
           pBaseMaterial,
           ImportedSlotName);
-      if (pMaterialForGltfPrimitive) {
-        // pMaterialForGltfPrimitive created above may not have used the
-        // suggested pBaseMaterial passed as input
-        pBaseMaterial = pMaterialForGltfPrimitive->Parent.Get();
-        // may have changed but we don't need it from now on:
-        pUserDesignatedMaterialAsDynamic = nullptr;
-      }
-    }
-    if (!pMaterialForGltfPrimitive) {
+      check(pMaterialForGltfPrimitive);
+      // pMaterialForGltfPrimitive created above may not have used the
+      // suggested pBaseMaterial passed as input
+      pBaseMaterial = pMaterialForGltfPrimitive->Parent.Get();
+      // may have changed but we don't need it from now on:
+      pUserDesignatedMaterialAsDynamic = nullptr;
+    } else {
+      // Same as ICesium3DTilesetLifecycleEventReceiver::CreateMaterial's
+      // default implementation
       pMaterialForGltfPrimitive = UMaterialInstanceDynamic::Create(
           pBaseMaterial,
           nullptr,
@@ -3251,7 +3242,6 @@ static void loadPrimitiveGameThreadPart(
         model,
         loadResult,
         material,
-        pbr,
         pMaterialForGltfPrimitive,
         EMaterialParameterAssociation::GlobalParameter,
         INDEX_NONE);
@@ -3314,7 +3304,6 @@ static void loadPrimitiveGameThreadPart(
           model,
           loadResult,
           material,
-          pbr,
           pMaterialForGltfPrimitive,
           EMaterialParameterAssociation::LayerParameter,
           0);
@@ -3414,8 +3403,7 @@ static void loadPrimitiveGameThreadPart(
           *pCesiumPrimitive,
           *pMaterialForGltfPrimitive,
           pCesiumData,
-          material,
-          pbr);
+          material);
     }
   }
 
@@ -3466,11 +3454,7 @@ static void loadPrimitiveGameThreadPart(
         ECollisionTraceFlag::CTF_UseComplexAsSimple;
 
     if (loadResult.pCollisionMesh) {
-#if ENGINE_VERSION_5_4_OR_HIGHER
       pBodySetup->TriMeshGeometries.Add(loadResult.pCollisionMesh);
-#else
-      pBodySetup->ChaosTriMeshes.Add(loadResult.pCollisionMesh);
-#endif
     }
 
     // Mark physics meshes created, no matter if we actually have a collision
@@ -3497,7 +3481,7 @@ static void loadPrimitiveGameThreadPart(
 
   // Call the observer callback (if any) once all is done
   if (pLifecycleEventReceiver) {
-    pLifecycleEventReceiver->OnTileMeshPrimitiveConstructed(*pCesiumPrimitive);
+    pLifecycleEventReceiver->OnTileMeshPrimitiveLoaded(*pCesiumPrimitive);
   }
 }
 
@@ -3584,7 +3568,7 @@ UCesiumGltfComponent::CreateOffGameThread(
     }
   }
   if (auto* Receiver = pTilesetActor->GetLifecycleEventReceiver())
-    Receiver->OnTileConstructed(*Gltf);
+    Receiver->OnTileLoaded(*Gltf);
 
   Gltf->SetVisibility(false, true);
   Gltf->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -3595,7 +3579,7 @@ void UCesiumGltfComponent::OnVisibilityChanged() {
   USceneComponent::OnVisibilityChanged();
   auto* pLifecycleEventReceiver = GetTilesetActor().GetLifecycleEventReceiver();
   if (pLifecycleEventReceiver)
-    pLifecycleEventReceiver->OnVisibilityChanged(*this, GetVisibleFlag());
+    pLifecycleEventReceiver->OnTileVisibilityChanged(*this, GetVisibleFlag());
 }
 
 UCesiumGltfComponent::UCesiumGltfComponent() : USceneComponent() {
@@ -3646,6 +3630,10 @@ ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {
   return *Cast<ACesium3DTileset>(GetOuter());
 }
 
+ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {
+  return *Cast<ACesium3DTileset>(GetOuter());
+}
+
 FVector
 UCesiumGltfComponent::GetGltfToUnrealLocalVertexPositionScaleFactor() const {
   // Note: replicates logic from (static) loadPrimitive
@@ -3653,12 +3641,6 @@ UCesiumGltfComponent::GetGltfToUnrealLocalVertexPositionScaleFactor() const {
       CesiumPrimitiveData::positionScaleFactor,
       -CesiumPrimitiveData::positionScaleFactor,
       CesiumPrimitiveData::positionScaleFactor);
-}
-
-void UCesiumGltfComponent::SetRenderReady(bool bToggle) {
-  if (pTile) {
-    pTile->setRenderEngineReadiness(bToggle);
-  }
 }
 
 void UCesiumGltfComponent::UpdateTransformFromCesium(
@@ -3884,12 +3866,7 @@ void UCesiumGltfComponent::UpdateFade(float fadePercentage, bool fadingIn) {
 }
 
 template <typename TIndex>
-#if ENGINE_VERSION_5_4_OR_HIGHER
-static Chaos::FTriangleMeshImplicitObjectPtr
-#else
-static TSharedPtr<Chaos::FTriangleMeshImplicitObject, ESPMode::ThreadSafe>
-#endif
-BuildChaosTriangleMeshes(
+static Chaos::FTriangleMeshImplicitObjectPtr BuildChaosTriangleMeshes(
     const FPositionVertexBuffer& positionBuffer,
     const TArray<uint32>& indices) {
   uint32 vertexCount = positionBuffer.GetNumVertices();
@@ -3921,7 +3898,6 @@ BuildChaosTriangleMeshes(
   TArray<uint16> materials;
   materials.SetNum(triangles.Num());
 
-#if ENGINE_VERSION_5_4_OR_HIGHER
   return new Chaos::FTriangleMeshImplicitObject(
       MoveTemp(vertices),
       MoveTemp(triangles),
@@ -3929,13 +3905,4 @@ BuildChaosTriangleMeshes(
       MoveTemp(pFaceRemap),
       nullptr,
       false);
-#else
-  return MakeShared<Chaos::FTriangleMeshImplicitObject, ESPMode::ThreadSafe>(
-      MoveTemp(vertices),
-      MoveTemp(triangles),
-      MoveTemp(materials),
-      MoveTemp(pFaceRemap),
-      nullptr,
-      false);
-#endif
 }

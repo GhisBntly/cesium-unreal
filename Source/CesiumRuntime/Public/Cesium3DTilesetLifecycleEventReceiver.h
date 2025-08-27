@@ -20,7 +20,16 @@ struct Material;
 struct MaterialPBRMetallicRoughness;
 } // namespace CesiumGltf
 
-UINTERFACE()
+// Note: to allow implementation in Blueprints:
+// 1. remove this 'meta' flag, and make the interface methods below
+// compatible with a Blueprint implementation,
+// 2. remove the Cast<ICesium3DTilesetLifecycleEventReceiver> in
+// ACesium3DTileset::GetLifecycleEventReceiver, as it would return nullptr for a
+// BP implementation, and return the UObject pointer instead,
+// 3. use ICesium3DTilesetLifecycleEventReceiver::Execute_DoStuff wrappers
+// instead of DoStuff methods everywhere the event receiver is used in the
+// plugin's C++ code.
+UINTERFACE(meta = (CannotImplementInterfaceInBlueprint))
 class UCesium3DTilesetLifecycleEventReceiver : public UInterface {
   GENERATED_BODY()
 };
@@ -30,71 +39,69 @@ class CESIUMRUNTIME_API ICesium3DTilesetLifecycleEventReceiver {
   GENERATED_BODY()
 public:
   /**
-   * Allows to override the base material from which the given tile primitive's
-   *material instance will be created. The default implementation of this method
-   *can be used to create the material when no customization is needed.
-   * @param TilePrim Loaded tile primitive for which a material is needed
-   * @param pDefaultBaseMaterial Default chosen base material. May be ignored if
-   *the method chooses to create the mesh material based on a custom base
-   *material.
-   * @param Outer The outer for the new material, as used by creation functions
-   *like NewObject
+   * Creates a material instance for a given tile primitive.
+   * The default implementation simply calls `UMaterialInstanceDynamic::Create`
+   * with the default base material. Overriding this method is useful when a
+   * different base material should be selected based on properties of the
+   * primitive.
+   * @param TilePrimitive Loaded tile primitive for which a material is needed
+   * @param DefaultBaseMaterial Default chosen base material. May be ignored if
+   * the method chooses to create the mesh material based on a custom base
+   * material.
    * @param Name The name for the new material, as used by creation functions
-   *like NewObject
-   * @return Material instance created. If null, a material will be created by
-   *the caller based on the pBaseMaterial passed, ie. as if this method had not
-   *been called.
+   * like NewObject
+   * @return Material instance created: should not be nullptr.
    */
   virtual UMaterialInstanceDynamic* CreateMaterial(
-      ICesiumLoadedTilePrimitive& TilePrim,
-      UMaterialInterface* pDefaultBaseMaterial,
-      const FName& Name) = 0;
+      ICesiumLoadedTilePrimitive& TilePrimitive,
+      UMaterialInterface* DefaultBaseMaterial,
+      const FName& Name);
 
   /**
    * Customize the Unreal material instance, depending on the glTF material
    * definition.
-   * @param TilePrim Loaded tile primitive to which the material applies
+   * @param TilePrimitive Loaded tile primitive to which the material applies
    * @param Material Unreal material created for the primitive
-   * @param pCesiumData List of material layer names
-   * @param glTFmaterial Parameters of the glTF material for the primitive
-   * @param glTFmaterialPBR Parameters for this primitive's material defining the
-   * metallic-roughness material model from Physically-Based Rendering (PBR)
-   * methodology
+   * @param CesiumData List of material layer names
+   * @param GlTFmaterial Parameters of the glTF material for the primitive
    */
   virtual void CustomizeMaterial(
-      ICesiumLoadedTilePrimitive& TilePrim,
+      ICesiumLoadedTilePrimitive& TilePrimitive,
       UMaterialInstanceDynamic& Material,
-      const UCesiumMaterialUserData* pCesiumData,
-      const CesiumGltf::Material& glTFmaterial,
-      const CesiumGltf::MaterialPBRMetallicRoughness& glTFmaterialPBR);
+      const UCesiumMaterialUserData* CesiumData,
+      const CesiumGltf::Material& GlTFmaterial);
 
   /**
-   * Called at the end of the static mesh component construction.
-   * @param TilePrim Loaded tile primitive being constructed
+   * Called after a `MeshPrimitive` in a tile's glTF is loaded. This method is
+   * called at the end of the load process, after construction of the static
+   * mesh component that will render the primitive.
+   *
+   * @param TilePrimitive Tile primitive that has just been loaded.
    */
   virtual void
-  OnTileMeshPrimitiveConstructed(ICesiumLoadedTilePrimitive& TilePrim) = 0;
+  OnTileMeshPrimitiveLoaded(ICesiumLoadedTilePrimitive& TilePrimitive);
 
   /**
-   * Called at the end of all static mesh components' construction for a given
-   * tile.
-   * @param LoadedTile The tile that has just been loaded
+   * Called after a new tile has been loaded. This method is called after
+   * `OnTileMeshPrimitiveLoaded` has been called for all of the tile's
+   * primitives.
+   *
+   * @param Tile The tile that has just been loaded
    */
-  virtual void OnTileConstructed(ICesiumLoadedTile& LoadedTile) = 0;
+  virtual void OnTileLoaded(ICesiumLoadedTile& Tile);
 
   /**
-   * Called when changing the visibility of any UCesiumGltfComponent, ie usually
-   * several times per tile (when the tileset selection leads to showing or
-   * hiding a whole tile).
-   * @param LoadedTile The tile which visibility is being toggled
-   * @param visible New visibility flag being applied
+   * Called when a tile is shown or hidden. This may be called zero or more
+   * times per tile.
+   * @param Tile The tile for which visibility is being toggled
+   * @param bVisible New visibility flag being applied
    */
   virtual void
-  OnVisibilityChanged(ICesiumLoadedTile& LoadedTile, bool visible) = 0;
+  OnTileVisibilityChanged(ICesiumLoadedTile& Tile, bool bVisible);
 
   /**
-   * Called before a tile is destroyed (when it is unloaded, typically).
-   * @param LoadedTile The tile which is about to be unloaded
+   * Called before a tile is unloaded.
+   * @param Tile The tile that is about to be unloaded
    */
-  virtual void BeforeTileDestruction(ICesiumLoadedTile& LoadedTile) = 0;
+  virtual void OnTileUnloading(ICesiumLoadedTile& Tile);
 };

@@ -12,6 +12,7 @@
 #include "Cesium3DTilesSelection/TilesetOptions.h"
 #include "Cesium3DTilesSelection/TilesetSharedAssetSystem.h"
 #include "Cesium3DTilesetLoadFailureDetails.h"
+#include "Cesium3DTilesetLifecycleEventReceiver.h"
 #include "Cesium3DTilesetRoot.h"
 #include "CesiumActors.h"
 #include "CesiumAsync/SharedAssetDepot.h"
@@ -2350,13 +2351,20 @@ void ACesium3DTileset::RuntimeSettingsChanged(
 }
 #endif
 
-void ACesium3DTileset::SetLifecycleEventReceiver(
-    ICesium3DTilesetLifecycleEventReceiver* InEventReceiver) {
-  this->_lifecycleEventReceiver = InEventReceiver;
+ICesium3DTilesetLifecycleEventReceiver*
+ACesium3DTileset::GetLifecycleEventReceiver() {
+  return Cast<ICesium3DTilesetLifecycleEventReceiver>(
+      this->_pLifecycleEventReceiver);
+}
+
+void ACesium3DTileset::SetLifecycleEventReceiver(UObject* InEventReceiver) {
+  if (UKismetSystemLibrary::DoesImplementInterface(
+          InEventReceiver,
+          UCesium3DTilesetLifecycleEventReceiver::StaticClass()))
+    this->_pLifecycleEventReceiver = InEventReceiver;
 }
 
 void ACesium3DTileset::SetGltfModifier(
     const std::shared_ptr<Cesium3DTilesSelection::GltfModifier>& InModifier) {
   _gltfModifier = InModifier;
 }
-

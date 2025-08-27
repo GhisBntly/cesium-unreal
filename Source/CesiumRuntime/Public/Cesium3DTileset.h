@@ -1284,15 +1284,14 @@ public:
 
   /** Gets the optional receiver of events related to tile components' lifecycle
    */
-  ICesium3DTilesetLifecycleEventReceiver* GetLifecycleEventReceiver() {
-    return this->_lifecycleEventReceiver;
-  }
+  ICesium3DTilesetLifecycleEventReceiver* GetLifecycleEventReceiver();
 
   /** Sets a receiver of events related to tile components' lifecycle,
    * like tile primitive and material creation, tile finishing its loading cycle
-   * or about to unload, etc. */
-  void SetLifecycleEventReceiver(
-      ICesium3DTilesetLifecycleEventReceiver* InEventReceiver);
+   * or about to unload, etc. It must implement
+   * {@link ICesium3DTilesetLifecycleEventReceiver}, otherwise it will be as if
+   * nullptr were passed. */
+  void SetLifecycleEventReceiver(UObject* InEventReceiver);
 
   // AdvViz: Quick hack to avoid using updateViewOffline during movie clip
   // previewing
@@ -1412,7 +1411,15 @@ private:
 
   int32 _tilesetsBeingDestroyed;
 
-  ICesium3DTilesetLifecycleEventReceiver* _lifecycleEventReceiver;
+  // Make this visible to the garbage collector, but don't save/load/copy it.
+  // Use UObject instead of TScriptInterface as suggested by
+  // https://www.stevestreeting.com/2020/11/02/ue4-c-interfaces-hints-n-tips/,
+  // even though this cannot be implemented through Blueprints for the moment
+  // (see comment over UCesium3DTilesetLifecycleEventReceiver for instructions),
+  // it's best being prepared for the future.
+  UPROPERTY(Transient, DuplicateTransient, TextExportTransient)
+  UObject* _pLifecycleEventReceiver;
+
   std::shared_ptr<Cesium3DTilesSelection::GltfModifier> _gltfModifier;
 
   friend class UnrealPrepareRendererResources;
