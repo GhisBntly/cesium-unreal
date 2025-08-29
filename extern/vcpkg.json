@@ -15,7 +15,7 @@
       ]
     },
     "cesium-native-local": {
-      "description": "Use local source for Cesium Native",
+      "description": "Use local source for Cesium Native - NOT working yet, see CESIUM_UNREAL_NATIVE_DIRECTORY option in CMakeLists.txt",
       "dependencies": [
         {
           "name": "cesium-native",
