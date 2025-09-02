@@ -1559,7 +1559,6 @@ static void loadPrimitive(
   }
 
   TArray<uint32> indices = getIndices(indicesView, primitive.mode);
-      primitive.mode == CesiumGltf::MeshPrimitive::Mode::LINES ||
 
   // If we don't have normals, the gltf spec prescribes that the client
   // implementation must generate flat normals, which requires duplicating
@@ -3624,10 +3623,6 @@ const FCesiumModelMetadata& UCesiumGltfComponent::GetModelMetadata() const {
 
 const Cesium3DTilesSelection::TileID& UCesiumGltfComponent::GetTileID() const {
   return pTile->getTileID();
-}
-
-ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {
-  return *Cast<ACesium3DTileset>(GetOuter());
 }
 
 ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {
