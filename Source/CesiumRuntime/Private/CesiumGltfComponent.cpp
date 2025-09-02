@@ -3638,6 +3638,12 @@ UCesiumGltfComponent::GetGltfToUnrealLocalVertexPositionScaleFactor() const {
       CesiumPrimitiveData::positionScaleFactor);
 }
 
+void UCesiumGltfComponent::SetRenderReady(bool bToggle) {
+  if (pTile) {
+    pTile->setRenderEngineReadiness(bToggle);
+  }
+}
+
 void UCesiumGltfComponent::UpdateTransformFromCesium(
     const glm::dmat4& cesiumToUnrealTransform) {
   for (USceneComponent* pSceneComponent : this->GetAttachChildren()) {

@@ -43,6 +43,7 @@ public:
   /** The blueprint-accessible wrapper for metadata contained in the tile's glTF
    * model. */
   virtual const FCesiumModelMetadata& GetModelMetadata() const = 0;
+  virtual void SetRenderReady(bool bToggle) = 0;
 };
 
 // Not merged with ICesiumPrimitive because this is Public whereas
