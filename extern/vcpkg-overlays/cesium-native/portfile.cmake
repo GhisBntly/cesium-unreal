@@ -27,11 +27,10 @@ vcpkg_cmake_configure(
         OPTIONS
                 -DCESIUM_USE_EZVCPKG=OFF
                 -DPRIVATE_CESIUM_SQLITE=ON
-                -DCESIUM_TESTS_ENABLED=OFF
+                -DCESIUM_TESTS_ENABLED=ON
         )
 
 vcpkg_cmake_install()
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
 vcpkg_cmake_config_fixup(CONFIG_PATH share/cesium-native/cmake PACKAGE_NAME cesium-native)
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include" "${CURRENT_PACKAGES_DIR}/debug/share")
-
