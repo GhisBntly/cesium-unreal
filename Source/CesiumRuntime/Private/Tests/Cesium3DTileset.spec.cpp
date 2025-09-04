@@ -117,7 +117,7 @@ static void setupForPhysicsWithSmallScale(SceneGenerationContext& context) {
 
   FString pluginContent =
       FPaths::ConvertRelativePathToFull(IPluginManager::Get()
-                                            .FindPlugin(TEXT("CesiumForUnreal"))
+                                            .FindPlugin(TEXT("ITwinForUnreal"))
                                             ->GetContentDir());
   FString tilesetPath = FPaths::Combine(
       pluginContent,
