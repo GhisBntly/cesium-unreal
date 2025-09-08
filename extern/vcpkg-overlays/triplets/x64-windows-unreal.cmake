@@ -3,7 +3,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/shared/common.cmake")
 set(VCPKG_TARGET_ARCHITECTURE x64)
 set(VCPKG_CRT_LINKAGE dynamic)
 set(VCPKG_LIBRARY_LINKAGE static)
-set(VCPKG_ENV_PASSTHROUGH UNREAL_ENGINE_ROOT CESIUM_TOOLSET_VERSION)
+# AdvViz: removed UNREAL_ENGINE_ROOT to avoid having vcpkg binary cache depend on Unreal installation root :-/
+set(VCPKG_ENV_PASSTHROUGH CESIUM_TOOLSET_VERSION)
 set(VCPKG_POLICY_ONLY_RELEASE_CRT enabled)
 
 # Unreal Engine adds /Zp8 in 64-bit Windows builds to align structs to 8 bytes instead of the
