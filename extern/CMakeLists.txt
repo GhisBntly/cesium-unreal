@@ -114,7 +114,7 @@ if (CESIUM_USE_UNREAL_TRACING)
   list(APPEND CESIUM_EXTRA_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/include")
 endif()
 
-# Our OpenSSL is part of Unreal Engine, so need to install it.
+# Our OpenSSL is part of Unreal Engine, no need to install it.
 set(CESIUM_EXCLUDE_INSTALL_HEADERS openssl)
 set(CESIUM_EXCLUDE_INSTALL_STATIC_LIBS openssl)
 # Skip including curl asset accessor as it causes issues on Android and iOS

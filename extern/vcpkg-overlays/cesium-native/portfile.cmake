@@ -4,7 +4,7 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
 )
 
 if(CESIUM_NATIVE_DEPS_ONLY)
-  message(STATUS "skipping installation of cesium-native")
+  message(STATUS "Skipping installation of cesium-native vcpkg port (installing dependencies only)")
   set(VCPKG_POLICY_EMPTY_PACKAGE enabled)
   return()
 endif()
