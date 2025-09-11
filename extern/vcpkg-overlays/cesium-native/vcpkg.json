@@ -1,7 +1,7 @@
 {
   "name": "cesium-native",
   "version-string": "0.51.0",
-  "port-version": 1,
+  "port-version": 6,
   "features": {
     "dependencies-only": {
       "description": "install port's dependencies without the port"

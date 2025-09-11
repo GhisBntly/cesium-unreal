@@ -6,8 +6,8 @@ project(
     LANGUAGES CXX C
 )
 
-# XXX Not working yet
-set(CESIUM_UNREAL_NATIVE_DIRECTORY "" CACHE PATH "directory for Cesium Native source if not installed via package manager")
+# AdvViz: default to local subdir: embedding project should still build cesium-native's overlay port but with 'dependencies-only'
+set(CESIUM_UNREAL_NATIVE_DIRECTORY "cesium-native" CACHE PATH "directory for Cesium Native source if not installed via package manager")
 
 if (DEFINED ENV{UNREAL_ENGINE_ROOT} AND NOT UNREAL_ENGINE_ROOT)
   set(UNREAL_ENGINE_ROOT "$ENV{UNREAL_ENGINE_ROOT}")
@@ -140,9 +140,13 @@ if(CESIUM_UNREAL_NATIVE_DIRECTORY)
   set(PACKAGES_ALL ${PACKAGES_PUBLIC})
   list(APPEND PACKAGES_ALL ${PACKAGES_PRIVATE})
   list(APPEND PACKAGES_ALL ${PACKAGES_TEST})
+  set(CESIUM_INSTALL_EXTERNALLY_BUILT_DEPENDENCIES ON)
   add_subdirectory("${CESIUM_UNREAL_NATIVE_DIRECTORY}" cesium-native)
-  # Don't build the cesium-native tests by default
-  set_target_properties(cesium-native-tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+  # Don't build the cesium-native tests by default, unless explicitly required
+  # (an embedding project may want to execute them as part of its own build)
+  if (NOT CESIUM_TESTS_ENABLED)
+	set_target_properties(cesium-native-tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+  endif()
 else()
   find_package(cesium-native)
 endif()
