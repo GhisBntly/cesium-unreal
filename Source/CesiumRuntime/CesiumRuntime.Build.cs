@@ -78,9 +78,9 @@ public class CesiumRuntime : ModuleRules
             ? Directory.GetFiles(libPath, libPrefix + "Cesium*" + libExtension) : new string[0];
         if (!Directory.Exists(libPath))
         {
-            throw new InvalidOperationException("DONOTC !EXIST: " + libPath);
+            throw new InvalidOperationException("Cannot find cesim-native libraries at this path: "
+                + libPath);
         }
-        Console.WriteLine("DONOTC: {0}", string.Join(", ", allCesiumLibs));
         PublicAdditionalLibraries.AddRange(allCesiumLibs);
         string[] allAbseilLibs = Directory.Exists(libPath) // these too, there are a lot...
             ? Directory.GetFiles(libPath, libPrefix + "absl_*" + libExtension) : new string[0];
