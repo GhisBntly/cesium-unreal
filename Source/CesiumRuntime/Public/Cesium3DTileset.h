@@ -20,6 +20,7 @@
 #include "Interfaces/IHttpRequest.h"
 #include "PrimitiveSceneProxy.h"
 #include <PhysicsEngine/BodyInstance.h>
+#include <Subsystems/EngineSubsystem.h>
 #include <atomic>
 #include <chrono>
 #include <glm/mat4x4.hpp>
@@ -46,6 +47,19 @@ class Tileset;
 class TilesetView;
 class TileOcclusionRendererProxyPool;
 } // namespace Cesium3DTilesSelection
+
+UCLASS()
+class CESIUMRUNTIME_API UCesiumDisableCaptureMovieMode
+    : public UEngineSubsystem {
+  GENERATED_BODY()
+
+public:
+  UCesiumDisableCaptureMovieMode();
+
+  /// Use this to disable the use of updateViewOffline entirely
+  UPROPERTY()
+  bool bToggled = false;
+};
 
 /**
  * The delegate for OnCesium3DTilesetLoadFailure, which is triggered when
@@ -1292,10 +1306,6 @@ public:
    * {@link ICesium3DTilesetLifecycleEventReceiver}, otherwise it will be as if
    * nullptr were passed. */
   void SetLifecycleEventReceiver(UObject* InEventReceiver);
-
-  // AdvViz: Quick hack to avoid using updateViewOffline during movie clip
-  // previewing
-  static bool AllowCaptureMovieMode;
 
 private:
   /**

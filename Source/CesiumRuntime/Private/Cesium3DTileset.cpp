@@ -64,7 +64,7 @@
 
 FCesium3DTilesetLoadFailure OnCesium3DTilesetLoadFailure{};
 
-/*static*/ bool ACesium3DTileset::AllowCaptureMovieMode = true;
+UCesiumDisableCaptureMovieMode::UCesiumDisableCaptureMovieMode() {}
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -594,7 +594,11 @@ void ACesium3DTileset::PlayMovieSequencer() {
   this->_beforeMovieLoadingDescendantLimit = this->LoadingDescendantLimit;
   this->_beforeMovieUseLodTransitions = this->UseLodTransitions;
 
-  this->_captureMovieMode = ACesium3DTileset::AllowCaptureMovieMode;
+  this->_captureMovieMode = true;
+  UCesiumDisableCaptureMovieMode* CaptureMovieGlobalDisabler =
+      GEngine->GetEngineSubsystem<UCesiumDisableCaptureMovieMode>();
+  if (CaptureMovieGlobalDisabler && CaptureMovieGlobalDisabler->bToggled)
+    this->_captureMovieMode = false;
   this->PreloadAncestors = false;
   this->PreloadSiblings = false;
   this->LoadingDescendantLimit = 10000;
