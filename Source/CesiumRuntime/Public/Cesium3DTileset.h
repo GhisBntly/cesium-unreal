@@ -57,7 +57,7 @@ public:
   UCesiumDisableCaptureMovieMode();
 
   /// Use this to disable the use of updateViewOffline entirely
-  UPROPERTY()
+  UPROPERTY(BlueprintReadWrite, Category = "Cesium")
   bool bToggled = false;
 };
 
