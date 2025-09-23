@@ -589,16 +589,19 @@ void ACesium3DTileset::SetTranslucencySortPriority(
 }
 
 void ACesium3DTileset::PlayMovieSequencer() {
+  // see BeginPlay: does it make sense to have several level sequencers?
+  if (this->_captureMovieMode)
+    return;
+  UCesiumDisableCaptureMovieMode* CaptureMovieGlobalDisabler =
+      GEngine->GetEngineSubsystem<UCesiumDisableCaptureMovieMode>();
+  if (CaptureMovieGlobalDisabler && CaptureMovieGlobalDisabler->bToggled)
+    return;
   this->_beforeMoviePreloadAncestors = this->PreloadAncestors;
   this->_beforeMoviePreloadSiblings = this->PreloadSiblings;
   this->_beforeMovieLoadingDescendantLimit = this->LoadingDescendantLimit;
   this->_beforeMovieUseLodTransitions = this->UseLodTransitions;
 
   this->_captureMovieMode = true;
-  UCesiumDisableCaptureMovieMode* CaptureMovieGlobalDisabler =
-      GEngine->GetEngineSubsystem<UCesiumDisableCaptureMovieMode>();
-  if (CaptureMovieGlobalDisabler && CaptureMovieGlobalDisabler->bToggled)
-    this->_captureMovieMode = false;
   this->PreloadAncestors = false;
   this->PreloadSiblings = false;
   this->LoadingDescendantLimit = 10000;
@@ -606,6 +609,8 @@ void ACesium3DTileset::PlayMovieSequencer() {
 }
 
 void ACesium3DTileset::StopMovieSequencer() {
+  if (!this->_captureMovieMode)
+    return;
   this->_captureMovieMode = false;
   this->PreloadAncestors = this->_beforeMoviePreloadAncestors;
   this->PreloadSiblings = this->_beforeMoviePreloadSiblings;
