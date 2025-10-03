@@ -66,8 +66,10 @@ public class CesiumRuntime : ModuleRules
         string libPathRelease = libPathBase + "Release";
 
         bool useDebug = false;
+        string tidyPostfix = "";
         if (Target.Configuration == UnrealTargetConfiguration.Debug)
         {
+            tidyPostfix = "d";
             if (Directory.Exists(libPathDebug))
             {
                 useDebug = true;
@@ -114,7 +116,7 @@ public class CesiumRuntime : ModuleRules
             "s2",
             "spdlog",
             "sqlite3",
-            "tidy_static",
+            "tidy_static" + tidyPostfix,
             "tinyxml2",
             "turbojpeg",
             "zlibstatic-ng",

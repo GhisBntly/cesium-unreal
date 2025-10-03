@@ -66,7 +66,10 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
 # AdvViz: The "../" below is causing policy warnings CMP0177, but it is necessary because we build out of source with symlinks...
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/../Source/ThirdParty)
 # Don't: cmake_path(NORMAL_PATH CMAKE_INSTALL_PREFIX)
-set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-$<IF:$<CONFIG:Debug>,Debug,Release>)
+
+# AdvViz: should be $<IF:$<CONFIG:Debug>,Debug,Release> instead of Release, but I had to disable vcpkg debug builds because of MFC
+# conflicts - er, is this really related? In any case I had to do that when I added back the Debug config in the ITwinForUnreal plugin...
+set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-Release)
 set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include)
 
 # Always define NDEBUG, since Unreal does in debug anyway.
@@ -169,7 +172,8 @@ install(DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/swl-variant/include/" DESTINATION $
 
 if(VCPKG_INSTALLED_DIR AND NOT CESIUM_INSTALL_EXTERNALLY_BUILT_DEPENDENCIES)
     set(CESIUM_VCPKG_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
-    set(CESIUM_VCPKG_LIBDIR "${CESIUM_VCPKG_DIR}/$<IF:$<CONFIG:Debug>,debug/lib,lib>")
+    # AdvViz: should be  "${CESIUM_VCPKG_DIR}/$<IF:$<CONFIG:Debug>,debug/lib,lib>" but I had to disable debug vcpkg builds because of MFC conflicts
+    set(CESIUM_VCPKG_LIBDIR "${CESIUM_VCPKG_DIR}/lib")
 
     message(STATUS "CESIUM_VCPKG_LIBDIR: ${CESIUM_VCPKG_LIBDIR}")
 
