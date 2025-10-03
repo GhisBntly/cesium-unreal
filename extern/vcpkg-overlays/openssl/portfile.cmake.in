@@ -18,7 +18,7 @@ message(STATUS "Using Unreal Engine installation at ${BE_UNREAL_ENGINE_DIR}")
 # Some old versions of UE used to have multiple versions of OpenSSL, with different versions used on different platforms.
 # That is no longer the case in UE 5.3, 5.4, and 5.5, but the below logic may need to change if that ever happens again.
 set(OPENSSL_VERSIONS_DIR "${BE_UNREAL_ENGINE_DIR}/Source/ThirdParty/OpenSSL")
-file(GLOB OPENSSL_POSSIBLE_ROOT_DIRS LIST_DIRECTORIES true "${OPENSSL_VERSIONS_DIR}/*")
+file(GLOB OPENSSL_POSSIBLE_ROOT_DIRS LIST_DIRECTORIES true "${OPENSSL_VERSIONS_DIR}/1.1.*")
 
 # Find the subdirectories, each of which should represent an OpenSSL version.
 set(OPENSSL_VERSION_DIRS "")
