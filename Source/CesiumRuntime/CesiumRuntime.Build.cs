@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 
 public class CesiumRuntime : ModuleRules
 {
@@ -78,8 +79,7 @@ public class CesiumRuntime : ModuleRules
             ? Directory.GetFiles(libPath, libPrefix + "Cesium*" + libExtension) : new string[0];
         if (!Directory.Exists(libPath))
         {
-            throw new InvalidOperationException("Cannot find cesim-native libraries at this path: "
-                + libPath);
+			Logger.LogInformation($"iTwinForUnreal/CesiumRuntime: Cannot find cesium-native libraries (OK when running CMake and CesiumDependencies has not been built yet): {libPath}");
         }
         PublicAdditionalLibraries.AddRange(allCesiumLibs);
         string[] allAbseilLibs = Directory.Exists(libPath) // these too, there are a lot...
