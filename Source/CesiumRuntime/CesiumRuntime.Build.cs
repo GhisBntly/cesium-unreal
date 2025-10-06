@@ -124,7 +124,11 @@ public class CesiumRuntime : ModuleRules
         {
             PublicAdditionalLibraries.Add(Path.Combine(libPath, libPrefix + libName + libExtension));
         }
-
+        // On Linux, cpp-httplib uses getaddrinfo_a, which is in the anl library.
+        if (Target.Platform == UnrealTargetPlatform.Linux)
+        {
+            PublicSystemLibraries.Add("anl");
+        }
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
