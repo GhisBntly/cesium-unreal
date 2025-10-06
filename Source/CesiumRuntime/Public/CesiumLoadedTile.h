@@ -28,6 +28,8 @@ class UCesiumLoadedTile : public UInterface {
 class ICesiumLoadedTile {
   GENERATED_BODY()
 public:
+  /** The native glTF tile. */
+  virtual const Cesium3DTilesSelection::Tile* GetTile() const = 0;
   /** The tile identifier: this is informational only, as there is no
    * guarantee of uniqueness */
   virtual const Cesium3DTilesSelection::TileID& GetTileID() const = 0;

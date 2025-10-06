@@ -3634,6 +3634,10 @@ const Cesium3DTilesSelection::TileID& UCesiumGltfComponent::GetTileID() const {
   return pTile->getTileID();
 }
 
+const Cesium3DTilesSelection::Tile* UCesiumGltfComponent::GetTile() const {
+  return pTile;
+}
+
 ACesium3DTileset& UCesiumGltfComponent::GetTilesetActor() {
   return *Cast<ACesium3DTileset>(GetOuter());
 }
