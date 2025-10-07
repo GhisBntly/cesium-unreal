@@ -3,6 +3,7 @@
 #pragma once
 
 #include "PrimitiveSceneProxy.h"
+#include "StaticMeshResources.h"
 
 class UCesiumGltfLinesComponent;
 
