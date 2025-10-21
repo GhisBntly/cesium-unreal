@@ -66,7 +66,7 @@ public class CesiumRuntime : ModuleRules
         string libPathRelease = libPathBase + "Release";
 
         bool useDebug = false;
-        if (Target.Configuration == UnrealTargetConfiguration.Debug || Target.Configuration == UnrealTargetConfiguration.DebugGame)
+        if (Target.Configuration == UnrealTargetConfiguration.Debug)
         {
             if (Directory.Exists(libPathDebug))
             {
