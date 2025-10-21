@@ -9,6 +9,7 @@
 
 #include "CesiumTestHelpers.h"
 #include "Editor.h"
+#include "Engine/LocalPlayer.h"
 #include "Settings/LevelEditorPlaySettings.h"
 #include "Tests/AutomationCommon.h"
 #include "Tests/AutomationEditorCommon.h"
