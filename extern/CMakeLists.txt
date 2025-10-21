@@ -63,7 +63,9 @@ endif()
 set(PRIVATE_CESIUM_SQLITE ON)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
+# AdvViz: The "../" below is causing policy warnings CMP0177, but it is necessary because we build out of source with symlinks...
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/../Source/ThirdParty)
+# Don't: cmake_path(NORMAL_PATH CMAKE_INSTALL_PREFIX)
 set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-$<IF:$<CONFIG:Debug>,Debug,Release>)
 set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include)
 
@@ -121,25 +123,15 @@ set(CESIUM_EXCLUDE_INSTALL_STATIC_LIBS openssl)
 set(CESIUM_DISABLE_CURL TRUE)
 
 if(CESIUM_UNREAL_NATIVE_DIRECTORY)
-  # These packages are used in the public headers of Cesium libraries, so we need to distribute the headers and binaries
-  # with the installation
-  # Note that fmt is a public dependency of the vcpkg version of spdlog
-  # STB and uriparser aren't technically part of the public interface, but they're used by the downstream Cesium for Unreal project
-  set(PACKAGES_PUBLIC asyncplusplus expected-lite fmt glm rapidjson spdlog stb uriparser)
-  # These packages are used in the code and produce binaries, but are not part of the public interface.  Therefore we need
-  # to distribute the binaries for linking, but not the headers, as downstream consumers don't need them
-  # OpenSSL and abseil are both dependencies of s2geometry
-  set(PACKAGES_PRIVATE
-    abseil draco ktx modp-base64 meshoptimizer openssl s2geometry
-    libjpeg-turbo sqlite3 tinyxml2 libwebp zlib-ng picosha2
-    earcut-hpp cpp-httplib[core] libmorton zstd
+  # STB isn't technically part of the public interface, but it's used by the downstream Cesium for Unreal project
+  set(CESIUM_PACKAGES_PUBLIC stb)
+  set(CESIUM_PACKAGES_PRIVATE
+    # AdvViz: added this one because our vcpkg seems to ignore the '"default-features": false' set on cpp-httplib in both
+	# cesium-unreal's overlay port for cesium-native, and cesium-native's own vcpkg.json, probably because of the version
+	# override in Carrot.git's root vcpkg.json :/ (manifest mode still somewhat buggy...)
+    brotli
   )
-  # Packages only used for testing
-  set(PACKAGES_TEST catch2)
-
-  set(PACKAGES_ALL ${PACKAGES_PUBLIC})
-  list(APPEND PACKAGES_ALL ${PACKAGES_PRIVATE})
-  list(APPEND PACKAGES_ALL ${PACKAGES_TEST})
+  set(CESIUM_PACKAGES_TEST catch2)
   set(CESIUM_INSTALL_EXTERNALLY_BUILT_DEPENDENCIES ON)
   add_subdirectory("${CESIUM_UNREAL_NATIVE_DIRECTORY}" cesium-native)
   # Don't build the cesium-native tests by default, unless explicitly required
