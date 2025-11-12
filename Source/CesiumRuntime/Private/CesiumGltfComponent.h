@@ -90,7 +90,8 @@ public:
       UMaterialInterface* BaseWaterMaterial,
       FCustomDepthParameters CustomDepthParameters,
       Cesium3DTilesSelection::Tile& tile,
-      bool createNavCollision);
+      bool createNavCollision,
+      bool doubleSidedCollisions);
 
   UCesiumGltfComponent();
 
