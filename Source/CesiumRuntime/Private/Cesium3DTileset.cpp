@@ -11,8 +11,8 @@
 #include "Cesium3DTilesSelection/TilesetLoadFailureDetails.h"
 #include "Cesium3DTilesSelection/TilesetOptions.h"
 #include "Cesium3DTilesSelection/TilesetSharedAssetSystem.h"
-#include "Cesium3DTilesetLoadFailureDetails.h"
 #include "Cesium3DTilesetLifecycleEventReceiver.h"
+#include "Cesium3DTilesetLoadFailureDetails.h"
 #include "Cesium3DTilesetRoot.h"
 #include "CesiumActors.h"
 #include "CesiumAsync/SharedAssetDepot.h"
@@ -89,23 +89,32 @@ ACesium3DTileset::ACesium3DTileset()
       _pStateDebug(nullptr),
 #endif
 
+      _featuresMetadataDescription(),
+      _metadataDescription_DEPRECATED(),
+
       _lastTilesRendered(0),
       _lastWorkerThreadTileLoadQueueLength(0),
       _lastMainThreadTileLoadQueueLength(0),
 
       _lastTilesVisited(0),
+      _lastCulledTilesVisited(0),
       _lastTilesCulled(0),
       _lastTilesOccluded(0),
       _lastTilesWaitingForOcclusionResults(0),
       _lastMaxDepthVisited(0),
 
-      _captureMovieMode{false},
-      _beforeMoviePreloadAncestors{PreloadAncestors},
-      _beforeMoviePreloadSiblings{PreloadSiblings},
-      _beforeMovieLoadingDescendantLimit{LoadingDescendantLimit},
-      _beforeMovieUseLodTransitions{true},
+      _captureMovieMode(false),
+      _beforeMoviePreloadAncestors(PreloadAncestors),
+      _beforeMoviePreloadSiblings(PreloadSiblings),
+      _beforeMovieLoadingDescendantLimit(LoadingDescendantLimit),
+      _beforeMovieUseLodTransitions(true),
 
-      _tilesetsBeingDestroyed(0) {
+      _scaleUsingDPI(false),
+      _tilesToHideNextFrame(),
+
+      _tilesetsBeingDestroyed(0),
+      _pGltfModifier(nullptr),
+      _pLifecycleEventReceiver(nullptr) {
   PrimaryActorTick.bCanEverTick = true;
   PrimaryActorTick.TickGroup = ETickingGroup::TG_PostUpdateWork;
 
@@ -499,9 +508,9 @@ void ACesium3DTileset::SetCreatePhysicsMeshes(bool bCreatePhysicsMeshes) {
   }
 }
 
-void ACesium3DTileset::SetDoubleSidedCollisions(bool bDoubleSidedCollisions) {
-  if (this->DoubleSidedCollisions != bDoubleSidedCollisions) {
-    this->DoubleSidedCollisions = bDoubleSidedCollisions;
+void ACesium3DTileset::SetEnableDoubleSidedCollisions(bool bEnableDoubleSidedCollisions) {
+  if (this->EnableDoubleSidedCollisions != bEnableDoubleSidedCollisions) {
+    this->EnableDoubleSidedCollisions = bEnableDoubleSidedCollisions;
     this->DestroyTileset();
   }
 }
@@ -1020,9 +1029,8 @@ void ACesium3DTileset::LoadTileset() {
        this->EnableOcclusionCulling && this->BoundingVolumePoolComponent)
           ? this->BoundingVolumePoolComponent->getPool()
           : nullptr,
-      {},
-      _gltfModifier
-  };
+      Cesium3DTilesSelection::TilesetSharedAssetSystem::getDefault(),
+      this->_pGltfModifier};
 
   this->_startTime = std::chrono::high_resolution_clock::now();
 
@@ -2373,20 +2381,28 @@ void ACesium3DTileset::RuntimeSettingsChanged(
 }
 #endif
 
+const std::shared_ptr<Cesium3DTilesSelection::GltfModifier>&
+ACesium3DTileset::GetGltfModifier() const {
+  return this->_pGltfModifier;
+}
+
+void ACesium3DTileset::SetGltfModifier(
+    const std::shared_ptr<Cesium3DTilesSelection::GltfModifier>& Modifier) {
+  if (Modifier != this->_pGltfModifier) {
+    this->_pGltfModifier = Modifier;
+    this->RefreshTileset();
+  }
+}
+
 ICesium3DTilesetLifecycleEventReceiver*
 ACesium3DTileset::GetLifecycleEventReceiver() {
   return Cast<ICesium3DTilesetLifecycleEventReceiver>(
       this->_pLifecycleEventReceiver);
 }
 
-void ACesium3DTileset::SetLifecycleEventReceiver(UObject* InEventReceiver) {
+void ACesium3DTileset::SetLifecycleEventReceiver(UObject* EventReceiver) {
   if (UKismetSystemLibrary::DoesImplementInterface(
-          InEventReceiver,
+          EventReceiver,
           UCesium3DTilesetLifecycleEventReceiver::StaticClass()))
-    this->_pLifecycleEventReceiver = InEventReceiver;
-}
-
-void ACesium3DTileset::SetGltfModifier(
-    const std::shared_ptr<Cesium3DTilesSelection::GltfModifier>& InModifier) {
-  _gltfModifier = InModifier;
+    this->_pLifecycleEventReceiver = EventReceiver;
 }
